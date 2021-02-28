@@ -4,7 +4,8 @@
 Code is finished and will be published here asap.
 
 ### - Info
-The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho). For a full list, see https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot/blob/main/commands_list
+The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho). 
+#### For a full list, see https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot/blob/main/commands_list
 It emerged from the problem of UB having a balance ceiling and no automated role-income increasing to user's balances.
 
 ### - Goal
@@ -17,8 +18,7 @@ You can use and adjust the code as you want so it fits your needs.
 3. Download the code, structured as in this repo.
 4. Open the `main.py` file, line 40 and change the **token** to the one of your created bot.
 5. In `main.py`, go to line 88 and put a channel ID of the server you want to use the bot in. (Activate Developer Mode Discord to copy channel IDs). This channel will be used to send information about the bot status.
-7. In the `database/database.json` file:
-* scroll down to the symbols part and put a *custom emoji name* in the "symbol_emoji" variable. - for example if you have a bitcoin emoji called "btc". It must be an emoji you uploaded to the server, not a discord-wide one.
-8. Invite the bot to your server as shown in https://youtu.be/b61kcgfOm_4
-9. Launch main.py with **python3**.
+6. In the `database/database.json` file: scroll down to the symbols part and put a *custom emoji name* in the "symbol_emoji" variable. - for example if you have a bitcoin emoji called "btc". It must be an emoji you uploaded to the server, not a discord-wide one.
+7. Invite the bot to your server as shown in https://youtu.be/b61kcgfOm_4
+8. Launch main.py with **python3**.
 You should be good to go!
