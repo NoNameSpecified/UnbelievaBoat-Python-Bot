@@ -1,1 +1,46 @@
-# empty for now
+List of commands available for the Unbelievaboat-like discord bot in python.
+Link : https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot, to use the bot follow instructions in readme.md
+Here I use the prefix "+" but you can change it whatever you want.
+
+1. Mini-Games
+  Blackjack: +blackjack <bet>
+  Roulette: +roulette <bet> <space>
+
+2. Balance & Money
+  Check Balance: +balance
+  Deposit money: +deposit <amount or all>
+  Withdraw money. +withdraw <amount or all>
+  Give money: +give <@member> <amount or all>
+  Server Leaderboard: +leaderboard [page] [-cash | -bank | -total]
+
+2.1 Staff Commands for economy:
+  +add-money <@member> <amount>
+  +remove-money <member> <amount>
+
+3. Income Commands
+  +slut
+  +crime
+  +work
+  +rob
+
+4. Implemented Customization
+  Get module (income commands) info. Use this info to edit the values:
+    +module <module>
+  Change module settings (income commands settings such as delay, minimum win amount etc):
+    +change <module> <variable> <new value>
+  Change the custom currency emoji. It has to be an emoji you uploaded to the server, not a discord-wide one:
+    +change-currency <new emoji name>
+
+5. Items
+  +create-item (botmaster required)
+  +delete-item <item name> (botmaster required)
+  +buy-item <item name> <amount>
+  +inventory
+  +catalog (list-items)
+
+6. Income Roles. Whoever has the role will get income
+  +add-income-role <role pinged> <income> (botmaster required)
+  +remove-income-role <role pinged> (botmaster required)
+  +list-roles
+  +update-income (botmaster required. This HAS TO BE USED to pay users who have the role.
+                  It can be used once a week for example, or whenever you want.)
