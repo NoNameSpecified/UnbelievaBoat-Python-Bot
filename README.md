@@ -5,7 +5,7 @@ Code is finished and will be published here asap.
 
 ### - Info
 The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho). 
-#### For a full list, see https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot/blob/main/commands_list
+#### For a full list, see `src/command_list.txt`.
 It emerged from the problem of UB having a balance ceiling and no automated role-income increasing to user's balances.
 
 ### - Goal
