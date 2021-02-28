@@ -22,5 +22,6 @@ You can use and adjust the code as you want so it fits your needs.
 7. Invite the bot to your server as shown in https://youtu.be/b61kcgfOm_4
 8. Install python3 if you dont have it
 9. Install the Discord Api for python3 using pip (`pip install dicord.py`)
-10. Launch main.py with **python3**.
+10. In your server, create a role named "botmaster" and give it to people who should be bot admins.
+11. Launch main.py with **python3**.
 You should be good to go!
