@@ -37,7 +37,7 @@ from time import sleep
 
 # init discord stuff and json handling
 BOT_PREFIX = ("+")  # tupple in case we'd need multiple
-token = "NzkzMTEzNzM2NjEyNjc1NjI1.X-niug.EzRGETvfnvFGFu8Qe6kO1O2Mf40"  # add your own token
+token = "putyourtokenhere"  # add your own token
 # emojis
 emoji_worked = "✅"
 emoji_error = "❌"
