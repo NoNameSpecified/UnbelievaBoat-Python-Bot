@@ -20,5 +20,7 @@ You can use and adjust the code as you want so it fits your needs.
 5. In `main.py`, go to line 88 and put a channel ID of the server you want to use the bot in. (Activate Developer Mode Discord to copy channel IDs). This channel will be used to send information about the bot status.
 6. In the `database/database.json` file: scroll down to the symbols part and put a *custom emoji name* in the "symbol_emoji" variable. - for example if you have a bitcoin emoji called "btc". It must be an emoji you uploaded to the server, not a discord-wide one.
 7. Invite the bot to your server as shown in https://youtu.be/b61kcgfOm_4
-8. Launch main.py with **python3**.
+8. Install python3 if you dont have it
+9. Install the Discord Api for python3 using pip (`pip install dicord.py`)
+10. Launch main.py with **python3**.
 You should be good to go!
