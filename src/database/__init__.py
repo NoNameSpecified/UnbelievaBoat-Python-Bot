@@ -10,7 +10,7 @@ from game_libs.roulette import roulette_discord_implementation
 
 """
 	
-	the database handler of the sacrecium discord bot
+	the database handler of the unbelievaboat-python discord bot
 	// is imported by ../main.py
 
 """
