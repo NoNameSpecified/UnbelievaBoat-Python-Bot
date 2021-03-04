@@ -16,7 +16,7 @@ from game_libs.roulette import roulette_discord_implementation
 """
 
 
-class sacrecium_database_handler:
+class pythonboat_database_handler:
 	# always called when imported in main.py
 	def __init__(self, client):
 		# we do the path from the main.py file, so we go into the db folder, then select
