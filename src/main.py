@@ -44,7 +44,7 @@ emoji_error = "❌"
 discord_error_rgb_code = discord.Color.from_rgb(239, 83, 80)
 intents = discord.Intents.all()
 client = Bot(command_prefix=BOT_PREFIX, intents=intents)  # init bot
-db_handler = sacrecium_database_handler(client)  # ("database.json")
+db_handler = pythonboat_database_handler(client)  # ("database.json")
 
 
 """
@@ -104,8 +104,8 @@ async def on_ready():
 										# f"`Error` code : {error_info}`\n" # -- Possibly to add
 										  f" Please contact an admin or delete the JSON database, but do a backup before -\n"
 										  f"this will result in re-creating the default config but will also **delete all user data**\n\n", color=color)
-		embed.set_author(name="Sacrecium Bot", icon_url="https://blog.learningtree.com/wp-content/uploads/2017/01/error-handling.jpg")
-		embed.set_footer(text="tip: default config at https://github.com/NoNameSpecified/sacrecium-bot")
+		embed.set_author(name="UnbelievaBoat-Python Bot", icon_url="https://blog.learningtree.com/wp-content/uploads/2017/01/error-handling.jpg")
+		embed.set_footer(text="tip: default config at https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot")
 		# await channel.send(embed=embed)
 		quit()
 
