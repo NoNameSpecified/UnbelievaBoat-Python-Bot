@@ -31,7 +31,7 @@ import discord
 import random
 from discord.ext.commands import Bot
 # custom database handler
-from database import *
+import database
 from time import sleep
 
 
@@ -44,7 +44,7 @@ emoji_error = "❌"
 discord_error_rgb_code = discord.Color.from_rgb(239, 83, 80)
 intents = discord.Intents.all()
 client = Bot(command_prefix=BOT_PREFIX, intents=intents)  # init bot
-db_handler = pythonboat_database_handler(client)  # ("database.json")
+db_handler = database.pythonboat_database_handler(client)  # ("database.json")
 
 
 """
