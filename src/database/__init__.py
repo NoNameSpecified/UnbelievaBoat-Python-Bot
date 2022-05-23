@@ -1006,7 +1006,7 @@ class pythonboat_database_handler:
 			return "error", f"Module not found. Possibilites : {possible}"
 
 		if module in ["symbols", "currency_symbol"]:
-			info_output = f"""Symbol:\nname: {json_content['symbols'][0]['name']}, value: emoji "{json_content['symbols'][0]['symbol_emoji']}" """
+			info_output = f"""Symbol:\nname: {json_content['symbols'][0]['name']}, value: emoji \"{json_content['symbols'][0]['symbol_emoji']}" """
 		else:
 			module_index = self.variable_dict[module]
 			info_output = f"Module: **{module}** info:\nOutput as : <variable name> ; <value>\n```"
