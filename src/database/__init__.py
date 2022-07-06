@@ -1290,31 +1290,9 @@ class pythonboat_database_handler:
 			print(e)
 			return "error", f"Unexpected error."
 
-		# 2. check give roles
-		try:
-			if rem_roles == "none":
-				pass
-			else:
-				for i in range( len(rem_roles) ):
-					role = discord.utils.get(server_object.roles, id=int(rem_roles[i]))
-					print(role)
-					await user_object.remove_roles(role)
-		except Exception as e:
-			print(e)
-			return "error", f"Unexpected error."
-
-		# 3. check rem roles
-		try:
-			if req_roles == "none":
-				pass
-			else:
-				for i in range( len(give_roles) ):
-					role = discord.utils.get(server_object.roles, id=int(give_roles[i]))
-					print(role)
-					await user_object.add_roles(role)
-		except Exception as e:
-			print(e)
-			return "error", f"Unexpected error."
+		### BEFORE update, "check rem roles" and "check give roles" was located here. it seems that 
+		### the intended usage i had back then was to do that stuff once the item is bought. 
+		### thus this is now located below, after checking balance etc.
 
 		# 4. check if enough money
 		sum_price = item_price * amount
@@ -1346,6 +1324,32 @@ class pythonboat_database_handler:
 			user_content["items"] = [[item_name, amount]]
 		else:
 			user_content["items"].append([item_name, amount])
+			
+		# 2. check give roles
+		try:
+			if rem_roles == "none":
+				pass
+			else:
+				for i in range( len(rem_roles) ):
+					role = discord.utils.get(server_object.roles, id=int(rem_roles[i]))
+					print(role)
+					await user_object.remove_roles(role)
+		except Exception as e:
+			print(e)
+			return "error", f"Unexpected error."
+
+		# 3. check rem roles
+		try:
+			if req_roles == "none":
+				pass
+			else:
+				for i in range( len(give_roles) ):
+					role = discord.utils.get(server_object.roles, id=int(give_roles[i]))
+					print(role)
+					await user_object.add_roles(role)
+		except Exception as e:
+			print(e)
+			return "error", f"Unexpected error."
 
 		color = self.discord_blue_rgb_code
 		embed = discord.Embed(description=f"You have bought {amount} {item_name} and paid {str(self.currency_symbol)} **{'{:,}'.format(int(sum_price))}**", color=color)
