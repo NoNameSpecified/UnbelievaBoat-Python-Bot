@@ -5,10 +5,10 @@
             "cash": 100.0,
             "bank": 100.0,
             "items": "none",
-            "last_slut": "2021-01-01 00:00:00",
-            "last_work": "2021-01-01 00:00:00",
-            "last_crime": "2021-01-01 00:00:00",
-            "last_rob": "2021-01-01 00:00:00"
+            "last_slut": "2021-01-01 00:00:00.0",
+            "last_work": "2021-01-01 00:00:00.0",
+            "last_crime": "2021-01-01 00:00:00.0",
+            "last_rob": "2021-01-01 00:00:00.0"
         }
     ],
     "variables": [
@@ -75,7 +75,7 @@
     "symbols": [
         {
             "name": "currency_symbol",
-            "symbol_emoji": "my_currency_emoji_name"
+            "symbol_emoji": "my_currency_emoji_clear_name_only"
         }
     ],
     "items": [],
