@@ -158,7 +158,7 @@ async def on_message(message):
 	server = message.guild
 	user = message.author.id
 	user_mention = message.author.mention
-	user_pfp = message.author.avatar_url
+	user_pfp = message.author.avatar
 	username = str(message.author)
 	nickname = str(message.author.display_name)
 	user_roles = [randomvar.name.lower() for randomvar in message.author.roles]
@@ -436,7 +436,7 @@ async def on_message(message):
 				user_fetch = client.get_user(int(userbal_to_check))
 				print("hello ?")
 				username_to_check = user_fetch
-				userpfp_to_check = user_fetch.avatar_url
+				userpfp_to_check = user_fetch.avatar
 			except:
 				# we didnt find him
 				color = discord_error_rgb_code
