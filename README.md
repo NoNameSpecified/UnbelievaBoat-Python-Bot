@@ -1,7 +1,8 @@
 # **UnbelievaBoat-like Discord Bot in python**
 ### For questions about the bot and how to set it up: ask me on Discord at *<Kendrik 2.0#7373>*
 
-Code is finished and will be published here asap.
+Code is finished, so there won't be any big updates anymore.
+But please report any problems to me via Discord !
 
 ### - Info
 The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho). 
@@ -9,8 +10,8 @@ The Bot uses most of UnbelievaBoat's commands for minigames and economy (not mod
 It emerged from the problem of UB having a balance ceiling and no automated role-income increasing to user's balances.
 
 ### - Goal
-The goal was to make a easily customizable Template of a discord bot, also fixing the issues stated above.
-You can use and adjust the code as you want so it fits your needs.
+The goal was to make an easily customizable Template of a discord bot, also fixing the issues stated above.
+Another goal is to have the bot written in python so that it's easy to edit for every user. You can adjust the code so it fits exactly what you need.
 
 ### - Install & Use
 1. Create a Discord Application for your bot (see https://youtu.be/b61kcgfOm_4, https://discord.com/developers/applications)
