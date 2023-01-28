@@ -158,7 +158,7 @@ async def on_message(message):
 	server = message.guild
 	user = message.author.id
 	user_mention = message.author.mention
-	user_pfp = message.author.avatar
+	user_pfp = message.author.avatar_url
 	username = str(message.author)
 	nickname = str(message.author.display_name)
 	user_roles = [randomvar.name.lower() for randomvar in message.author.roles]
