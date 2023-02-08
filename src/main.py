@@ -1183,7 +1183,9 @@ async def on_message(message):
 						continue
 				except:
 					if user_input == "skip":
-						duration = "none"
+						#duration = "none"
+						duration = 993 # the problem is that database.py always wants an int to calculate an expiration date.
+						               # so ill just put it to 993 days for now, maybe ill add a real fix later
 					else:
 						await channel.send(f"{emoji_error}  Invalid time duration given. Please try again or type cancel to exit.")
 						continue
