@@ -1579,10 +1579,19 @@ async def on_message(message):
 		else:  # if len() == 21:
 			flex_start = 2
 		income_role = "".join(list(income_role_raw[flex_start:-1]))  # gives us only ID
+		income_role_try = "".join(list(income_role_raw[flex_start:-2]))  # gives us only ID in the case that role is given as @&
+		                                                                 # and not just @ (= 2 chars to remove)
 
 		try:
 			role = discord.utils.get(server.roles, id=int(income_role))
 		except Exception as e:
+			print(f"{e}, but we'll try again.")
+			try:
+				role = discord.utils.get(server.roles, id=int(income_role_try))
+			except Exception as e:
+				print(e)
+				await channel.send(f"{emoji_error}  Invalid role given, (second check not passed either). Please try again.")
+				return
 			print(e)
 			await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
 			return
