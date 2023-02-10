@@ -1586,14 +1586,12 @@ async def on_message(message):
 			role = discord.utils.get(server.roles, id=int(income_role))
 		except Exception as e:
 			print(f"{e}, but we'll try again.")
-			try:
-				role = discord.utils.get(server.roles, id=int(income_role_try))
-			except Exception as e:
-				print(e)
-				await channel.send(f"{emoji_error}  Invalid role given, (second check not passed either). Please try again.")
-				return
+			
+		try:
+			role = discord.utils.get(server.roles, id=int(income_role_try))
+		except Exception as e:
 			print(e)
-			await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
+			await channel.send(f"{emoji_error}  Invalid role given, (second check not passed either). Please try again.")
 			return
 
 		# check amount
