@@ -15,7 +15,7 @@ Another goal is to have the bot written in python so that it's easy to edit for 
 
 ### - Install & Use
 1. Create a Discord Application for your bot (see https://youtu.be/b61kcgfOm_4, https://discord.com/developers/applications)
-2. In the Discord Dev Portal, in the "Bot" tab of your application, **enable presence intent and server members intent**.
+2. In the Discord Dev Portal, in the "Bot" tab of your application, **enable presence intent, server members intent, message content intent**.
 3. Download the code, structured as in this repo.
 4. Open the `main.py` file, line 40 and change the **token** to the one of your created bot.
 5. If you want log info : In `main.py`, go to line 88 and put a channel ID of the server you want to use the bot in. (Activate Developer Mode Discord to copy channel IDs). This channel will be used to send information about the bot status. Also uncomment line 88, 93, 94, 100 and 109
