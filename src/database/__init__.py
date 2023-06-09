@@ -4,12 +4,12 @@ from datetime import timedelta
 
 # custom blackjack game thing
 from game_libs.blackjack import blackjack_discord_implementation
-# cusatom roulette game thing
+# custom roulette game thing
 from game_libs.roulette import roulette_discord_implementation
 
 
 """
-	
+
 	the database handler of the unbelievaboat-python discord bot
 	// is imported by ../main.py
 
@@ -42,20 +42,20 @@ class pythonboat_database_handler:
 			# adding default json config into the file if creating new
 			# all the users will get created automatically in the function self.find_index_in_db()
 			# but for the different jobs etc the program needs configs for variables and symbols
-			creating_file.write("""{\n\t"userdata": [], 
+			creating_file.write("""{\n\t"userdata": [],
 										"variables":[
 											{"name":"slut","delay":15,"min_revenue":50,"max_revenue":400,"proba":50,"win_phrases":["You made","Your dad likes it so much he gives you"],"lose_phrases":["You were fined","Your uncle didn't like the encounter. You pay"],"min_lose_amount_percentage":2,"max_lose_amount_percentage":5},
 											{"name":"crime","delay":60,"min_revenue":100,"max_revenue":1200,"proba":30,"win_phrases":["You commited a crime and got","You robbed a bank and got"],"lose_phrases":["You were fined","MacGyver finds you, you pay"],"min_lose_amount_percentage":10,"max_lose_amount_percentage":20},
 											{"name":"work","delay":10,"min_revenue":50,"max_revenue":200,"win_phrases":["You worked at SubWay and made","You helped someone do his homework and got"]},
-											{"name":"rob","delay":45,"proba":50,"min_gain_amount_percentage":10,"max_gain_amount_percentage":20,"min_lose_amount_percentage":10,"max_lose_amount_percentage":20,"win_phrases":["You robbed and got"],"lose_phrases":["You were caught robbing and have to pay"]}], 
+											{"name":"rob","delay":45,"proba":50,"min_gain_amount_percentage":10,"max_gain_amount_percentage":20,"min_lose_amount_percentage":10,"max_lose_amount_percentage":20,"win_phrases":["You robbed and got"],"lose_phrases":["You were caught robbing and have to pay"]}],
 										"symbols": [
-											{"name":"currency_symbol","symbol_emoji":":dollar:"}				
+											{"name":"currency_symbol","symbol_emoji":":dollar:"}
 										],
 										"items": [
-											{}				
+											{}
 										],
 										"income_roles": [
-											{}				
+											{}
 										]
 										\n}""")
 			creating_file.close()
@@ -88,7 +88,7 @@ class pythonboat_database_handler:
 		temp_json_opening = open(self.pathToJson, "r")
 		temp_json_content = json.load(temp_json_opening)
 		"""
-		possibly to add : 
+		possibly to add :
 			improve the error system, raising specific errors with a "error_info"
 			for example : "userdata missing", or "slut missing", or even "slut min_revenue missing"
 		"""
@@ -1290,8 +1290,8 @@ class pythonboat_database_handler:
 			print(e)
 			return "error", f"Unexpected error."
 
-		### BEFORE update, "check rem roles" and "check give roles" was located here. it seems that 
-		### the intended usage i had back then was to do that stuff once the item is bought. 
+		### BEFORE update, "check rem roles" and "check give roles" was located here. it seems that
+		### the intended usage i had back then was to do that stuff once the item is bought.
 		### thus this is now located below, after checking balance etc.
 
 		# 4. check if enough money
@@ -1324,7 +1324,7 @@ class pythonboat_database_handler:
 			user_content["items"] = [[item_name, amount]]
 		else:
 			user_content["items"].append([item_name, amount])
-			
+
 		# 2. check give roles
 		try:
 			if rem_roles == "none":
@@ -1424,24 +1424,46 @@ class pythonboat_database_handler:
 
 				req_roles = ""
 				for ii in range( len(items[item_index]["required_roles"]) ):
-					role = discord.utils.get(server_object.roles, id=int(items[item_index]["required_roles"][ii]))
-					req_roles += f"@{str(role)} "
+					try:
+							if items[item_index]["required_roles"] == "none":
+								req_roles += "none"
+							else:
+								raise Exception("got role")
+					except:
+						role = discord.utils.get(server_object.roles, id=int(items[item_index]["required_roles"][ii]))
+						req_roles += f"@{str(role)} "
 
 				give_roles = ""
 				for iii in range(len(items[item_index]["given_roles"])):
-					role = discord.utils.get(server_object.roles, id=int(items[item_index]["given_roles"][iii]))
-					give_roles += f"@{str(role)} "
+					try:
+							if items[item_index]["given_roles"] == "none":
+								req_roles += "none"
+							else:
+								raise Exception("got role")
+					except:
+						role = discord.utils.get(server_object.roles, id=int(items[item_index]["given_roles"][iii]))
+						give_roles += f"@{str(role)} "
 
 				rem_roles = ""
 				for iiii in range(len(items[item_index]["removed_roles"])):
-					role = discord.utils.get(server_object.roles, id=int(items[item_index]["removed_roles"][iiii]))
-					rem_roles += f"@{str(role)} "
+					try:
+							if items[item_index]["removed_roles"] == "none":
+								req_roles += "none"
+							else:
+								raise Exception("got role")
+					except:
+						role = discord.utils.get(server_object.roles, id=int(items[item_index]["removed_roles"][iiii]))
+						rem_roles += f"@{str(role)} "
 
+				if int(str(datetime.strptime(items[item_index]['expiration_date'], '%Y-%m-%d %H:%M:%S.%f'))[:4]) >= 2100:
+					left_time = "never"
+				else:
+					left_time = str(items[item_index]['expiration_date'])[:10]
 
 				catalog_report += f"Item name: \"{items[item_index]['name']}\"\n" \
 								  f"Item price: {items[item_index]['price']}\n" \
 								  f"Item description: \"{items[item_index]['description']}\"\n" \
-								  f"Remaining time: item expires on the {str(items[item_index]['expiration_date'])[:10]}\n" \
+								  f"Remaining time: item expires {left_time}\n" \
 								  f"Amount remaining: {items[item_index]['amount_in_stock']} in stock\n" \
 								  f"Maximum balance to purchase: {self.currency_symbol} {items[item_index]['maximum_balance']}\n" \
 								  f"Required roles: {req_roles}\n" \
