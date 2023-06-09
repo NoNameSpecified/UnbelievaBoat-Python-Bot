@@ -37,7 +37,7 @@ from time import sleep
 
 # init discord stuff and json handling
 BOT_PREFIX = ("+")  # tupple in case we'd need multiple
-token = "put_your_token_here"  # add your own token
+token = "putyourtokenhere" # add your own token
 # emojis
 emoji_worked = "✅"
 emoji_error = "❌"
@@ -1683,8 +1683,10 @@ async def on_message(message):
 		income_role = ""
 		if len(income_role_raw) == 22:
 			flex_start = 3
-		else:  # if len() == 21:
+		elif len(income_role_raw) == 21:
 			flex_start = 2
+		elif len(income_role_raw) == 23:
+			flex_start = 4
 		income_role = "".join(list(income_role_raw[flex_start:-1]))  # gives us only ID
 
 		try:
