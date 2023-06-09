@@ -37,7 +37,7 @@ from time import sleep
 
 # init discord stuff and json handling
 BOT_PREFIX = ("+")  # tupple in case we'd need multiple
-token = "putyourtokenhere"  # add your own token
+token = "put_your_token_here"  # add your own token
 # emojis
 emoji_worked = "✅"
 emoji_error = "❌"
@@ -83,7 +83,7 @@ async def send_error(channel):
 # ~~~ set custom status ~~~
 @client.event
 async def on_ready():
-	activity = discord.Game(name="I am a bot.")
+	activity = discord.Game(name=f"My default prefix is {BOT_PREFIX}!")
 	await client.change_presence(status=discord.Status.online, activity=activity)
 	# log_channel = 807057317396217947 # in your server, select a channel you want log info to be sent to
 									# rightclick and copy id. put the id here. it should look like this : 807057317396217947
@@ -136,7 +136,7 @@ async def on_message(message):
 	if command[0] in ["", " "]: return 0;
 
 	"""
-	basically, if the command is : 
+	basically, if the command is :
 		+give money blabla
 		we take what is after the prefix and before everything else, to just get the command
 		in this case : "give"
@@ -147,6 +147,26 @@ async def on_message(message):
 
 	param_index = 1
 	param = ["none", "none", "none", "none"]
+	command_updated = []
+	# lets say our command says "remove-item <your mom>"
+
+	try:
+		for test_cmd in range(len(command)):
+			if command[test_cmd].startswith('"') or command[test_cmd].startswith("'"):
+				new_slide = ""
+				temp_cmd = test_cmd
+				while not(command[temp_cmd].endswith('"') or command[temp_cmd].endswith("'")):
+					new_slide += command[temp_cmd] + " "
+					temp_cmd += 1
+				new_slide += command[temp_cmd]
+				command_updated.append(new_slide[1:len(new_slide)-1])
+				break
+			else:
+				command_updated.append(command[test_cmd])
+	except:
+			await message.channel.send("Error. You maybe opened a single/doublequote or a < and didnt close it")
+	command = command_updated
+	print(command)
 	for param_index in range(len(command)):
 		param[param_index] = command[param_index]
 	print(f"Command called with parameters : {param}")
@@ -158,7 +178,7 @@ async def on_message(message):
 	server = message.guild
 	user = message.author.id
 	user_mention = message.author.mention
-	user_pfp = message.author.avatar_url
+	user_pfp = message.author.avatar.url
 	username = str(message.author)
 	nickname = str(message.author.display_name)
 	user_roles = [randomvar.name.lower() for randomvar in message.author.roles]
@@ -175,7 +195,7 @@ async def on_message(message):
 	"""
 
 	"""
-	
+
 	possible improvements : everything in int, not float
 							all displayed numbers with "," as thousands operator
 							people can enter amounts with thousands operator
@@ -1184,8 +1204,9 @@ async def on_message(message):
 				except:
 					if user_input == "skip":
 						#duration = "none"
-						duration = 993 # the problem is that database.py always wants an int to calculate an expiration date.
-						               # so ill just put it to 993 days for now, maybe ill add a real fix later
+						duration = 99999 # the problem is that database.py always wants an int to calculate an expiration date.
+									   # so ill just put it to 993 days for now, maybe ill add a real fix later
+									   # edit: now changed to 99999 which should be enough, will show as "unlimited"
 					else:
 						await channel.send(f"{emoji_error}  Invalid time duration given. Please try again or type cancel to exit.")
 						continue
@@ -1425,8 +1446,10 @@ async def on_message(message):
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
+
 		item_name = param[1]
-		# handler
+
+# handler
 
 		try:
 			status, remove_item_return = await db_handler.remove_item(item_name)
@@ -1576,17 +1599,19 @@ async def on_message(message):
 		income_role = ""
 		if len(income_role_raw) == 22:
 			flex_start = 3
-		else:  # if len() == 21:
+		elif len(income_role_raw) == 21:
 			flex_start = 2
+		elif len(income_role_raw) == 23:
+			flex_start = 4
 		income_role = "".join(list(income_role_raw[flex_start:-1]))  # gives us only ID
 		income_role_try = "".join(list(income_role_raw[flex_start:-2]))  # gives us only ID in the case that role is given as @&
-		                                                                 # and not just @ (= 2 chars to remove)
+																		 # and not just @ (= 2 chars to remove)
 
 		try:
 			role = discord.utils.get(server.roles, id=int(income_role))
 		except Exception as e:
 			print(f"{e}, but we'll try again.")
-			
+
 		try:
 			role = discord.utils.get(server.roles, id=int(income_role_try))
 		except Exception as e:
@@ -1740,7 +1765,7 @@ async def on_message(message):
 
 
 """
-END OF CODE. 
+END OF CODE.
 	-> starting bot
 """
 
