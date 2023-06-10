@@ -7,7 +7,6 @@ from game_libs.blackjack import blackjack_discord_implementation
 # custom roulette game thing
 from game_libs.roulette import roulette_discord_implementation
 
-
 """
 
 	the database handler of the unbelievaboat-python discord bot
@@ -60,11 +59,11 @@ class pythonboat_database_handler:
 										\n}""")
 			creating_file.close()
 
-		#
+	#
 
-		# check if json file is corrupted
-		#  -> in self.check_json()
-		# called from main.py
+	# check if json file is corrupted
+	#  -> in self.check_json()
+	# called from main.py
 
 	def get_currency_symbol(self, test=False, value="unset"):
 		if not test:
@@ -113,11 +112,9 @@ class pythonboat_database_handler:
 			# something is missing, inform client
 			return "error"
 
-
 	"""
 	GLOBAL FUNCTIONS
 	"""
-
 
 	# need to overwrite the whole json when updating, luckily the database won't be enormous
 	def overwrite_json(self, content):
@@ -167,11 +164,9 @@ class pythonboat_database_handler:
 			if data_to_search[i]["user_id"] == user_to_find:
 				return int(i), data_to_search
 
-
 	"""
 	CLIENT-DB HANDLING
 	"""
-
 
 	async def blackjack(self, user, bet, bot, channel, username, user_pfp, message):
 		# load json
@@ -270,7 +265,7 @@ class pythonboat_database_handler:
 		SPECIFIC TIME ETC
 		"""
 		# grep values
-		slut_data = json_content["variables"][ self.variable_dict["slut"] ]
+		slut_data = json_content["variables"][self.variable_dict["slut"]]
 
 		# delay will ALWAYS be in MINUTES
 		delay = slut_data["delay"]
@@ -300,7 +295,8 @@ class pythonboat_database_handler:
 		# moving the block here for cleaner code
 		if time_check == False:
 			color = self.discord_blue_rgb_code
-			embed = discord.Embed(description=f"⏱ ️You cannot be a slut for {math.ceil(delay_remaining)} minutes.", color=color)
+			embed = discord.Embed(description=f"⏱ ️You cannot be a slut for {math.ceil(delay_remaining)} minutes.",
+								  color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return "success", "success"
@@ -319,14 +315,16 @@ class pythonboat_database_handler:
 			# LOST
 
 			lose_phrases = random.choice(slut_data["lose_phrases"])
-			lose_percentage = random.randint( slut_data["min_lose_amount_percentage"], slut_data["max_lose_amount_percentage"] )
+			lose_percentage = random.randint(slut_data["min_lose_amount_percentage"],
+											 slut_data["max_lose_amount_percentage"])
 			balance = json_user_content["cash"] + json_user_content["bank"]
 			loss = balance * (lose_percentage / 100)
 			# round up, no floats
 			loss = round(loss, 0)
 			print(lose_phrases, balance, loss)
 			color = self.discord_error_rgb_code
-			embed = discord.Embed(description=f"{lose_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(loss))}**", color=color)
+			embed = discord.Embed(
+				description=f"{lose_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(loss))}**", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			embed.set_footer(text="r.i.p")
 			await channel.send(embed=embed)
@@ -342,11 +340,12 @@ class pythonboat_database_handler:
 		else:
 			# SUCCESS
 			win_phrases = random.choice(slut_data["win_phrases"])
-			gain = random.randint( slut_data["min_revenue"], slut_data["max_revenue"] )
+			gain = random.randint(slut_data["min_revenue"], slut_data["max_revenue"])
 			# round up, no floats
 			gain = round(gain, 0)
 			color = self.discord_success_rgb_code
-			embed = discord.Embed(description=f"{win_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(gain))}**", color=color)
+			embed = discord.Embed(
+				description=f"{win_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(gain))}**", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			embed.set_footer(text="gg")
 			await channel.send(embed=embed)
@@ -359,7 +358,7 @@ class pythonboat_database_handler:
 
 			return "success", "success"
 
-		# we never reach this part of the code
+	# we never reach this part of the code
 
 	#
 	# CRIME
@@ -410,7 +409,8 @@ class pythonboat_database_handler:
 		# moving the block here for cleaner code
 		if time_check == False:
 			color = self.discord_blue_rgb_code
-			embed = discord.Embed(description=f"⏱ ️You cannot commit a crime for {math.ceil(delay_remaining)} minutes.", color=color)
+			embed = discord.Embed(description=f"⏱ ️You cannot commit a crime for {math.ceil(delay_remaining)} minutes.",
+								  color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return "success", "success"
@@ -429,14 +429,16 @@ class pythonboat_database_handler:
 			# LOST
 
 			lose_phrases = random.choice(crime_data["lose_phrases"])
-			lose_percentage = random.randint(crime_data["min_lose_amount_percentage"], crime_data["max_lose_amount_percentage"])
+			lose_percentage = random.randint(crime_data["min_lose_amount_percentage"],
+											 crime_data["max_lose_amount_percentage"])
 			balance = json_user_content["cash"] + json_user_content["bank"]
 			loss = balance * (lose_percentage / 100)
 			# round up, no floats
 			loss = round(loss, 0)
 			print(lose_phrases, balance, loss)
 			color = self.discord_error_rgb_code
-			embed = discord.Embed(description=f"{lose_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(loss))}**", color=color)
+			embed = discord.Embed(
+				description=f"{lose_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(loss))}**", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			embed.set_footer(text="r.i.p")
 			await channel.send(embed=embed)
@@ -456,7 +458,8 @@ class pythonboat_database_handler:
 			# round up, no floats
 			gain = round(gain, 0)
 			color = self.discord_success_rgb_code
-			embed = discord.Embed(description=f"{win_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(gain))}**", color=color)
+			embed = discord.Embed(
+				description=f"{win_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(gain))}**", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			embed.set_footer(text="gg")
 			await channel.send(embed=embed)
@@ -469,7 +472,7 @@ class pythonboat_database_handler:
 
 			return "success", "success"
 
-		# we never reach this part of the code
+	# we never reach this part of the code
 
 	#
 	# WORK
@@ -519,7 +522,8 @@ class pythonboat_database_handler:
 		# moving the block here for cleaner code
 		if time_check == False:
 			color = self.discord_blue_rgb_code
-			embed = discord.Embed(description=f"⏱ ️You cannot work for {math.ceil(delay_remaining)} minutes.", color=color)
+			embed = discord.Embed(description=f"⏱ ️You cannot work for {math.ceil(delay_remaining)} minutes.",
+								  color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return "success", "success"
@@ -536,7 +540,8 @@ class pythonboat_database_handler:
 		# round up, no floats
 		gain = round(gain, 0)
 		color = self.discord_success_rgb_code
-		embed = discord.Embed(description=f"{win_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(gain))}**", color=color)
+		embed = discord.Embed(description=f"{win_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(gain))}**",
+							  color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		embed.set_footer(text="capitalism is great")
 		await channel.send(embed=embed)
@@ -598,7 +603,8 @@ class pythonboat_database_handler:
 		# moving the block here for cleaner code
 		if time_check == False:
 			color = self.discord_blue_rgb_code
-			embed = discord.Embed(description=f"⏱ ️You cannot rob someone for {math.ceil(delay_remaining)} minutes.", color=color)
+			embed = discord.Embed(description=f"⏱ ️You cannot rob someone for {math.ceil(delay_remaining)} minutes.",
+								  color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return "success", "success"
@@ -614,7 +620,8 @@ class pythonboat_database_handler:
 		if (robbed_user == 0 and status == "error"):
 			# we didnt find him
 			color = self.discord_error_rgb_code
-			embed = discord.Embed(description=f"❌ Invalid `<user>` argument given.\n\nUsage:\n`rob <user>`", color=color)
+			embed = discord.Embed(description=f"❌ Invalid `<user>` argument given.\n\nUsage:\n`rob <user>`",
+								  color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return "success", "success"
@@ -633,15 +640,17 @@ class pythonboat_database_handler:
 		robbed_balance = robbed_user_data["cash"] + robbed_user_data["bank"]
 		user_balance = json_user_content["cash"] + json_user_content["bank"]
 		if robbed_balance < user_balance:
-
-			lose_percentage = random.randint(rob_data["min_lose_amount_percentage"], rob_data["max_lose_amount_percentage"])
+			lose_percentage = random.randint(rob_data["min_lose_amount_percentage"],
+											 rob_data["max_lose_amount_percentage"])
 			balance = json_user_content["cash"] + json_user_content["bank"]
 			loss = balance * (lose_percentage / 100)
 			# round up, no floats
 			loss = round(loss, 0)
 
 			color = self.discord_error_rgb_code
-			embed = discord.Embed(description=f"❌ You've been fined {str(self.currency_symbol)} **{'{:,}'.format(int(loss))}** for trying to rob a person more poor than you.", color=color)
+			embed = discord.Embed(
+				description=f"❌ You've been fined {str(self.currency_symbol)} **{'{:,}'.format(int(loss))}** for trying to rob a person more poor than you.",
+				color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 
@@ -660,14 +669,16 @@ class pythonboat_database_handler:
 			# LOST
 
 			lose_phrases = random.choice(rob_data["lose_phrases"])
-			lose_percentage = random.randint(rob_data["min_lose_amount_percentage"], rob_data["max_lose_amount_percentage"])
+			lose_percentage = random.randint(rob_data["min_lose_amount_percentage"],
+											 rob_data["max_lose_amount_percentage"])
 			balance = json_user_content["cash"] + json_user_content["bank"]
 			loss = balance * (lose_percentage / 100)
 			# round up, no floats
 			loss = round(loss, 0)
 			print(lose_phrases, balance, loss)
 			color = self.discord_error_rgb_code
-			embed = discord.Embed(description=f"❌ {lose_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(loss))}**", color=color)
+			embed = discord.Embed(
+				description=f"❌ {lose_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(loss))}**", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			embed.set_footer(text="robbing isn't cool")
 			await channel.send(embed=embed)
@@ -684,7 +695,8 @@ class pythonboat_database_handler:
 			# SUCCESS
 
 			win_phrases = random.choice(rob_data["win_phrases"])
-			gain_percentage = random.randint(rob_data["min_gain_amount_percentage"], rob_data["max_gain_amount_percentage"])
+			gain_percentage = random.randint(rob_data["min_gain_amount_percentage"],
+											 rob_data["max_gain_amount_percentage"])
 
 			robbed_cash = robbed_user_data["cash"]
 			gain = robbed_cash * (gain_percentage / 100)
@@ -692,7 +704,8 @@ class pythonboat_database_handler:
 			# round up, no floats
 			gain = round(gain, 0)
 			color = self.discord_success_rgb_code
-			embed = discord.Embed(description=f"✅ {win_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(gain))}**", color=color)
+			embed = discord.Embed(
+				description=f"✅ {win_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(gain))}**", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			embed.set_footer(text="lucky")
 			await channel.send(embed=embed)
@@ -705,7 +718,7 @@ class pythonboat_database_handler:
 
 			return "success", "success"
 
-		# this code is never reached
+	# this code is never reached
 
 	#
 	# BALANCE
@@ -726,7 +739,7 @@ class pythonboat_database_handler:
 		json_user_content = json_content["userdata"][checked_user]
 		check_cash = "{:,}".format(int(json_user_content["cash"]))
 		check_bank = "{:,}".format(int(json_user_content["bank"]))
-		check_bal = "{:,}".format( int(json_user_content["cash"] + json_user_content["bank"]) )
+		check_bal = "{:,}".format(int(json_user_content["cash"] + json_user_content["bank"]))
 
 		formatted_time = str(f"{datetime.now().hour}:{datetime.now().minute}")
 
@@ -771,7 +784,9 @@ class pythonboat_database_handler:
 		json_user_content["bank"] += amount
 
 		color = self.discord_success_rgb_code
-		embed = discord.Embed(description=f"✅ Deposited {str(self.currency_symbol)} {'{:,}'.format(int(amount))} to your bank!", color=color)
+		embed = discord.Embed(
+			description=f"✅ Deposited {str(self.currency_symbol)} {'{:,}'.format(int(amount))} to your bank!",
+			color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 
@@ -811,7 +826,9 @@ class pythonboat_database_handler:
 		json_user_content["bank"] -= amount
 
 		color = self.discord_success_rgb_code
-		embed = discord.Embed(description=f"✅ Withdrew {str(self.currency_symbol)} {'{:,}'.format(int(amount))} from your bank!", color=color)
+		embed = discord.Embed(
+			description=f"✅ Withdrew {str(self.currency_symbol)} {'{:,}'.format(int(amount))} from your bank!",
+			color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 
@@ -855,7 +872,9 @@ class pythonboat_database_handler:
 
 		# inform user
 		color = self.discord_success_rgb_code
-		embed = discord.Embed(description=f"✅ {recept_uname.mention} has received your {str(self.currency_symbol)} {'{:,}'.format(int(amount))}", color=color)
+		embed = discord.Embed(
+			description=f"✅ {recept_uname.mention} has received your {str(self.currency_symbol)} {'{:,}'.format(int(amount))}",
+			color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 
@@ -865,7 +884,6 @@ class pythonboat_database_handler:
 		self.overwrite_json(json_content)
 
 		return "success", "success"
-
 
 	#
 	# LEADERBOARD
@@ -928,7 +946,7 @@ class pythonboat_database_handler:
 				print(i, all_users[i], name_object)
 				actual_name = str(name_object)
 				if all_users[i] == user:
-					user_lb_position = i+1
+					user_lb_position = i + 1
 			except:
 				actual_name = str(all_users[i])
 			# update
@@ -947,38 +965,42 @@ class pythonboat_database_handler:
 		if ".0" in str(page_count): page_count = int(page_count)
 		if not isinstance(page_count, int):
 			page_count += 1
-		#page_count = (len(all_bal) + ranks_per_page - 1)
+		# page_count = (len(all_bal) + ranks_per_page - 1)
 		# round number up
 		total_pages = round(page_count)
 
 		# our selection !
-		index_start = (page_number-1) * ranks_per_page
+		index_start = (page_number - 1) * ranks_per_page
 		index_end = index_start + ranks_per_page
-		user_selection = all_users[index_start : index_end]
-		bal_selection = all_bal[index_start : index_end]
+		user_selection = all_users[index_start: index_end]
+		bal_selection = all_bal[index_start: index_end]
 
 		# making the formatted !
 		i = 0
 		leaderboard_formatted = f""
 		for i in range(len(user_selection)):
-			leaderboard_formatted += f"\n**{str(i+1)}.** {user_selection[i]} • {str(self.currency_symbol)} {bal_selection[i]}"
+			leaderboard_formatted += f"\n**{str(i + 1)}.** {user_selection[i]} • {str(self.currency_symbol)} {bal_selection[i]}"
 
 		# making a nice output
-		if total_pages == 1: page_number =1
-		elif page_number > total_pages: page_number = 1
+		if total_pages == 1:
+			page_number = 1
+		elif page_number > total_pages:
+			page_number = 1
 
 		# inform user
 		color = self.discord_blue_rgb_code
 		embed = discord.Embed(description=f"\n\n{leaderboard_formatted}", color=color)
 		# same pfp as unbelievaboat uses
-		embed.set_author(name=full_name, icon_url="https://media.discordapp.net/attachments/506838906872922145/506899959816126493/h5D6Ei0.png")
+		embed.set_author(name=full_name,
+						 icon_url="https://media.discordapp.net/attachments/506838906872922145/506899959816126493/h5D6Ei0.png")
 		if user_lb_position == 1:
 			pos_name = "st"
 		elif user_lb_position == 2:
 			pos_name = "nd"
 		elif user_lb_position == 3:
 			pos_name = "rd"
-		embed.set_footer(text=f"Page {page_number}/{total_pages}  •  Your leaderboard rank: {user_lb_position}{pos_name}")
+		embed.set_footer(
+			text=f"Page {page_number}/{total_pages}  •  Your leaderboard rank: {user_lb_position}{pos_name}")
 		await channel.send(embed=embed)
 
 		return "success", "success"
@@ -1040,7 +1062,9 @@ class pythonboat_database_handler:
 
 		# inform user
 		color = self.discord_success_rgb_code
-		embed = discord.Embed(description=f"✅  Added {str(self.currency_symbol)} {'{:,}'.format(int(amount))} to {recept_uname.mention}'s cash balance", color=color)
+		embed = discord.Embed(
+			description=f"✅  Added {str(self.currency_symbol)} {'{:,}'.format(int(amount))} to {recept_uname.mention}'s cash balance",
+			color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 
@@ -1069,7 +1093,9 @@ class pythonboat_database_handler:
 
 		# inform user
 		color = self.discord_success_rgb_code
-		embed = discord.Embed(description=f"✅  Removed {str(self.currency_symbol)} {'{:,}'.format(int(amount))} from {recept_uname.mention}'s cash balance", color=color)
+		embed = discord.Embed(
+			description=f"✅  Removed {str(self.currency_symbol)} {'{:,}'.format(int(amount))} from {recept_uname.mention}'s cash balance",
+			color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 
@@ -1078,7 +1104,6 @@ class pythonboat_database_handler:
 		self.overwrite_json(json_content)
 
 		return "success", "success"
-
 
 	#
 	# EDIT VARIABLES
@@ -1105,7 +1130,9 @@ class pythonboat_database_handler:
 		# not asking for verification, would just have to reverse by another edit
 		# inform user
 		color = self.discord_success_rgb_code
-		embed = discord.Embed(description=f"✅  Changed variable '{variable_name}' of module '{module_name}'\nBefore: '{old_value}'. Now: '{new_value}'", color=color)
+		embed = discord.Embed(
+			description=f"✅  Changed variable '{variable_name}' of module '{module_name}'\nBefore: '{old_value}'. Now: '{new_value}'",
+			color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 
@@ -1142,7 +1169,6 @@ class pythonboat_database_handler:
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 
-
 		# overwrite, end
 		json_content["symbols"][0] = json_emoji
 		self.overwrite_json(json_content)
@@ -1157,18 +1183,17 @@ class pythonboat_database_handler:
 	# CREATE NEW ITEM
 	#
 
-	async def create_new_item(self, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give, roles_id_to_remove, max_bal, reply_message):
+	async def create_new_item(self, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give,
+							  roles_id_to_remove, max_bal, reply_message):
 		# load json
 		json_file = open(self.pathToJson, "r")
 		json_content = json.load(json_file)
 
 		json_items = json_content["items"]
 
-		for i in range( len(json_items) ):
+		for i in range(len(json_items)):
 			if json_items[i]["name"] == item_name:
 				return "error", "Item with such name already exists."
-
-
 
 		# calculate item duration
 		today = datetime.today()
@@ -1228,7 +1253,7 @@ class pythonboat_database_handler:
 				pass
 			else:
 				try:
-					for ii in range( len(user_content[i]["items"]) ):
+					for ii in range(len(user_content[i]["items"])):
 						print(user_content[i]["items"][ii])
 						current_name = user_content[i]["items"][ii][0]
 						if current_name == item_name:
@@ -1246,7 +1271,8 @@ class pythonboat_database_handler:
 	# BUY ITEM
 	#
 
-	async def buy_item(self, user, channel, username, user_pfp, item_name, amount, user_roles, server_object, user_object):
+	async def buy_item(self, user, channel, username, user_pfp, item_name, amount, user_roles, server_object,
+					   user_object):
 		# load json
 		json_file = open(self.pathToJson, "r")
 		json_content = json.load(json_file)
@@ -1287,7 +1313,7 @@ class pythonboat_database_handler:
 					if int(req_roles[i]) not in user_roles:
 						return "error", f"User does not seem to have all required roles."
 		except Exception as e:
-			print(e)
+			print("1", e)
 			return "error", f"Unexpected error."
 
 		### BEFORE update, "check rem roles" and "check give roles" was located here. it seems that
@@ -1295,6 +1321,7 @@ class pythonboat_database_handler:
 		### thus this is now located below, after checking balance etc.
 
 		# 4. check if enough money
+
 		sum_price = item_price * amount
 		sum_price = round(sum_price, 0)
 		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
@@ -1318,24 +1345,35 @@ class pythonboat_database_handler:
 
 		# 8. rem money, substract stock, print message, add to inventory
 		user_content["cash"] -= sum_price
-		item["amount_in_stock"] -= amount
+		try:
+			item["amount_in_stock"] -= amount
+		except:
+			# in this case theres no limit so we dont substract anything
+			pass
 
 		if user_content["items"] == "none":
 			user_content["items"] = [[item_name, amount]]
 		else:
-			user_content["items"].append([item_name, amount])
+			needAppend = True
+			for i_i in range(len(user_content["items"])):
+				if user_content["items"][i_i][0] == item_name:
+					user_content["items"][i_i][1] += amount
+					needAppend = False
+					break
+			if needAppend:
+				user_content["items"].append([item_name, amount])
 
 		# 2. check give roles
 		try:
 			if rem_roles == "none":
 				pass
 			else:
-				for i in range( len(rem_roles) ):
+				for i in range(len(rem_roles)):
 					role = discord.utils.get(server_object.roles, id=int(rem_roles[i]))
 					print(role)
 					await user_object.remove_roles(role)
 		except Exception as e:
-			print(e)
+			print("2", e)
 			return "error", f"Unexpected error."
 
 		# 3. check rem roles
@@ -1343,16 +1381,17 @@ class pythonboat_database_handler:
 			if req_roles == "none":
 				pass
 			else:
-				for i in range( len(give_roles) ):
+				for i in range(len(give_roles)):
 					role = discord.utils.get(server_object.roles, id=int(give_roles[i]))
 					print(role)
 					await user_object.add_roles(role)
 		except Exception as e:
-			print(e)
+			print("3", e)
 			return "error", f"Unexpected error."
-
 		color = self.discord_blue_rgb_code
-		embed = discord.Embed(description=f"You have bought {amount} {item_name} and paid {str(self.currency_symbol)} **{'{:,}'.format(int(sum_price))}**", color=color)
+		embed = discord.Embed(
+			description=f"You have bought {amount} {item_name} and paid {str(self.currency_symbol)} **{'{:,}'.format(int(sum_price))}**",
+			color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		embed.set_footer(text=reply_message)
 		await channel.send(embed=embed)
@@ -1360,6 +1399,70 @@ class pythonboat_database_handler:
 		# overwrite, end
 		json_content["userdata"][user_index] = user_content
 		json_content["items"] = json_items
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# GIVE ITEM
+	#
+
+	async def give_item(self, user, channel, username, user_pfp, item_name, amount, reception_user, server_object,
+						user_object, recept_username):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+		reception_user_index, new_data = self.find_index_in_db(json_content["userdata"], reception_user)
+		recept_uname = recept_username
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_user_content = json_content["userdata"][user_index]
+		json_recept_content = json_content["userdata"][reception_user_index]
+
+		try:
+			if json_user_content["items"] == "none":
+				return "error", f"❌ You do not have any items to give"
+			else:
+				worked = False
+				for ii_i in range(len(json_user_content["items"])):
+					if json_user_content["items"][ii_i][0] == item_name:
+						if (json_user_content["items"][ii_i][1] - amount) < 0:
+							return "error", f"❌ You do not have enough items of that item to give."
+						json_user_content["items"][ii_i][1] -= amount
+						worked = True
+						break
+				if worked == False:
+					return "error", f"❌ You do not have that item to give"
+
+			# so we should be good, now handling the reception side
+			if json_recept_content["items"] == "none":
+				json_recept_content["items"] = [[item_name, amount]]
+			else:
+				needAppend = True
+				for i_i in range(len(json_recept_content["items"])):
+					if json_recept_content["items"][i_i][0] == item_name:
+						json_recept_content["items"][i_i][1] += amount
+						needAppend = False
+						break
+				if needAppend:
+					json_recept_content["items"].append([item_name, amount])
+
+		except:
+			return "error", f"❌"
+
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(
+			description=f"✅ {recept_uname.mention} has received {'{:,}'.format(int(amount))} {item_name} from you!",
+			color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["userdata"][user_index] = json_user_content
+		json_content["userdata"][reception_user_index] = json_recept_content
 		self.overwrite_json(json_content)
 
 		return "success", "success"
@@ -1381,7 +1484,7 @@ class pythonboat_database_handler:
 			inventory_checkup = "**Inventory empty. No items owned.**"
 		else:
 			inventory_checkup = ""
-			for i in range( len(items) ):
+			for i in range(len(items)):
 				inventory_checkup += f"Item: `{items[i][0]}`; amount: `{items[i][1]}`\n"
 
 		color = self.discord_blue_rgb_code
@@ -1407,28 +1510,28 @@ class pythonboat_database_handler:
 		items = json_content["items"]
 		catalog_report = "__Items catalog:__\n```\n"
 		if item_check == "default_list":
-			for i in range( len(items) ):
+			for i in range(len(items)):
 				catalog_report += f"Item {i}: {items[i]['name']}\n"
 			catalog_report += "\n```\n*For details about an item: use* `catalog <item name>`"
 
 		else:
 			check = 0
-			for i in range( len(items) ):
+			for i in range(len(items)):
 				if items[i]["name"] == item_check:
 					check = 1
 					item_index = i
 			if not check:
 				return "error", "Error! Item not found."
-			else: # not needed, but for readability
+			else:  # not needed, but for readability
 				catalog_report = f"__Item {items[item_index]['name']} catalog:__\n\n"
 
 				req_roles = ""
-				for ii in range( len(items[item_index]["required_roles"]) ):
+				for ii in range(len(items[item_index]["required_roles"])):
 					try:
-							if items[item_index]["required_roles"] == "none":
-								req_roles += "none"
-							else:
-								raise Exception("got role")
+						if items[item_index]["required_roles"] == "none":
+							req_roles += "none"
+						else:
+							raise Exception("got role")
 					except:
 						role = discord.utils.get(server_object.roles, id=int(items[item_index]["required_roles"][ii]))
 						req_roles += f"@{str(role)} "
@@ -1436,10 +1539,10 @@ class pythonboat_database_handler:
 				give_roles = ""
 				for iii in range(len(items[item_index]["given_roles"])):
 					try:
-							if items[item_index]["given_roles"] == "none":
-								req_roles += "none"
-							else:
-								raise Exception("got role")
+						if items[item_index]["given_roles"] == "none":
+							req_roles += "none"
+						else:
+							raise Exception("got role")
 					except:
 						role = discord.utils.get(server_object.roles, id=int(items[item_index]["given_roles"][iii]))
 						give_roles += f"@{str(role)} "
@@ -1447,15 +1550,16 @@ class pythonboat_database_handler:
 				rem_roles = ""
 				for iiii in range(len(items[item_index]["removed_roles"])):
 					try:
-							if items[item_index]["removed_roles"] == "none":
-								req_roles += "none"
-							else:
-								raise Exception("got role")
+						if items[item_index]["removed_roles"] == "none":
+							req_roles += "none"
+						else:
+							raise Exception("got role")
 					except:
 						role = discord.utils.get(server_object.roles, id=int(items[item_index]["removed_roles"][iiii]))
 						rem_roles += f"@{str(role)} "
 
-				if int(str(datetime.strptime(items[item_index]['expiration_date'], '%Y-%m-%d %H:%M:%S.%f'))[:4]) >= 2100:
+				if int(str(datetime.strptime(items[item_index]['expiration_date'], '%Y-%m-%d %H:%M:%S.%f'))[
+					   :4]) >= 2100:
 					left_time = "never"
 				else:
 					left_time = str(items[item_index]['expiration_date'])[:10]
@@ -1490,17 +1594,21 @@ class pythonboat_database_handler:
 
 		json_income_roles = json_content["income_roles"]
 
-		for i in range( len(json_income_roles) ):
+		for i in range(len(json_income_roles)):
 			if json_income_roles[i]["role_id"] == income_role_id:
 				return "error", "Role already exists as income role."
 
+		now = str(datetime.now())
 		json_income_roles.append({
 			"role_id": income_role_id,
-			"role_income": income
+			"role_income": income,
+			"last_updated": now
 		})
 
 		color = self.discord_blue_rgb_code
-		embed = discord.Embed(description=f"New income role added.\nrole_id : {income_role_id}, income : {str(self.currency_symbol)} **{'{:,}'.format(int(income))}**", color=color)
+		embed = discord.Embed(
+			description=f"New income role added.\nrole_id : {income_role_id}, income : {str(self.currency_symbol)} **{'{:,}'.format(int(income))}**",
+			color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		embed.set_footer(text="smooth")
 		await channel.send(embed=embed)
@@ -1551,13 +1659,12 @@ class pythonboat_database_handler:
 
 		role_list_report = f"__Income Roles List:__\n\n"
 
-		for i in range( len(json_income_roles) ):
-
+		for i in range(len(json_income_roles)):
 			role = discord.utils.get(server_object.roles, id=int(json_income_roles[i]["role_id"]))
 			ping_role = f"@{str(role)}"
 
 			role_list_report += f"Role name: \"{ping_role}\"\n" \
-							  f"Role income: {self.currency_symbol} {'{:,}'.format(json_income_roles[i]['role_income'])}\n\n"
+								f"Role income: {self.currency_symbol} {'{:,}'.format(json_income_roles[i]['role_income'])}\n\n"
 
 		role_list_report += "---------------------------------"
 
@@ -1571,6 +1678,7 @@ class pythonboat_database_handler:
 	#
 	# ROLE INCOMES - UPDATE INCOMES
 	#
+	# okay were gonna change it to an hourly income (10.06.2023)
 
 	async def update_incomes(self, user, channel, username, user_pfp, server_object):
 		# load json
@@ -1584,8 +1692,19 @@ class pythonboat_database_handler:
 		# first, we go into each role object
 		# then we check in everyones roles if they have the role
 
-		for role_index in range( len(json_income_roles) ):
+		for role_index in range(len(json_income_roles)):
 			role_id = json_income_roles[role_index]["role_id"]
+
+			# new edit for hourly income:
+			now = datetime.now()
+			print("p1")
+			last_income_update_string = json_income_roles[role_index]["last_updated"]
+			print("p2")
+			# get a timeobject from the string
+			last_income_update = datetime.strptime(last_income_update_string, '%Y-%m-%d %H:%M:%S.%f')
+			# calculate difference, see if it works
+			passed_time = now - last_income_update
+			passed_time_hours = passed_time.total_seconds() // 3600.0
 
 			role = discord.utils.get(server_object.roles, id=int(role_id))
 			for member in role.members:
@@ -1594,7 +1713,8 @@ class pythonboat_database_handler:
 					user_index, new_data = self.find_index_in_db(json_content["userdata"], member.id)
 
 					json_user_content = json_content["userdata"][user_index]
-					json_user_content["bank"] += json_income_roles[role_index]["role_income"]
+					json_income_roles[role_index]["last_updated"] = str(now)
+					json_user_content["bank"] += (json_income_roles[role_index]["role_income"] * int(passed_time_hours))
 					# overwrite
 					json_content["userdata"][user_index] = json_user_content
 
