@@ -25,4 +25,5 @@ Another goal is to have the bot written in python so that it's easy to edit for 
 9. Install the Discord Api for python3 using pip (`pip install discord.py`)
 10. In your server, create a role named "botmaster" and give it to people who should be bot admins.
 11. Launch main.py with **python3**. Beware !! On Windows, please use powershell, else path might not be recognized.
+
 You should be good to go!
