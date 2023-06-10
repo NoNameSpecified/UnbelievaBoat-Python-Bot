@@ -1683,6 +1683,7 @@ async def on_message(message):
 	# ---------------------------
 
 	elif command in ["add-income-role", "add-role-income"]:
+		await channel.send("Info: the income amount specified is an hourly one.\nRemember: you need to manually update income.")
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
