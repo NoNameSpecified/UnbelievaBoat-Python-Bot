@@ -1661,14 +1661,14 @@ class pythonboat_database_handler:
 
 		for i in range(len(json_income_roles)):
 			role = discord.utils.get(server_object.roles, id=int(json_income_roles[i]["role_id"]))
-			ping_role = f"@{str(role)}"
+			ping_role = f"<@&{json_income_roles[i]['role_id']}>"
 
-			role_list_report += f"Role name: \"{ping_role}\"\n" \
+			role_list_report += f"Role name: {ping_role}\n" \
 								f"Role income: {self.currency_symbol} {'{:,}'.format(json_income_roles[i]['role_income'])}\n\n"
 
 		role_list_report += "---------------------------------"
 
-		await channel.send(role_list_report)
+		await channel.send(role_list_report, silent=True)
 
 		# overwrite, end
 		# not needed
