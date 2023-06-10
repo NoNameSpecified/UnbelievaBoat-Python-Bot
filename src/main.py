@@ -37,7 +37,7 @@ from time import sleep
 
 # init discord stuff and json handling
 BOT_PREFIX = ("+")  # tupple in case we'd need multiple
-token = "putyourtokenhere" # add your own token
+token = "NzkzMTEzNzM2NjEyNjc1NjI1.G9glpv.Yw_qyCF9yv3a4AIevw8lyqvNTh4GHdRpatHHkM"  # add your own token
 # emojis
 emoji_worked = "✅"
 emoji_error = "❌"
@@ -793,13 +793,14 @@ async def on_message(message):
 		embed.add_field(name="create-item", value=f"Usage: `create-item`", inline=False)
 		embed.add_field(name="delete-item", value=f"Usage: `delete-item <item name>`", inline=False)
 		embed.add_field(name="buy-item", value=f"Usage: `buy-item <item name> <amount>`", inline=False)
+		embed.add_field(name="give-item", value=f"Usage: `give-item <player pinged> <item name> <amount>`", inline=False)
 		embed.add_field(name="inventory", value=f"Usage: `inventory`", inline=False)
 		embed.add_field(name="catalog", value=f"Usage: `catalog <nothing or item name>`", inline=False)
 		embed.add_field(name="----------------------\n\nINCOME ROLES", value=f"create, delete and update requires <botmaster> role", inline=False)
 		embed.add_field(name="add-income-role", value=f"Usage: `add-income-role <role pinged> <income>`", inline=False)
 		embed.add_field(name="remove-income-role", value=f"Usage: `remove-income-role <role pinged>`", inline=False)
 		embed.add_field(name="list-roles", value=f"Usage: `list-roles`", inline=False)
-		embed.add_field(name="update-income", value=f"Usage: `update-income` | must be used only once a week", inline=False)
+		embed.add_field(name="update-income", value=f"Usage: `update-income` | income works hourly! automatically updates time elapsed * income", inline=False)
 		# edit stuff
 		embed.set_footer(text="For more info, contact an admin or Kendrik 2.0#7373")
 
@@ -1187,7 +1188,10 @@ async def on_message(message):
 				if len(user_input) > 200:
 					await channel.send(f"{emoji_error} The maximum length for an items description is 200 characters. Please try again.")
 					continue
-				description = user_input
+				if user_input == "skip":
+					description = "none"
+				else:
+					description = user_input
 				first_embed.add_field(name="Description", value=f"{description}", inline=False)
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
 				next_info = ":four: How long should this item stay in the store for? (integer, in days)\nMinimum duration is 1 day.\nIf no limit, just reply `skip`."
@@ -1210,7 +1214,10 @@ async def on_message(message):
 					else:
 						await channel.send(f"{emoji_error}  Invalid time duration given. Please try again or type cancel to exit.")
 						continue
-
+				if duration == 99999:
+					duration_str = "unlimited"
+				else:
+					duration_str = int(user_input)
 				first_embed.add_field(name="Time remaining", value=f"{duration} days left")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
 				next_info = ":five: How much stock of this item will there be?\nIf unlimited, just reply `skip` or `infinity`."
@@ -1475,12 +1482,15 @@ async def on_message(message):
 	# ---------------------------
 
 	elif command in ["buy-item", "get-item"]:
+		# idk why i said you need botmaster to buy items ?
+		"""
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
+		"""
 
 		if "none" in param[1]:  # we need item name
 			color = discord_error_rgb_code
@@ -1491,12 +1501,9 @@ async def on_message(message):
 		item_name = param[1]
 
 		if "none" in param[2]:  # we need item amount
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`buy-item <item name> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-		amount = param[2]
+			amount = 1
+		else:
+			amount = param[2]
 
 		try:
 			amount = int(amount)
@@ -1521,6 +1528,103 @@ async def on_message(message):
 			if status == "error":
 				color = discord_error_rgb_code
 				embed = discord.Embed(description=f"{buy_item_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except Exception as e:
+			print(e)
+			await send_error(channel)
+		return
+
+	# ---------------------------
+	#   GIVE ITEM -- can also be used to "sell"
+	#				but theyll need to not fuck each other and actually pay up
+	# ---------------------------
+
+	elif command in ["give-item"]:
+		"""
+		if not staff_request:
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+		"""
+
+		if "none" in param[1]:  # we need player pinged
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`give-item <player pinged> <item name> <amount>`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		player_ping_raw = param[1]
+		if len(player_ping_raw) == 22:
+			flex_start = 3
+		elif len(player_ping_raw) == 21:
+			# this should be default...
+			flex_start = 2
+		elif len(player_ping_raw) == 23:
+			flex_start = 4
+		player_ping = "".join(list(player_ping_raw[flex_start:-1]))  # gives us only ID
+
+		try:
+			user_fetch = client.get_user(int(player_ping))
+			print(user_fetch)
+			reception_user_name = user_fetch
+
+			if int(player_ping) == user:
+				# cannot send money to yourself
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{emoji_error}  You cannot trade items with yourself. That would be pointless...", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+
+		except:
+			# we didnt find him
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Invalid `<member>` argument given.\n\nUsage:"
+											  f"\n`give-item <player pinged> <item> <amount>`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		if "none" in param[2]:  # we need item name
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`give-item <player pinged> <item name> <amount>`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+		item_name = param[2]
+
+		if "none" in param[3]:  # we need item amount
+			amount = 1
+		else:
+			amount = param[3]
+
+		try:
+			amount = int(amount)
+			if amount < 1:
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`give-item <player pinged> <item name> <amount>`", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except:
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`give-item <player pinged> <item name> <amount>`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		# handler
+
+		try:
+			status, give_item_return = await db_handler.give_item(user, channel, username, user_pfp, item_name, amount, player_ping, server, message.author, reception_user_name)
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{give_item_return}", color=color)
 				embed.set_author(name=username, icon_url=user_pfp)
 				await channel.send(embed=embed)
 				return
