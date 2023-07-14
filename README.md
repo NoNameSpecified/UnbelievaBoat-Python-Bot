@@ -1,5 +1,5 @@
 # **UnbelievaBoat-like Discord Bot in python**
-### For questions about the bot and how to set it up: ask me on Discord at *<Kendrik 2.0#7373>*
+### For questions about the bot and how to set it up: ask me on Discord at *<kendrik2.0>*
 
 Code is finished, so there won't be any big updates anymore.
 But please report any problems to me via Discord !
