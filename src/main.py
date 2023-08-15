@@ -37,7 +37,7 @@ from time import sleep
 
 # init discord stuff and json handling
 BOT_PREFIX = ("+")  # tupple in case we'd need multiple
-token = "putyourtokenhere"  # add your own token
+token = "put yours here"  # add your own token
 # emojis
 emoji_worked = "✅"
 emoji_error = "❌"
@@ -63,6 +63,40 @@ async def get_user_input(message):
 
 	return answer
 
+async def get_user_id(param):
+	reception_user_beta = str(param[1])  # the mention in channel gives us <@!USERID> OR <@USERIRD>
+	reception_user = ""
+	for i in range(len(reception_user_beta)):
+		try:
+			reception_user += str(int(reception_user_beta[i]))
+		except:
+			pass
+	return reception_user
+
+async def get_role_id_multiple(user_input):
+	roles = user_input.split(" ")  # so we get a list
+	roles_clean = []
+
+	for i in range(len(roles)):
+		current_role = roles[i]
+		new_current_role = ""
+		for i in range(len(current_role)):
+			try:
+				new_current_role += str(int(current_role[i]))
+			except:
+				pass
+		roles_clean.append(new_current_role)
+	return roles_clean
+
+async def get_role_id_single(parameter):
+	role_beta = str(parameter)  # see another instance where i use this to see why
+	role_clean = ""
+	for i in range(len(role_beta)):
+		try:
+			role_clean += str(int(role_beta[i]))
+		except:
+			pass
+	return role_clean
 
 async def send_embed(title, description, channel, color="default"):
 	# some default colors
@@ -83,7 +117,7 @@ async def send_error(channel):
 # ~~~ set custom status ~~~
 @client.event
 async def on_ready():
-	activity = discord.Game(name=f"My default prefix is {BOT_PREFIX}!")
+	activity = discord.Game(name=f"My default prefix is <{BOT_PREFIX}>")
 	await client.change_presence(status=discord.Status.online, activity=activity)
 	# log_channel = 807057317396217947 # in your server, select a channel you want log info to be sent to
 									# rightclick and copy id. put the id here. it should look like this : 807057317396217947
@@ -218,7 +252,8 @@ async def on_message(message):
 		"give": "pay",
 		"leaderboard": "lb",
 		"help": "info",
-		"module": "moduleinfo"
+		"module": "moduleinfo",
+		"use": "use-item"
 	}
 	all_reg_commands = list(all_reg_commands_aliases.keys())
 
@@ -406,12 +441,7 @@ async def on_message(message):
 			await channel.send(embed=embed)
 			return
 
-		user_to_rob = str(param[1]) # the mention in channel gives us <@!USERID> OR <@USERIRD>
-		if len(user_to_rob) == 22:
-			flex_start = 3
-		else:  # if len(userbal_to_check) == 21:
-			flex_start = 2
-		user_to_rob = "".join(list(user_to_rob)[flex_start:-1])  # gives us only ID
+		user_to_rob = await get_user_id(param)
 
 		try:
 			status, rob_return = await db_handler.rob(user, channel, username, user_pfp, user_to_rob)
@@ -446,12 +476,7 @@ async def on_message(message):
 			return
 		# else we want the balance of someone else
 		else:
-			userbal_to_check = str(param[1])  # the mention in channel gives us <@!USERID> OR <@USERIRD>
-			if len(userbal_to_check) == 22:
-				flex_start = 3
-			else: # if len(userbal_to_check) == 21:
-				flex_start = 2
-			userbal_to_check = "".join(list(userbal_to_check)[flex_start:-1])  # gives us only ID
+			userbal_to_check = await get_user_id(param)
 			try:
 				user_fetch = client.get_user(int(userbal_to_check))
 				print("hello ?")
@@ -590,12 +615,8 @@ async def on_message(message):
 
 		# CHECK 1
 
-		reception_user = str(param[1])  # the mention in channel gives us <@!USERID> OR <@USERIRD>
-		if len(reception_user) == 22:
-			flex_start = 3
-		else:  # if len(userbal_to_check) == 21:
-			flex_start = 2
-		reception_user = "".join(list(reception_user)[flex_start:-1])  # gives us only ID
+		reception_user = await get_user_id(param)
+
 		try:
 			user_fetch = client.get_user(int(reception_user))
 			print(user_fetch)
@@ -778,7 +799,7 @@ async def on_message(message):
 		embed.add_field(name=all_reg_commands[12], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[12]]}  |  "
 													f"Usage: `module <module, e.g. slut>`", inline=False)
 		# edit stuff
-		embed.set_footer(text="For more info, contact an admin or Kendrik 2.0#7373")
+		embed.set_footer(text="For more info, contact an admin or <kendrik2.0>")
 		await channel.send(embed=embed)
 
 		#### in 2 parts because one was too long
@@ -787,13 +808,15 @@ async def on_message(message):
 		embed.add_field(name="----------------------\n\nSTAFF ONLY", value=f"requires <botmaster> role", inline=False)
 		embed.add_field(name="add-money", value=f"Usage: `add-money <member> <amount>`", inline=False)
 		embed.add_field(name="remove-money", value=f"Usage: `remove-money <member> <amount>`", inline=False)
+		embed.add_field(name="remove-money-role", value=f"Usage: `remove-money-role <role> <amount>`", inline=False)
 		embed.add_field(name="change", value=f"Usage: `change <module> <variable> <new value>`", inline=False)
 		embed.add_field(name="change-currency", value=f"Usage: `change-currency <new emoji name>`", inline=False)
 		embed.add_field(name="----------------------\n\nITEM HANDLING", value=f"create and delete requires <botmaster> role", inline=False)
 		embed.add_field(name="create-item", value=f"Usage: `create-item`", inline=False)
-		embed.add_field(name="delete-item", value=f"Usage: `delete-item <item name>`", inline=False)
-		embed.add_field(name="buy-item", value=f"Usage: `buy-item <item name> <amount>`", inline=False)
-		embed.add_field(name="give-item", value=f"Usage: `give-item <player pinged> <item name> <amount>`", inline=False)
+		embed.add_field(name="delete-item", value=f"Usage: `delete-item <item short name>`", inline=False)
+		embed.add_field(name="buy-item", value=f"Usage: `buy-item <item short name> <amount>`", inline=False)
+		embed.add_field(name="give-item", value=f"Usage: `give-item <member> <item short name> <amount>`", inline=False)
+		embed.add_field(name="use", value=f"Usage: `use <item short name> <amount>`", inline=False)
 		embed.add_field(name="inventory", value=f"Usage: `inventory`", inline=False)
 		embed.add_field(name="catalog", value=f"Usage: `catalog <nothing or item name>`", inline=False)
 		embed.add_field(name="----------------------\n\nINCOME ROLES", value=f"create, delete and update requires <botmaster> role", inline=False)
@@ -802,7 +825,7 @@ async def on_message(message):
 		embed.add_field(name="list-roles", value=f"Usage: `list-roles`", inline=False)
 		embed.add_field(name="update-income", value=f"Usage: `update-income` | income works hourly! automatically updates time elapsed * income", inline=False)
 		# edit stuff
-		embed.set_footer(text="For more info, contact an admin or Kendrik 2.0#7373")
+		embed.set_footer(text="For more info, contact an admin or <kendrik2.0>")
 
 		await channel.send(embed=embed)
 
@@ -864,12 +887,7 @@ async def on_message(message):
 
 		# CHECK 1
 
-		reception_user = str(param[1])  # the mention in channel gives us <@!USERID> OR <@USERIRD>
-		if len(reception_user) == 22:
-			flex_start = 3
-		else:  # if len(userbal_to_check) == 21:
-			flex_start = 2
-		reception_user = "".join(list(reception_user)[flex_start:-1])  # gives us only ID
+		reception_user = await get_user_id(param)
 		try:
 			user_fetch = client.get_user(int(reception_user))
 			print(user_fetch)
@@ -949,12 +967,8 @@ async def on_message(message):
 
 		# CHECK 1
 
-		reception_user = str(param[1])  # the mention in channel gives us <@!USERID> OR <@USERIRD>
-		if len(reception_user) == 22:
-			flex_start = 3
-		else:  # if len(userbal_to_check) == 21:
-			flex_start = 2
-		reception_user = "".join(list(reception_user)[flex_start:-1])  # gives us only ID
+		reception_user = await get_user_id(param)
+
 		try:
 			user_fetch = client.get_user(int(reception_user))
 			print(user_fetch)
@@ -1118,7 +1132,7 @@ async def on_message(message):
 		"""
 
 	# ---------------------------
-	#   ITEM CREATION
+	#   ITEM CREATION / Create item
 	# ---------------------------
 
 	elif command in ["create-item", "new-item", "item-create"]:
@@ -1130,12 +1144,12 @@ async def on_message(message):
 			return
 
 		currently_creating_item = True
-		checkpoints = 1
+		checkpoints = 0
 		last_report = ""
 		color = discord.Color.from_rgb(3, 169, 244)
 		# send a first input which we will then edit
-		info_text = ":one: What should the new item be called?\nThis name should be unique and no more than 200 characters."
-		first_embed = discord.Embed(title="Item Info", description="Name\n.", color=color)
+		info_text = ":zero: What should the new item be called?\nThis name should be unique and no more than 200 characters.\nIt can contain symbols and multiple words."
+		first_embed = discord.Embed(title="Item Info", description="Display Name\n.", color=color)
 		first_embed.set_footer(text="Type cancel to quit")
 		await channel.send(info_text, embed=first_embed)
 
@@ -1143,15 +1157,14 @@ async def on_message(message):
 			user_input = ""
 			# get input first
 			user_input = await get_user_input(message)
-			print(user_input)
+			print("at checkpoint ", checkpoints, "\ninput is ", user_input)
 			# check if user wants cancel
 			if user_input == "cancel":
 				await channel.send(f"{emoji_error}  Cancelled command.")
 				return
 
-
-			if checkpoints == 1:
-				# check 1: name
+			if checkpoints == 0:
+				# check 0: display name
 				if len(user_input) > 200:
 					await channel.send(f"{emoji_error} The maximum length for an items name is 200 characters. Please try again.")
 					continue
@@ -1159,12 +1172,28 @@ async def on_message(message):
 					await channel.send(f"{emoji_error}  The minimum length for an items name is 3 characters. Please try again.")
 					continue
 				# good input
-				item_name = user_input
+				item_display_name = user_input
 				first_embed = discord.Embed(title="Item Info", color=color)
-				first_embed.add_field(name="Name", value=f"{item_name}")
+				first_embed.add_field(name="Display Name", value=f"{item_display_name}")
+				first_embed.set_footer(text="Type cancel to quit")
+				next_info = ":one: Now we need a short name, which users will use when buying, giving etc. Only one word ! (you can use dashes and underscores)"
+				last_report = await channel.send(next_info, embed=first_embed)
+				checkpoints += 1
+
+			if checkpoints == 1:
+				# check 1: name
+				item_name = await get_user_input(message)
+				if len(item_name) > 200:
+					await channel.send(f"{emoji_error} The maximum length for an items name is 200 characters. Please try again.")
+					continue
+				elif len(item_name) < 3:
+					await channel.send(f"{emoji_error}  The minimum length for an items name is 3 characters. Please try again.")
+					continue
+				# good input
+				first_embed.add_field(name="Short name", value=f"{item_name}")
 				first_embed.set_footer(text="Type cancel to quit")
 				next_info = ":two: How much should the item cost to purchase?"
-				last_report = await channel.send(next_info, embed=first_embed)
+				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
 			elif checkpoints == 2:
@@ -1194,7 +1223,7 @@ async def on_message(message):
 					description = user_input
 				first_embed.add_field(name="Description", value=f"{description}", inline=False)
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":four: How long should this item stay in the store for? (integer, in days)\nMinimum duration is 1 day.\nIf no limit, just reply `skip`."
+				next_info = ":four: How long should this item stay in the store ? (integer, in days)\nMinimum duration is 1 day.\nIf no limit, just reply `skip`."
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
@@ -1240,29 +1269,20 @@ async def on_message(message):
 
 				first_embed.add_field(name="Stock remaining", value=f"{stock}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":six: What role must the user already have in order to buy this item?\nIf none, just reply `skip`."
+				next_info = ":six: What role/roles must the user already have in order to buy this item?\nIf none, just reply `skip`. For multiple, ping the roles with a space between them."
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
 			elif checkpoints == 6:
 				# check 6: required role
 				try:
-					if user_input == "skip":
+					if user_input in ["skip", "none"]:
 						raise ValueError
 
-					roles = user_input
-					roles = roles.split(" ")
-					roles_clean = []
-					for i in range(len(roles)):
-						if len(roles[i]) == 22:
-							flex_start = 3
-						else:  # if len() == 21:
-							flex_start = 2
-						roles_clean.append( "".join(list(roles[i])[flex_start:-1]) )  # gives us only ID
-					print(roles, roles_clean)
+					roles_clean_one = await get_role_id_multiple(user_input)
 
 					required_roles = ""
-					for role_id in roles_clean:
+					for role_id in roles_clean_one:
 						try:
 							role = discord.utils.get(server.roles, id=int(role_id))
 							print(role)
@@ -1275,41 +1295,33 @@ async def on_message(message):
 					continue
 
 				except ValueError:
-					if user_input == "skip":
-						required_roles = "none"
+					if user_input in ["skip", "none"]:
+						required_roles = ["none"]
 
 				except Exception as e:
 					await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
 					continue
 				try:
-					roles_id_required = roles_clean
+					roles_id_required = roles_clean_one
+					print(roles_id_required)
 				except:
-					roles_id_required = "none"
+					roles_id_required = ["none"]
 				first_embed.add_field(name="Role required", value=f"{required_roles}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":seven: What role do you want to be given when this item is bought?\nIf none, just reply `skip`."
+				next_info = ":seven: What role/roles do you want to be given when this item is bought?\nIf none, just reply `skip`. For multiple, ping them with a space between them."
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
 			elif checkpoints == 7:
 				# check 7: role to be given when item bought
 				try:
-					if user_input == "skip":
+					if user_input in ["skip", "none"]:
 						raise ValueError
 
-					roles = user_input
-					roles = roles.split(" ")
-					roles_clean = []
-					for i in range(len(roles)):
-						if len(roles[i]) == 22:
-							flex_start = 3
-						else:  # if len() == 21:
-							flex_start = 2
-						roles_clean.append("".join(list(roles[i])[flex_start:-1]))  # gives us only ID
-					print(roles, roles_clean)
+					roles_clean_two = await get_role_id_multiple(user_input)
 
 					roles_give = ""
-					for role_id in roles_clean:
+					for role_id in roles_clean_two:
 						try:
 							role = discord.utils.get(server.roles, id=int(role_id))
 							print(role)
@@ -1322,42 +1334,33 @@ async def on_message(message):
 					continue
 
 				except ValueError:
-					if user_input == "skip":
-						roles_give = "none"
+					if user_input in ["skip", "none"]:
+						roles_give = ["none"]
 
 				except Exception as e:
 					await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
 					continue
 
 				try:
-					roles_id_to_give = roles_clean
+					roles_id_to_give = roles_clean_two
 				except:
-					roles_id_to_give = "none"
+					roles_id_to_give = ["none"]
 				first_embed.add_field(name="Role given", value=f"{roles_give}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":eight: What role do you want to be removed from the user when this item is bought?\nIf none, just reply `skip`."
+				next_info = ":eight: What role/roles do you want to be removed from the user when this item is bought?\nIf none, just reply `skip`. For multiple, ping with a space between them."
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
 			elif checkpoints == 8:
 				# check 8: role to be removed when item bought
 				try:
-					if user_input == "skip":
+					if user_input in ["skip", "none"]:
 						raise ValueError
 
-					roles = user_input
-					roles = roles.split(" ")
-					roles_clean = []
-					for i in range(len(roles)):
-						if len(roles[i]) == 22:
-							flex_start = 3
-						else:  # if len() == 21:
-							flex_start = 2
-						roles_clean.append("".join(list(roles[i])[flex_start:-1]))  # gives us only ID
-					print(roles, roles_clean)
+					roles_clean_three = await get_role_id_multiple(user_input)
 
 					roles_remove = ""
-					for role_id in roles_clean:
+					for role_id in roles_clean_three:
 						try:
 							role = discord.utils.get(server.roles, id=int(role_id))
 							print(role)
@@ -1366,21 +1369,22 @@ async def on_message(message):
 							await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
 							raise NameError
 
-				except NameError:
+				except NameError as b:
+					print(b)
 					continue
 
 				except ValueError:
-					if user_input == "skip":
-						roles_remove = "none"
+					if user_input in ["skip", "none"]:
+						roles_remove = ["none"]
 
 				except Exception as e:
 					await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
 					continue
 
 				try:
-					roles_id_to_remove = roles_clean
+					roles_id_to_remove = roles_clean_three
 				except:
-					roles_id_to_remove = "none"
+					roles_id_to_remove = ["none"]
 				first_embed.add_field(name="Role removed", value=f"{roles_remove}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
 				next_info = ":nine: What is the maximum balanace a user can have in order to buy this item?\nIf none, just reply `skip`."
@@ -1424,7 +1428,7 @@ async def on_message(message):
 		# handler
 
 		try:
-			status, create_item_return = await db_handler.create_new_item(item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give, roles_id_to_remove, max_bal, reply_message)
+			status, create_item_return = await db_handler.create_new_item(item_display_name, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give, roles_id_to_remove, max_bal, reply_message)
 			if status == "error":
 				color = discord_error_rgb_code
 				embed = discord.Embed(description=f"{create_item_return}", color=color)
@@ -1449,14 +1453,14 @@ async def on_message(message):
 
 		if "none" in param[1]:  # we need 1 parameters
 			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`delete-item <item name>`", color=color)
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`delete-item <item short name>`", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
 
 		item_name = param[1]
 
-# handler
+		# handler
 
 		try:
 			status, remove_item_return = await db_handler.remove_item(item_name)
@@ -1494,7 +1498,7 @@ async def on_message(message):
 
 		if "none" in param[1]:  # we need item name
 			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`buy-item <item name> <amount>`", color=color)
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`buy-item <item short name> <amount>`", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
@@ -1509,13 +1513,13 @@ async def on_message(message):
 			amount = int(amount)
 			if amount < 1:
 				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`buy-item <item name> <amount>`", color=color)
+				embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`buy-item <item short name> <amount>`", color=color)
 				embed.set_author(name=username, icon_url=user_pfp)
 				await channel.send(embed=embed)
 				return
 		except:
 			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`buy-item <item name> <amount>`", color=color)
+			embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`buy-item <item short name> <amount>`", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
@@ -1553,20 +1557,12 @@ async def on_message(message):
 
 		if "none" in param[1]:  # we need player pinged
 			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`give-item <player pinged> <item name> <amount>`", color=color)
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`give-item <player pinged> <item short name> <amount>`", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
 
-		player_ping_raw = param[1]
-		if len(player_ping_raw) == 22:
-			flex_start = 3
-		elif len(player_ping_raw) == 21:
-			# this should be default...
-			flex_start = 2
-		elif len(player_ping_raw) == 23:
-			flex_start = 4
-		player_ping = "".join(list(player_ping_raw[flex_start:-1]))  # gives us only ID
+		player_ping = await get_user_id(param)
 
 		try:
 			user_fetch = client.get_user(int(player_ping))
@@ -1592,7 +1588,7 @@ async def on_message(message):
 
 		if "none" in param[2]:  # we need item name
 			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`give-item <player pinged> <item name> <amount>`", color=color)
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`give-item <player pinged> <item short name> <amount>`", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
@@ -1607,13 +1603,14 @@ async def on_message(message):
 			amount = int(amount)
 			if amount < 1:
 				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`give-item <player pinged> <item name> <amount>`", color=color)
+				embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`give-item <player pinged> <item short "
+												  f"name> <amount>`", color=color)
 				embed.set_author(name=username, icon_url=user_pfp)
 				await channel.send(embed=embed)
 				return
 		except:
 			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`give-item <player pinged> <item name> <amount>`", color=color)
+			embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`give-item <player pinged> <item short name> <amount>`", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
@@ -1632,6 +1629,50 @@ async def on_message(message):
 			print(e)
 			await send_error(channel)
 		return
+
+	# --------------
+	# 	  USE ITEM     # this will MERELY remove the item from inventory
+	# --------------
+
+	elif command in ["use", all_reg_commands_aliases["use"]]:  # no alias
+
+		if "none" in param[1]:  # we need an item used
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`use-item <item short name> <amount>`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+		else:
+			item_used = param[1]
+
+		if "none" in param[2]:  # we need item amount
+			amount_used = 1     # by default it will be 1
+		else:
+			amount_used = param[2]
+			try:
+				amount_used = int(amount_used)
+			except:
+				color = discord_error_rgb_code
+				embed = discord.Embed(
+					description=f"{emoji_error}  Amount must be a (whole) integer.\n\nUsage:\n`use-item <item short name> <amount>`",
+					color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+
+		try:
+			status, use_return = await db_handler.use_item(user, channel, username, user_pfp, item_used, amount_used)
+
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{use_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+
+		except Exception as e:
+			print(e)
+			await send_error(channel)
 
 	# ---------------------------
 	#   CHECK INVENTORY
@@ -1700,28 +1741,14 @@ async def on_message(message):
 
 		# check role
 
-		income_role_raw = param[1]
-		income_role = ""
-		if len(income_role_raw) == 22:
-			flex_start = 3
-		elif len(income_role_raw) == 21:
-			flex_start = 2
-		elif len(income_role_raw) == 23:
-			flex_start = 4
-		income_role = "".join(list(income_role_raw[flex_start:-1]))  # gives us only ID
-		income_role_try = "".join(list(income_role_raw[flex_start:-2]))  # gives us only ID in the case that role is given as @&
-																		 # and not just @ (= 2 chars to remove)
+
+		income_role = await get_role_id_single(param[1])
 
 		try:
 			role = discord.utils.get(server.roles, id=int(income_role))
 		except Exception as e:
-			print(f"{e}, but we'll try again.")
-
-		try:
-			role = discord.utils.get(server.roles, id=int(income_role_try))
-		except Exception as e:
 			print(e)
-			await channel.send(f"{emoji_error}  Invalid role given, (second check not passed either). Please try again.")
+			await channel.send(f"{emoji_error}  Invalid role given.")
 			return
 
 		# check amount
@@ -1784,15 +1811,13 @@ async def on_message(message):
 
 		# check role
 
-		income_role_raw = param[1]
+		income_role_beta = str(param[1])  # see another instance where i use this to see why
 		income_role = ""
-		if len(income_role_raw) == 22:
-			flex_start = 3
-		elif len(income_role_raw) == 21:
-			flex_start = 2
-		elif len(income_role_raw) == 23:
-			flex_start = 4
-		income_role = "".join(list(income_role_raw[flex_start:-1]))  # gives us only ID
+		for i in range(len(income_role_beta)):
+			try:
+				income_role += str(int(income_role_beta[i]))
+			except:
+				pass
 
 		try:
 			role = discord.utils.get(server.roles, id=int(income_role))
@@ -1819,6 +1844,78 @@ async def on_message(message):
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 
+		return
+
+	# ---------------------------
+	#   REMOVE MONEY BY ROLE
+	# ---------------------------
+
+	elif command in ["remove-money-role", "remove-role-money"]:
+		if not staff_request:
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		if "none" in param[1] or "none" in param[2]:  # we need 2 parameters
+			color = discord_error_rgb_code
+			embed = discord.Embed(
+				description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`remove-money-role <role pinged> <amount>`",
+				color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		amount = param[2]
+		try:
+			# they can use the thousands separator comma
+			newAmount = []
+			for char in amount:
+				if char != ",":
+					newAmount.append(char)
+			amount = "".join(newAmount)
+			amount = int(amount)
+			if amount < 1:
+				color = discord_error_rgb_code
+				embed = discord.Embed(
+					description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`remove-money-role <role pinged> <amount>`",
+					color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except:
+			color = discord_error_rgb_code
+			embed = discord.Embed(
+				description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`remove-money-role <role pinged> <amount>`",
+				color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		# check role
+
+		income_role = await get_role_id_single(param[1])
+
+		try:
+			role = discord.utils.get(server.roles, id=int(income_role))
+		except Exception as e:
+			print(e)
+			await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
+			return
+
+		# handler
+		try:
+			status, remove_money_role_return = await db_handler.remove_money_role(user, channel, username, user_pfp, server, income_role, amount)
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{remove_money_role_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except Exception as e:
+			print(e)
+			await send_error(channel)
 		return
 
 	# ---------------------------
