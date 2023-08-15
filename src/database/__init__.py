@@ -1304,7 +1304,7 @@ class pythonboat_database_handler:
 
 		# 1. check req roles
 		try:
-			if req_roles == "none":
+			if req_roles[0] == "none":
 				pass
 			else:
 				for i in range(len(req_roles)):
@@ -1363,23 +1363,30 @@ class pythonboat_database_handler:
 
 		# 2. check give roles
 		try:
-			if rem_roles == "none":
+			if rem_roles[0] == "none":
 				pass
 			else:
 				for i in range(len(rem_roles)):
 					role = discord.utils.get(server_object.roles, id=int(rem_roles[i]))
-					await user_object.remove_roles(role)
+					try:
+						await user_object.remove_roles(role)
+					except:
+						continue
 		except Exception as e:
 			return "error", f"Unexpected error."
 
 		# 3. check rem roles
 		try:
-			if req_roles == "none":
+			if req_roles[0] == "none":
 				pass
 			else:
 				for i in range(len(give_roles)):
 					role = discord.utils.get(server_object.roles, id=int(give_roles[i]))
-					await user_object.add_roles(role)
+					try:
+						await user_object.add_roles(role)
+					except:
+						continue
+
 		except Exception as e:
 			print("3", e)
 			return "error", f"Unexpected error."
