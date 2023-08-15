@@ -5,6 +5,7 @@
             "cash": 100.0,
             "bank": 100.0,
             "items": "none",
+            "used_items": "none",
             "last_slut": "2021-01-01 00:00:00.0",
             "last_work": "2021-01-01 00:00:00.0",
             "last_crime": "2021-01-01 00:00:00.0",
