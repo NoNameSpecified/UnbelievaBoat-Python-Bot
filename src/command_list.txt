@@ -15,7 +15,8 @@ Here I use the prefix "+" but you can change it whatever you want.
 
 2.1 Staff Commands for economy:
   +add-money <@member> <amount>
-  +remove-money <member> <amount>
+  +remove-money <@member> <amount>
+  +remove-money-role <@role> <amount>
 
 3. Income Commands
   +slut
@@ -35,8 +36,9 @@ Here I use the prefix "+" but you can change it whatever you want.
   +create-item (botmaster required)
   +delete-item <item name> (botmaster required)
   +buy-item <item name> <amount>
-  +give-item <player pinged> <item name> <amount>
+  +give-item <@member> <item name> <amount>
   +inventory
+  +use <item name> <amount>
   +catalog (list-items)
 
 6. Income Roles. Whoever has the role will get income
@@ -44,4 +46,4 @@ Here I use the prefix "+" but you can change it whatever you want.
   +remove-income-role <role pinged> (botmaster required)
   +list-roles
   +update-income (botmaster required. This HAS TO BE USED to pay users who have the role.
-                  Income is now hourly; it will add the amount of hours passed * income.)
+                  It can be used once a week for example, or whenever you want.)
