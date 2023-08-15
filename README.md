@@ -5,9 +5,11 @@ Code is finished, so there won't be any big updates anymore.
 But please report any problems to me via Discord !
 
 ### - Info
-The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho). 
+The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho).
+I have actually tweaked it a bit and added things that people suggested. 
 #### For a full list, see `src/command_list.txt`.
 It emerged from the problem of UB having a balance ceiling and no automated role-income increasing to user's balances.
+Obviously it's way bigger now.
 
 ### - Goal
 The goal was to make an easily customizable Template of a discord bot, also fixing the issues stated above.
