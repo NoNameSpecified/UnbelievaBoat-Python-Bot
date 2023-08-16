@@ -1560,15 +1560,15 @@ class pythonboat_database_handler:
 				# to get the display name
 				json_items = json_content["items"]
 				for ii in range(len(json_items)):
+					print("checking item ", json_items[ii]["name"])
 					if json_items[ii]["name"] == items[i][0]:
-						item_index = i
+						item_index = ii
 						break
-					break
+
 				try:
-					item_display_name = json_items[item_index]["display_name"]
+					item_display_name = json_items[ii]["display_name"]
 				except:
 					item_display_name = items[i][0]
-				print("beep")
 				if items[i][1] > 0:
 					inventory_checkup += f"Item: `{item_display_name}`, amount: `{items[i][1]}`\n"
 
