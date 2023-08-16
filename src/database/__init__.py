@@ -72,7 +72,9 @@ class pythonboat_database_handler:
 			temp_json_content = json.load(temp_json_opening)
 			# the currency symbol is always at position 0 in the "symbols" part
 			currency_symbol = temp_json_content["symbols"][0]["symbol_emoji"]
-			self.currency_symbol = discord.utils.get(self.client.emojis, name=currency_symbol)
+			#self.currency_symbol = discord.utils.get(self.client.emojis, name=currency_symbol)
+			# perhaps currency symbol is too difficult for regular admins to handle, so ill disable it as default.
+			self.currency_symbol = "💰"
 		else:
 			try:
 				self.currency_symbol = discord.utils.get(self.client.emojis, name=value)
@@ -1557,16 +1559,17 @@ class pythonboat_database_handler:
 			for i in range(len(items)):
 				# to get the display name
 				json_items = json_content["items"]
-				for i in range(len(json_items)):
-					if json_items[i]["name"] == items[i][0]:
-						item_index = i
+				for ii in range(len(json_items)):
+					if json_items[i]["name"] == items[ii][0]:
+						item_index = ii
 						break
 					break
 				try:
 					item_display_name = json_items[item_index]["display_name"]
 				except:
 					item_display_name = items[i][0]
-				inventory_checkup += f"Item: `{item_display_name}`; amount: `{items[i][1]}`\n"
+				if items[i][1] > 0:
+					inventory_checkup += f"Item: `{item_display_name}`, amount: `{items[i][1]}`\n"
 
 		color = self.discord_blue_rgb_code
 		embed = discord.Embed(title="Owned Items", description=f"{inventory_checkup}", color=color)
