@@ -3,6 +3,8 @@
 
 Code is finished, so there won't be any big updates anymore.
 But please report any problems to me via Discord !
+## Official repo:   https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot 
+
 
 ### - Info
 The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho).
