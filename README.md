@@ -3,7 +3,10 @@
 
 Code is finished, so there won't be any big updates anymore.
 But please report any problems to me via Discord !
-## Official repo:   https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot 
+
+## Official repo:   
+https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot
+You're free to do anything with the code, I'd appreciate it if you would keep a link to the official repo tho :)
 
 
 ### - Info
