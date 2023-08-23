@@ -37,7 +37,7 @@ from time import sleep
 
 # init discord stuff and json handling
 BOT_PREFIX = ("+")  # tupple in case we'd need multiple
-token = "put yours here"  # add your own token
+token = "NzkzMTEzNzM2NjEyNjc1NjI1.GFzLin.1ffbdCTXkis1EfzKUb4QQnhRi5jxJzUYmEe5rc"  # add your own token
 # emojis
 emoji_worked = "✅"
 emoji_error = "❌"
@@ -215,7 +215,7 @@ async def on_message(message):
 	user_pfp = message.author.avatar.url
 	username = str(message.author)
 	nickname = str(message.author.display_name)
-	user_roles = [randomvar.name.lower() for randomvar in message.author.roles]
+	user_roles = [randomvar.id for randomvar in message.author.roles]
 
 	# some stuff will be only for staff, which will be recognizable by the botmaster role
 	staff_request = 1 if ("botmaster" in user_roles) else 0
@@ -823,7 +823,8 @@ async def on_message(message):
 		embed.add_field(name="add-income-role", value=f"Usage: `add-income-role <role pinged> <income>`", inline=False)
 		embed.add_field(name="remove-income-role", value=f"Usage: `remove-income-role <role pinged>`", inline=False)
 		embed.add_field(name="list-roles", value=f"Usage: `list-roles`", inline=False)
-		embed.add_field(name="update-income", value=f"Usage: `update-income` | income works hourly! automatically updates time elapsed * income", inline=False)
+		embed.add_field(name="get-salary", value=f"Usage: `get-salary` | get your salary. If you choose to use update-income, please disable this command.", inline=False)
+		embed.add_field(name="update-income", value=f"Usage: `update-income` | income works DAILY! automatically updates ALL INCOMES time elapsed * income.", inline=False)
 		# edit stuff
 		embed.set_footer(text="For more info, contact an admin or <kendrik2.0>")
 
@@ -1724,7 +1725,7 @@ async def on_message(message):
 	# ---------------------------
 
 	elif command in ["add-income-role", "add-role-income"]:
-		await channel.send("Info: the income amount specified is an hourly one.\nRemember: you need to manually update income.")
+		await channel.send("Info: the income amount specified is an DAILY one.\nRemember: you need to manually update income.")
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -1964,6 +1965,34 @@ async def on_message(message):
 		embed = discord.Embed(description=f"{emoji_worked}  Users with registered roles have received their income (into bank account).", color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
+
+		return
+
+
+	# ---------------------------
+	#   UPDATE INCOME FOR YOURSELF ONLY
+	# ---------------------------
+
+	elif command in ["get-salary", "update-income-solo"]:
+
+		try:
+			status, update_incomes_return = await db_handler.update_incomes_solo(user, channel, username, user_pfp, server, user_roles)
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{update_incomes_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except Exception as e:
+			print(e)
+			await send_error(channel)
+
+		"""
+		color = discord.Color.from_rgb(102, 187, 106)  # green
+		embed = discord.Embed(description=f"{emoji_worked}  You have received {update_incomes_return} for your roles {roles_return} (into bank account).", color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+		"""
 
 		return
 
