@@ -1570,7 +1570,7 @@ class pythonboat_database_handler:
 				except:
 					item_display_name = items[i][0]
 				if items[i][1] > 0:
-					inventory_checkup += f"Item: `{item_display_name}`, amount: `{items[i][1]}`\n"
+					inventory_checkup += f"Item: {item_display_name}, amount: `{items[i][1]}`\n"
 
 		color = self.discord_blue_rgb_code
 		embed = discord.Embed(title="Owned Items", description=f"{inventory_checkup}", color=color)
@@ -1697,7 +1697,8 @@ class pythonboat_database_handler:
 		json_income_roles.append({
 			"role_id": income_role_id,
 			"role_income": income,
-			"last_updated": now
+			"last_updated": now,
+			"last_single_called": {}
 		})
 
 		color = self.discord_blue_rgb_code
@@ -1791,13 +1792,18 @@ class pythonboat_database_handler:
 			role_id = json_income_roles[role_index]["role_id"]
 
 			# new edit for hourly income:
+			# edit new new edit for daily again..
 			now = datetime.now()
+			# below could be changed because we need single one for every user now...
 			last_income_update_string = json_income_roles[role_index]["last_updated"]
+			#
+
 			# get a timeobject from the string
 			last_income_update = datetime.strptime(last_income_update_string, '%Y-%m-%d %H:%M:%S.%f')
 			# calculate difference, see if it works
 			passed_time = now - last_income_update
-			passed_time_hours = passed_time.total_seconds() // 3600.0
+			# passed_time_final = passed_time.total_seconds() // 3600.0
+			passed_time_final = passed_time.days
 
 			role = discord.utils.get(server_object.roles, id=int(role_id))
 			for member in role.members:
@@ -1807,7 +1813,7 @@ class pythonboat_database_handler:
 
 					json_user_content = json_content["userdata"][user_index]
 					json_income_roles[role_index]["last_updated"] = str(now)
-					income_total = (json_income_roles[role_index]["role_income"] * int(passed_time_hours))
+					income_total = (json_income_roles[role_index]["role_income"] * int(passed_time_final))
 					json_user_content["bank"] += income_total
 					# overwrite
 					json_content["userdata"][user_index] = json_user_content
@@ -1822,6 +1828,85 @@ class pythonboat_database_handler:
 		self.overwrite_json(json_content)
 
 		return "success", "success"
+
+	#
+	# SOLO ROLE INCOME - UPDATE INCOMES SOLO
+	#
+	# get salary will have hourly income too
+
+	async def update_incomes_solo(self, user, channel, username, user_pfp, server_object, user_roles):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+
+		json_income_roles = json_content["income_roles"]
+		user_content = json_content["userdata"]
+
+		# pretty straight forward i think.
+		# first, we go into each role object
+		# then we check in everyones roles if they have the role
+		# this is the other way around than the global update income
+
+		role_ping_complete = []
+		no_money = True
+		income_total = 0
+		ii = 0
+		for role in user_roles:
+
+			for role_index in range(len(json_income_roles)):
+				role_id = json_income_roles[role_index]["role_id"]
+				if int(role) == int(role_id):
+					no_money = False
+					ii += 1
+
+					# new edit for daily income:
+					now = datetime.now()
+
+					# this : last_income_update_string = json_income_roles[role_index]["last_updated"]
+						# does not work single salary
+					# first check if he already got one at all
+					try:
+						last_income_update_string = json_income_roles[role_index]["last_single_called"][str(user)]
+						# get a timeobject from the string
+						last_income_update = datetime.strptime(last_income_update_string, '%Y-%m-%d %H:%M:%S.%f')
+						# calculate difference, see if it works
+						passed_time = now - last_income_update
+						# passed_time_final = passed_time.total_seconds() // 3600.0
+						passed_time_final = passed_time.days
+						print(passed_time_final)
+
+						#role_ping_complete.append(discord.utils.get(server_object.roles, id=int(role_id)))
+
+						json_user_content = json_content["userdata"][user_index]
+						# json_income_roles[role_index]["last_updated"] = str(now)
+						income_total += (json_income_roles[role_index]["role_income"] * int(passed_time_final))
+						if passed_time_final >= 1: json_income_roles[role_index]["last_single_called"][str(user)] = str(now)
+
+					except: # he didnt retrieve a salary yet
+						json_income_roles[role_index]["last_single_called"][str(user)] = str(now)
+						# also to create user in case he isnt registered yet
+						income_total += json_income_roles[role_index]["role_income"]
+
+
+					# role_ping_complete.append(discord.utils.get(server_object.roles, id=int(role_id)))
+
+					json_user_content = json_content["userdata"][user_index]
+					json_user_content["bank"] += income_total
+					# overwrite
+					json_content["userdata"][user_index] = json_user_content
+					json_content["income_roles"] = json_income_roles
+
+		if no_money:
+			await channel.send("You have no income roles!")
+		else:
+			await channel.send(f"You have received your income ({self.currency_symbol} {'{:,}'.format(int(income_total))}) from a total of {ii} different roles!", silent=True)
+
+		# overwrite, end
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
 
 
 	#
