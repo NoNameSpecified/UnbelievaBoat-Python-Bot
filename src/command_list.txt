@@ -45,5 +45,8 @@ Here I use the prefix "+" but you can change it whatever you want.
   +add-income-role <role pinged> <income> (botmaster required)
   +remove-income-role <role pinged> (botmaster required)
   +list-roles
-  +update-income (botmaster required. This HAS TO BE USED to pay users who have the role.
-                  It can be used once a week for example, or whenever you want.)
+  +get-salary
+    User will get their salary. Can/should be disabled depending on what you plan to do
+  +update-income (botmaster required. This is to pay all users who have the role.
+                  It can be used once a week for example, or whenever you want. The role incomes are daily income.
+                  BEWARE: you should use EITHER the get-salary option or the global update-income and disable get-salary)
