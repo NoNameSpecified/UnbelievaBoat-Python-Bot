@@ -218,7 +218,7 @@ async def on_message(message):
 	user_roles = [randomvar.id for randomvar in message.author.roles]
 
 	# some stuff will be only for staff, which will be recognizable by the botmaster role
-	staff_request = 1 if ("botmaster" in user_roles) else 0
+	staff_request = 1 if ("botmaster" in randomvar.name for randomvar in message.author.roles) else 0
 	print("staff status : ", staff_request)
 	command = command[0]
 
