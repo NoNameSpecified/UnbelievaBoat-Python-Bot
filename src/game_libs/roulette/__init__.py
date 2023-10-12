@@ -13,7 +13,8 @@ class roulette_discord_implementation:
 		self.bot = bot
 		self.channel = channel
 		self.currency_symbol = currency_emoji
-		self.slots = {'00': 'green', '0': 'green', '1': 'red', '2': 'black',
+		# note on 12.10.23: im gonna remove <'00': 'green',> to make it a european roulette game
+		self.slots = {'0': 'green', '1': 'red', '2': 'black',
              '3': 'red', '4': 'black', '5': 'red', '6': 'black', '7': 'red',
              '8': 'black', '9': 'red', '10': 'black', '11': 'red',
              '12': 'black', '13': 'red', '14': 'black', '15': 'red',
