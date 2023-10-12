@@ -333,7 +333,7 @@ async def on_message(message):
 			fail = 0
 			try:
 				space = int(space)
-				if not(space > 0 and space < 36):
+				if not(space >= 0 and space <= 36):
 					fail = 1
 			except Exception as e:
 				print(e)
