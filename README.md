@@ -2,7 +2,7 @@
 ### For questions about the bot and how to set it up: ask me on Discord at *<kendrik2.0>*
 
 Code is finished, so there won't be any big updates anymore.
-But please report any problems to me via Discord !
+But please report any problems to me via Discord or by opening an issue !
 
 ## Official repo:   
 https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot
