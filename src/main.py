@@ -37,7 +37,7 @@ from time import sleep
 
 # init discord stuff and json handling
 BOT_PREFIX = ("+")  # tupple in case we'd need multiple
-token = "yourtoken"  # add your own token
+token = "putyourtokenhere"  # add your own token
 # emojis
 emoji_worked = "✅"
 emoji_error = "❌"
@@ -607,7 +607,7 @@ async def on_message(message):
 		if "none" in param[1] or "none" in param[2]:  # we need 2 parameters
 			color = discord_error_rgb_code
 			embed = discord.Embed(
-				description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`give <member> <amount or all>`",
+				description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`give <member> <amount or all>`\nInfo: for items use give-item!",
 				color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
@@ -813,6 +813,7 @@ async def on_message(message):
 		embed.add_field(name="remove-money-role", value=f"Usage: `remove-money-role <role> <amount>`", inline=False)
 		embed.add_field(name="change", value=f"Usage: `change <module> <variable> <new value>`", inline=False)
 		embed.add_field(name="change-currency", value=f"Usage: `change-currency <new emoji name>`", inline=False)
+		embed.add_field(name="remove-user-item", value=f"Usage: `remove-user-item <member> <item short name> <amount>`", inline=False)
 		embed.add_field(name="----------------------\n\nITEM HANDLING", value=f"create and delete requires <botmaster> role", inline=False)
 		embed.add_field(name="create-item", value=f"Usage: `create-item`", inline=False)
 		embed.add_field(name="delete-item", value=f"Usage: `delete-item <item short name>`", inline=False)
@@ -1443,7 +1444,7 @@ async def on_message(message):
 			await send_error(channel)
 
 	# ---------------------------
-	#   DELETE ITEM
+	#   DELETE ITEM - REMOVE ITEM
 	# ---------------------------
 
 	elif command in ["delete-item", "remove-item"]:
@@ -1462,6 +1463,18 @@ async def on_message(message):
 			return
 
 		item_name = param[1]
+
+		# since this will completely remove the item
+		# we should make sure you rly want to do this (and not remove-user-item).
+		security_check = False
+		sec_embed = discord.Embed(title="Attention", description="🚨 This will permanently delete the item, also for every user!\nDo you wish to continue? [y/N]", color=discord.Color.from_rgb(3, 169, 244))
+		sec_embed.set_footer(text="Info: use remove-user-item to remove an item from a specific user.")
+		await channel.send(embed=sec_embed)
+
+		security_check_input = await get_user_input(message)
+		if security_check_input.strip().lower() not in ["yes", "y"]:
+			await channel.send(f"{emoji_error}  Cancelled command.")
+			return
 
 		# handler
 
@@ -1482,6 +1495,84 @@ async def on_message(message):
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 
+		return
+
+	# ---------------------------
+	#   REMOVE USER ITEM
+	# ---------------------------
+
+	elif command in ["remove-user-item"]:
+		if not staff_request:
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		if "none" in param[1]:  # we need player pinged
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`remove-user-item <member> <item short name> <amount>`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		player_ping = await get_user_id(param)
+
+		try:
+			user_fetch = client.get_user(int(player_ping))
+			print(user_fetch)
+			reception_user_name = user_fetch
+
+		except:
+			# we didnt find him
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Invalid `<member>` argument given.\n\nUsage:"
+											  f"\n`remove-user-item <member> <item short name> <amount>`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		if "none" in param[2]:  # we need item name
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`remove-user-item <member> <item short name> <amount>`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+		item_name = param[2]
+
+		if "none" in param[3]:  # we need item amount
+			amount = 1
+		else:
+			amount = param[3]
+
+		try:
+			amount = int(amount)
+			if amount < 1:
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`remove-user-item <member> <item short name> <amount>", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except:
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`remove-user-item <member> <item short name> <amount>`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		# handler
+
+		try:
+			status, remove_user_item_return = await db_handler.remove_user_item(user, channel, username, user_pfp, item_name, amount, player_ping, reception_user_name)
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{remove_user_item_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except Exception as e:
+			print(e)
+			await send_error(channel)
 		return
 
 	# ---------------------------
