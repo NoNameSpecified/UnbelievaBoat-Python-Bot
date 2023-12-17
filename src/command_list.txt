@@ -35,6 +35,9 @@ Here I use the prefix "+" but you can change it whatever you want.
 5. Items
   +create-item (botmaster required)
   +delete-item <item name> (botmaster required)
+    info: remove the item completely, for everyone.
+  +remove-user-item <member> <item short name> <amount> (botmaster required)
+    info: this will remove one or more items from a user's inventory.
   +buy-item <item name> <amount>
   +give-item <@member> <item name> <amount>
   +inventory
