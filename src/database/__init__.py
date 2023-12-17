@@ -1264,6 +1264,54 @@ class pythonboat_database_handler:
 		return "success", "success"
 
 	#
+	# REMOVE ITEM FROM SPECIFIC USER's INVENTORY
+	#
+
+	async def remove_user_item(self, user, channel, username, user_pfp, item_name, amount_removed, reception_user, recept_uname):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		reception_user_index, new_data = self.find_index_in_db(json_content["userdata"], reception_user)
+
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_recept_content = json_content["userdata"][reception_user_index]
+
+		# i just copied and adjusted the code snippet from give_item btw.
+		try:
+			if json_recept_content["items"] == "none":
+				return "error", f"❌ User does not have any items."
+			else:
+				worked = False
+				for ii_i in range(len(json_recept_content["items"])):
+					if json_recept_content["items"][ii_i][0] == item_name:
+						if (json_recept_content["items"][ii_i][1] - amount_removed) < 0:
+							return "error", f"❌ User does not have the necessary amount of items.\nInfo: has {json_recept_content['items'][ii_i][1]} items of that item."
+						json_recept_content["items"][ii_i][1] -= amount_removed
+						worked = True
+						break
+				if worked == False:
+					return "error", f"❌ User does not possess the specified item."
+
+		except:
+			return "error", f"❌"
+
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(
+			description=f"✅ Removed {'{:,}'.format(int(amount_removed))} {item_name} from {recept_uname.mention}.",
+			color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["userdata"][reception_user_index] = json_recept_content
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
 	# BUY ITEM
 	#
 
@@ -1560,7 +1608,7 @@ class pythonboat_database_handler:
 				# to get the display name
 				json_items = json_content["items"]
 				for ii in range(len(json_items)):
-					print("checking item ", json_items[ii]["name"])
+					#print("checking item ", json_items[ii]["name"])
 					if json_items[ii]["name"] == items[i][0]:
 						item_index = ii
 						break
@@ -1570,7 +1618,7 @@ class pythonboat_database_handler:
 				except:
 					item_display_name = items[i][0]
 				if items[i][1] > 0:
-					inventory_checkup += f"Item: {item_display_name}, amount: `{items[i][1]}`\n"
+					inventory_checkup += f"Item: {item_display_name}\n     short name <{json_items[ii]['name']}>, amount: `{items[i][1]}`\n\n"
 
 		color = self.discord_blue_rgb_code
 		embed = discord.Embed(title="Owned Items", description=f"{inventory_checkup}", color=color)
@@ -1597,10 +1645,10 @@ class pythonboat_database_handler:
 		if item_check == "default_list":
 			for i in range(len(items)):
 				try:
-					catalog_report += f"Item {i}: {items[i]['display_name']} (short name {items[i]['name']})\n"
+					catalog_report += f"Item {i}: {items[i]['display_name']}\n      (short name <{items[i]['name']}>)\n\n"
 				except:
 					catalog_report += f"Item {i}: {items[i]['name']}\n"
-			catalog_report += "\n```\n*For details about an item: use* `catalog <item name>`"
+			catalog_report += "\n```\n*For details about an item: use* `catalog <item short name>`"
 
 		else:
 			check = 0
@@ -1649,7 +1697,7 @@ class pythonboat_database_handler:
 
 				try:
 					catalog_report += f"Item name: {items[item_index]['display_name']}\n" \
-									  f"Item short name: {items[item_index]['name']}\n" \
+									  f"Item short name: <{items[item_index]['name']}>\n" \
 									  f"Item price: {items[item_index]['price']}\n" \
 									  f"Item description: {items[item_index]['description']}\n" \
 									  f"Remaining time: item expires {left_time}\n" \
@@ -1659,7 +1707,7 @@ class pythonboat_database_handler:
 									  f"Given roles: {give_roles}\n" \
 									  f"Removed roles: {rem_roles}\n"
 				except:
-					catalog_report +=  f"Item short name: {items[item_index]['name']}\n" \
+					catalog_report +=  f"Item short name: <{items[item_index]['name']}>\n" \
 									  f"Item price: {items[item_index]['price']}\n" \
 									  f"Item description: {items[item_index]['description']}\n" \
 									  f"Remaining time: item expires {left_time}\n" \
