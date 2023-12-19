@@ -195,6 +195,8 @@ async def on_message(message):
 				new_slide += command[temp_cmd]
 				command_updated.append(new_slide[1:len(new_slide)-1])
 				break
+			elif command[test_cmd] in [" ", ""]:
+				continue
 			else:
 				command_updated.append(command[test_cmd])
 	except:
