@@ -1625,7 +1625,7 @@ class pythonboat_database_handler:
 
 			# number of pages which will be needed :
 			# we have 10 items per page
-			items_per_page = 2  # change to 10 after
+			items_per_page = 10  # change to 10 after
 
 			# our selection !
 			index_start = (page_number - 1) * items_per_page
