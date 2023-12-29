@@ -53,13 +53,14 @@ db_handler = database.pythonboat_database_handler(client)  # ("database.json")
 
 """
 
-async def get_user_input(message):
+async def get_user_input(message, default_spell=True):
 	print("Awaiting User Entry")
 	# we want an answer from the guy who wants to give an answer
 	answer = await client.wait_for("message", check=lambda response: response.author == message.author and response.channel == message.channel)
 	answer = answer.content
 	# clean input
-	answer = answer.lower().strip()
+	if default_spell:
+		answer = answer.lower().strip()
 
 	return answer
 
@@ -150,6 +151,7 @@ async def on_ready():
 USER-BOT INTERACTION
 
 """
+
 @client.event
 async def on_message(message):
 
@@ -177,7 +179,7 @@ async def on_message(message):
 		edit : for now we just splitted it, pure command will be taken with command = command[0]
 	this is to redirect the command to further handling
 	"""
-	print(command) # for testing purposes
+	# print(command) # for testing purposes
 
 	param_index = 1
 	param = ["none", "none", "none", "none"]
@@ -202,7 +204,7 @@ async def on_message(message):
 	except:
 			await message.channel.send("Error. You maybe opened a single/doublequote or a < and didnt close it")
 	command = command_updated
-	print(command)
+	# print(command)
 	for param_index in range(len(command)):
 		param[param_index] = command[param_index]
 	print(f"Command called with parameters : {param}")
@@ -214,7 +216,7 @@ async def on_message(message):
 	server = message.guild
 	user = message.author.id
 	user_mention = message.author.mention
-	user_pfp = message.author.avatar.url
+	user_pfp = message.author.display_avatar.url
 	username = str(message.author)
 	nickname = str(message.author.display_name)
 	user_roles = [randomvar.id for randomvar in message.author.roles]
@@ -822,7 +824,8 @@ async def on_message(message):
 		embed.add_field(name="buy-item", value=f"Usage: `buy-item <item short name> <amount>`", inline=False)
 		embed.add_field(name="give-item", value=f"Usage: `give-item <member> <item short name> <amount>`", inline=False)
 		embed.add_field(name="use", value=f"Usage: `use <item short name> <amount>`", inline=False)
-		embed.add_field(name="inventory", value=f"Usage: `inventory`", inline=False)
+		embed.add_field(name="inventory", value=f"Usage: `inventory [page]`", inline=False)
+		embed.add_field(name="user-inventory", value=f"Usage: `user-inventory <member> [page]`", inline=False)
 		embed.add_field(name="catalog", value=f"Usage: `catalog <nothing or item name>`", inline=False)
 		embed.add_field(name="----------------------\n\nINCOME ROLES", value=f"create, delete and update requires <botmaster> role", inline=False)
 		embed.add_field(name="add-income-role", value=f"Usage: `add-income-role <role pinged> <income>`", inline=False)
@@ -1130,13 +1133,6 @@ async def on_message(message):
 			SPECIAL COMMANDS
 		"""
 
-		"""
-		TODO :
-			catalog
-			add all these to the help menu
-			use-item
-		"""
-
 	# ---------------------------
 	#   ITEM CREATION / Create item
 	# ---------------------------
@@ -1162,7 +1158,7 @@ async def on_message(message):
 		while currently_creating_item:
 			user_input = ""
 			# get input first
-			user_input = await get_user_input(message)
+			user_input = await get_user_input(message, default_spell=False)
 			print("at checkpoint ", checkpoints, "\ninput is ", user_input)
 			# check if user wants cancel
 			if user_input == "cancel":
@@ -1664,6 +1660,7 @@ async def on_message(message):
 			user_fetch = client.get_user(int(player_ping))
 			print(user_fetch)
 			reception_user_name = user_fetch
+			print(reception_user_name)
 
 			if int(player_ping) == user:
 				# cannot send money to yourself
@@ -1770,14 +1767,104 @@ async def on_message(message):
 			print(e)
 			await send_error(channel)
 
-	# ---------------------------
-	#   CHECK INVENTORY
-	# ---------------------------
+	# ---------------------------------------
+	#   CHECK INVENTORY (check own inventory)
+	# ---------------------------------------
 
 	elif command in ["inventory"]:
+		# by default, you look at your own inventory.
+		# this is prob useless and its easier to just put user_to_check_uname=none in the func init.py
+		# but for now this will do
+		user_to_check, user_to_check_uname, user_to_check_pfp = "self", "self", "self"
+		# or if for another member
+		if param[1] == "none":
+			page_number = 1
+		else:
+			try:
+				page_number = int(param[1])
+			except:
+				color = discord_error_rgb_code
+				embed = discord.Embed(
+					description=f"{emoji_error}  Invalid page number.\n\nUsage:\n`inventory [page]`", color=color)
+				embed.set_footer(text="info: use it without page once, output will show amount of total pages.\ninfo: use user-inventory to see inventory of another user.")
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+
 		# handler
+
 		try:
-			status, inventory_return = await db_handler.check_inventory(user, channel, username, user_pfp)
+			status, inventory_return = await db_handler.check_inventory(user, channel, username, user_pfp, user_to_check, user_to_check_uname, user_to_check_pfp, page_number)
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{inventory_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except Exception as e:
+			print(e)
+			await send_error(channel)
+		return
+
+	# --------------------------------------------------------
+	#   CHECK USER INVENTORY (check inventory of another user)
+	# --------------------------------------------------------
+
+	elif command in ["user-inventory"]:
+		# by default, you look at your own inventory.
+		# this is prob useless and its easier to just put user_to_check_uname=none in the func init.py
+		# but for now this will do
+		# or if for another member
+
+		if "none" in param[1]:  # we need a member pinged
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`user-inventory <member> [page]`", color=color)
+			embed.set_footer(text="info: use `inventory` to see your own inventory.")
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+		else:
+			# to get his id
+			user_to_check = await get_user_id(param)
+
+			try:
+				# used for @-mention.
+
+				user_to_check_uname_b = client.get_user(int(user_to_check))
+				user_to_check_uname = user_to_check_uname_b.name  # idk why we need this but without it breaks
+				user_to_check_pfp = user_to_check_uname_b.display_avatar
+				if int(user_to_check) == user:
+					user_to_check, user_to_check_uname, user_to_check_pfp = "self", "self", "self"
+			except:
+				# we didnt find him
+				color = discord_error_rgb_code
+				embed = discord.Embed(
+					description=f"{emoji_error}  Invalid member ping.\n\nUsage:\n`user-inventory <member> [page]`", color=color)
+				embed.set_footer(text="info: use `inventory` to see your own inventory.")
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+
+		if param[2] == "none":
+			page_number = 1
+		else:
+			try:
+				page_number = int(param[1])
+			except:
+				color = discord_error_rgb_code
+				embed = discord.Embed(
+					description=f"{emoji_error}  Invalid page number.\n\nUsage:\n`user-inventory <member> [page]`", color=color)
+				embed.set_footer(text="info: use it without page once, output will show amount of total pages")
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+
+
+
+		# handler
+
+		try:
+			status, inventory_return = await db_handler.check_inventory(user, channel, username, user_pfp, user_to_check, user_to_check_uname, user_to_check_pfp, page_number)
 			if status == "error":
 				color = discord_error_rgb_code
 				embed = discord.Embed(description=f"{inventory_return}", color=color)
