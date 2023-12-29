@@ -35,3 +35,11 @@ Another goal is to have the bot written in python so that it's easy to edit for 
 10. Launch main.py with **python3**. Beware !! On Windows, please use powershell, else path might not be recognized.
 
 You should be good to go!
+
+
+### json usage
+tldr: json is problematic but I think for small stuff this should still work, contact me if you got any problems / questions tho.
+longer version:
+So i made this bot a long time ago and I decided to use json, which is honestly a bad idea for a database, as pointed out in https://stackoverflow.com/a/73869286.
+However, it would take way too long to change the whole system now, especially since I'm only fixing and adding minor stuff now and don't have the time to do big changes.
+But from what I can tell, this works fine aswell and not that slow! If you do face problems concerning speed, please contact me (discord or issue on github) and maybe I can do a little, if it's due to json usage I won't be able to help you tho.
