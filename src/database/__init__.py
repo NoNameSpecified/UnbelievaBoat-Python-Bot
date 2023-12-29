@@ -914,6 +914,7 @@ class pythonboat_database_handler:
 				all_bal.append(int(json_content["userdata"][i]["cash"] + json_content["userdata"][i]["bank"]))
 		# print(all_bal)
 		# so, data is set, now sort
+
 		i = -1
 		while i <= len(all_bal):
 			i += 1
@@ -933,12 +934,15 @@ class pythonboat_database_handler:
 			except:
 				pass
 
-		i = 0
+		"""
+		this seems to be whats taking the longest time while sorting
+		"""
+
 		# use names instead of just ID, except if we cannot find names
 		# so for example if someone left the server
 		for i in range(len(all_users)):
 			try:
-				name_object = await client.fetch_user(int(all_users[i]))
+				name_object = client.get_user(int(all_users[i])).name
 				# print(i, all_users[i], name_object)
 				actual_name = str(name_object)
 				if all_users[i] == user:
@@ -947,23 +951,28 @@ class pythonboat_database_handler:
 				actual_name = str(all_users[i])
 			# update
 			all_users[i] = actual_name
+			try:
+				print(user_lb_position)
+			except:
+				user_lb_position = 10000 # did not find him
 
-		i = 0
 		# making nice number formats
 		for i in range(len(all_bal)):
 			all_bal[i] = '{:,}'.format(all_bal[i])
+		### the code until here takes a LOT of time
 
 		# making the formatted output description
 		# number of pages which will be needed :
 		# we have 10 ranks per page
-		ranks_per_page = 10
-		page_count = len(all_bal) / ranks_per_page
+		"""
+		btw before did this (idk why i did this and not just ceil ?)
 		if ".0" in str(page_count): page_count = int(page_count)
 		if not isinstance(page_count, int):
 			page_count += 1
+		"""
+		ranks_per_page = 10
+		page_count = math.ceil(len(all_bal) / ranks_per_page)
 		# page_count = (len(all_bal) + ranks_per_page - 1)
-		# round number up
-		total_pages = round(page_count)
 
 		# our selection !
 		index_start = (page_number - 1) * ranks_per_page
@@ -972,15 +981,15 @@ class pythonboat_database_handler:
 		bal_selection = all_bal[index_start: index_end]
 
 		# making the formatted !
-		i = 0
+		i = 0 if page_number == 1 else page_number * ranks_per_page # this is because if we call page 2 we wanna start at 20
 		leaderboard_formatted = f""
-		for i in range(len(user_selection)):
-			leaderboard_formatted += f"\n**{str(i + 1)}.** {user_selection[i]} • {str(self.currency_symbol)} {bal_selection[i]}"
-
+		for i_i in range(len(user_selection)):
+			leaderboard_formatted += f"\n**{str(i + 1)}.** {user_selection[i_i]} • {str(self.currency_symbol)} {bal_selection[i_i]}"
+			i += 1
 		# making a nice output
-		if total_pages == 1:
+		if page_count == 1:
 			page_number = 1
-		elif page_number > total_pages:
+		elif page_number > page_count:
 			page_number = 1
 
 		# inform user
@@ -996,7 +1005,7 @@ class pythonboat_database_handler:
 		elif user_lb_position == 3:
 			pos_name = "rd"
 		embed.set_footer(
-			text=f"Page {page_number}/{total_pages}  •  Your leaderboard rank: {user_lb_position}{pos_name}")
+			text=f"Page {page_number}/{page_count}  •  Your leaderboard rank: {user_lb_position}{pos_name}")
 		await channel.send(embed=embed)
 
 		return "success", "success"
@@ -1590,41 +1599,80 @@ class pythonboat_database_handler:
 	# CHECK INVENTORY
 	#
 
-	async def check_inventory(self, user, channel, username, user_pfp):
+	async def check_inventory(self, user, channel, username, user_pfp, user_to_check, user_to_check_uname, user_to_check_pfp, page_number):
 		# load json
 		json_file = open(self.pathToJson, "r")
 		json_content = json.load(json_file)
 
-		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
-		user_content = json_content["userdata"][user_index]
+		if user_to_check == "self":
+			user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+			user_content = json_content["userdata"][user_index]
+		else: # we re looking for a specific member
+			user_index, new_data = self.find_index_in_db(json_content["userdata"], user_to_check)
+			user_content = json_content["userdata"][user_index]
+			username = user_to_check_uname
+			user_pfp = user_to_check_pfp
 
-		items = user_content["items"]
+		"""
+		we only care if we have any items owned, not 0
+		"""
+		items_old = user_content["items"]
+		if items_old != "none":
+			items = []
+			for i in range(len(items_old)):
+				if items_old[i][1] > 0:
+					items.append(items_old[i])
+
+			# number of pages which will be needed :
+			# we have 10 items per page
+			items_per_page = 2  # change to 10 after
+
+			# our selection !
+			index_start = (page_number - 1) * items_per_page
+			index_end = index_start + items_per_page
+			items_selection = items[index_start: index_end]
+			page_count = math.ceil(len(items) / items_per_page)
+		else:
+			items = "none"
 
 		if items == "none":
-			inventory_checkup = "**Inventory empty. No items owned.**"
+			# inventory_checkup = "**Inventory empty. No items owned.**"
+			color = self.discord_blue_rgb_code
+			embed = discord.Embed(title="inventory", description="**Inventory empty. No items owned.**", color=color)
+
 		else:
-			inventory_checkup = ""
-			for i in range(len(items)):
+			# inventory_checkup = f""
+			color = self.discord_blue_rgb_code
+			embed = discord.Embed(title="inventory", color=color)
+			current_index = 1 if page_number == 1 else page_number * items_per_page # this is because if we call page 2 we wanna start at 20
+			for i in range(len(items_selection)):
 				# to get the display name
 				json_items = json_content["items"]
 				for ii in range(len(json_items)):
-					#print("checking item ", json_items[ii]["name"])
-					if json_items[ii]["name"] == items[i][0]:
+					# print("checking item ", json_items[ii]["name"])
+					if json_items[ii]["name"] == items_selection[i][0]:
 						item_index = ii
 						break
 
 				try:
 					item_display_name = json_items[ii]["display_name"]
 				except:
-					item_display_name = items[i][0]
-				if items[i][1] > 0:
-					inventory_checkup += f"Item: {item_display_name}\n     short name <{json_items[ii]['name']}>, amount: `{items[i][1]}`\n\n"
+					item_display_name = items_selection[i][0]  # if there is no display name, we show the normal name
+				# btw i use "ideographic space" [　] for tab
+				# inventory_checkup += f"[{current_index}]　Item: {item_display_name}\n　　short name: {json_items[ii]['name']}\n　　amount: `{items_selection[i][1]}`\n\n"
+				embed.add_field(name=f"[{current_index}]　Item: {item_display_name}",
+								value=f"short name: `{json_items[ii]['name']}`　"
+									  f"amount: `{items_selection[i][1]}`", inline=False)
+				current_index += 1
 
-		color = self.discord_blue_rgb_code
-		embed = discord.Embed(title="Owned Items", description=f"{inventory_checkup}", color=color)
+		if page_count == 1:
+			page_number = 1
+		elif page_number > page_count:
+			page_number = 1
+
 		embed.set_author(name=username, icon_url=user_pfp)
-		embed.set_footer(text="nice")
-		await channel.send(embed=embed)
+		embed.set_footer(text=f"page {page_number} of {page_count}")
+		sent_embed = await channel.send(embed=embed)
 
 		# overwrite, end
 		# not needed
