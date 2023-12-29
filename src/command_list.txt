@@ -1,6 +1,6 @@
 List of commands available for the Unbelievaboat-like discord bot in python.
 Link : https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot, to use the bot follow instructions in readme.md
-Here I use the prefix "+" but you can change it whatever you want.
+Here I use the prefix "+" but you can change it to whatever you want.
 
 1. Mini-Games
   Blackjack: +blackjack <bet>
@@ -40,7 +40,10 @@ Here I use the prefix "+" but you can change it whatever you want.
     info: this will remove one or more items from a user's inventory.
   +buy-item <item name> <amount>
   +give-item <@member> <item name> <amount>
-  +inventory
+  +inventory [page]
+    info: see your own inventory
+  +user-inventory <@member> [page]
+    info: see inventory of another user
   +use <item name> <amount>
   +catalog (list-items)
 
