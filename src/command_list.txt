@@ -25,12 +25,18 @@ Here I use the prefix "+" but you can change it to whatever you want.
   +rob
 
 4. Implemented Customization
-  Get module (income commands) info. Use this info to edit the values:
-    +module <module>
-  Change module settings (income commands settings such as delay, minimum win amount etc):
-    +change <module> <variable> <new value>
-  Change the custom currency emoji. It has to be an emoji you uploaded to the server, not a discord-wide one:
-    +change-currency <new emoji name>
+  +module <module>
+    Get module (income commands) info. Use this info to edit the values.
+  +change <module> <variable> <new value>
+    Change module settings (income commands settings such as delay, minimum win amount etc).
+  +change-currency <new emoji name>
+    Change the custom currency emoji. It has to be an emoji you uploaded to the server, not a discord-wide one.
+  +set-income-reset <false/true>
+    Change "income reset". By default, it is set to "true".
+    This means that (if you use get-salary and not update-income, see below!) the daily salary will NOT accumulate.
+    i.e. if you call it, you get X€, if you wait 3 days, you get X€ again.
+    If you set-income-reset to "false", the user would get days passed * X€.
+
 
 5. Items
   +create-item (botmaster required)
