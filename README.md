@@ -27,13 +27,14 @@ Another goal is to have the bot written in python so that it's easy to edit for 
 2. In the Discord Dev Portal, in the "Bot" tab of your application, **enable presence intent, server members intent, message content intent**.
 3. Download the code, structured as in this repo.
 4. Open the `main.py` file, line 40 and change the **token** to the one of your created bot.
-5. [optional] In the `database/database.json` file: scroll down to the symbols part and put a *custom emoji name* in the "symbol_emoji" variable. - for example if you have a bitcoin emoji called "btc". It must be an emoji you uploaded to the server, not a discord-wide one.
-    --> info to step 6: it is set to 💰 as default. you can still change that by following step 6 and changing line 75-77 in database/__init__.py. Note: if you uncomment 75, you gotta comment out line 77 ! (by putting a <#> before it, like in line 76
-6. Invite the bot to your server as shown in https://youtu.be/b61kcgfOm_4
-7. Install python3 if you dont have it
-8. Install the Discord Api for python3 using pip (`pip install discord.py`)
-9. In your server, create a role named "botmaster" and give it to people who should be bot admins.
-10. Launch main.py with **python3**. Beware !! On Windows, please use powershell, else path might not be recognized.
+5. Invite the bot to your server as shown in https://youtu.be/b61kcgfOm_4
+6. Install python3 if you dont have it
+7. Install the Discord Api for python3 using pip (`pip install discord.py`)
+8. In your server, create a role named "botmaster" and give it to people who should be bot admins.
+9. Launch main.py with **python3**. Beware !! On Windows, please use powershell, else path might not be recognized.
+10. [optional]: by default, the currency emoji is set to 💰.  
+    You can change it as follows: changing line 75-77 in database/__init__.py. Note: if you uncomment 75, you gotta comment out line 77 ! (by putting a <#> before it, like in line 76.  
+    Then use change-currency-symbol (see src/commands.txt) or change "symbol_emoji" `in database/database.json`(needs to be a custom emoji)
 
 You should be good to go!
 
