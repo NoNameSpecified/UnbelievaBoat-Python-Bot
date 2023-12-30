@@ -2026,7 +2026,7 @@ class pythonboat_database_handler:
 
 						if income_reset:
 							# you only get it DAILY, other than that it resets !
-							income_total += json_income_roles[role_index]["role_income"]
+							income_total += json_income_roles[role_index]["role_income"] if passed_time_final >= 1 else 0
 						else:
 							income_total += (json_income_roles[role_index]["role_income"] * int(passed_time_final))
 
