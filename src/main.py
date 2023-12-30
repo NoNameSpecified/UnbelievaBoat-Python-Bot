@@ -817,6 +817,7 @@ async def on_message(message):
 		embed.add_field(name="remove-money-role", value=f"Usage: `remove-money-role <role> <amount>`", inline=False)
 		embed.add_field(name="change", value=f"Usage: `change <module> <variable> <new value>`", inline=False)
 		embed.add_field(name="change-currency", value=f"Usage: `change-currency <new emoji name>`", inline=False)
+		embed.add_field(name="set-income-reset", value=f"Usage: `set-income-reset <false/true>`", inline=False)
 		embed.add_field(name="remove-user-item", value=f"Usage: `remove-user-item <member> <item short name> <amount>`", inline=False)
 		embed.add_field(name="----------------------\n\nITEM HANDLING", value=f"create and delete requires <botmaster> role", inline=False)
 		embed.add_field(name="create-item", value=f"Usage: `create-item`", inline=False)
@@ -1121,6 +1122,53 @@ async def on_message(message):
 			if status == "error":
 				color = discord_error_rgb_code
 				embed = discord.Embed(description=f"{emoji_edit_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except Exception as e:
+			print(e)
+			await send_error(channel)
+
+	# ---------------------------
+	#   SET INCOME RESET
+	# ---------------------------
+
+	elif command in ["set-income-reset", "change-income-reset"]:
+		if not staff_request:
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		if "none" in param[1]:  # we need 1 parameter
+			color = discord_error_rgb_code
+			embed = discord.Embed(
+				description=f"{emoji_error}  Too few arguments given.\n\nUsage: `set-income-reset <false/true>`",
+				color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		if param[1] not in ["true", "false"]:  # and that param has to be true/false
+			color = discord_error_rgb_code
+			embed = discord.Embed(
+				description=f"{emoji_error}  Too few arguments given.\n\nUsage: `set-income-reset <false/true>`",
+				color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		# ok so all checks done
+		new_income_reset = param[1]
+
+		# handler
+		try:
+			status, new_income_reset_return = await db_handler.set_income_reset(user, channel, username, user_pfp,
+																				new_income_reset)
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{new_income_reset_return}", color=color)
 				embed.set_author(name=username, icon_url=user_pfp)
 				await channel.send(embed=embed)
 				return
