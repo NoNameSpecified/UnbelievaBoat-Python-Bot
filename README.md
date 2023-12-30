@@ -13,7 +13,9 @@ You're free to do anything with the code, I'd appreciate it if you would keep a 
 ### - Info
 The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho).  
 I have actually tweaked it a bit and added things that people suggested. 
-#### For a full list of commands, see `src/command_list.txt`.
+
+### Please read `src/command_list.txt`.
+It not only helps users with how/what commands to use, it also gives tips for admins (using get-salary vs update-income for example).
 
 ### - Goal
 It emerged from the problem of UB having a balance ceiling and no automated role-income increasing to user's balances. Obviously it's way bigger now.  
