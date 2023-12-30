@@ -185,7 +185,7 @@ class pythonboat_database_handler:
 		user_cash = json_user_content["cash"]
 		if user_cash < bet:
 			self.overwrite_json(json_content)
-			return "error", f"You don't have enough money for this bet.\nYou currently have {str(self.currency_symbol)} **{'{:,}'.format(int(user_cash))}** in cash."
+			return "error", f"❌ You don't have enough money for this bet.\nYou currently have {str(self.currency_symbol)} **{'{:,}'.format(int(user_cash))}** in cash."
 
 		# the actual game
 		# start it
@@ -199,7 +199,7 @@ class pythonboat_database_handler:
 		elif bjPlay == "bust":
 			pass
 		else:
-			return "error", "error unknown, contact admin"
+			return "error", "❌ error unknown, contact admin"
 
 		# overwrite, end
 		json_content["userdata"][user_index] = json_user_content
@@ -226,7 +226,7 @@ class pythonboat_database_handler:
 		user_cash = json_user_content["cash"]
 		if user_cash < bet:
 			self.overwrite_json(json_content)
-			return "error", f"You don't have enough money for this bet.\nYou currently have {str(self.currency_symbol)} **{'{:,}'.format(int(user_cash))}** in cash."
+			return "error", f"❌ You don't have enough money for this bet.\nYou currently have {str(self.currency_symbol)} **{'{:,}'.format(int(user_cash))}** in cash."
 
 		# the actual game
 		# start it
@@ -238,7 +238,7 @@ class pythonboat_database_handler:
 		elif roulettePlay == 0:
 			json_user_content["cash"] -= bet
 		else:
-			return "error", "error unknown, contact admin"
+			return "error", "❌ error unknown, contact admin"
 
 		# overwrite, end
 		json_content["userdata"][user_index] = json_user_content
@@ -1030,7 +1030,7 @@ class pythonboat_database_handler:
 
 		if module not in self.variable_dict.keys() and module not in ["symbols", "currency_symbol"]:
 			possible = "slut, crime, work, rob, symbols"
-			return "error", f"Module not found. Possibilites : {possible}"
+			return "error", f"❌ Module not found. Possibilites : {possible}"
 
 		if module in ["symbols", "currency_symbol"]:
 			info_output = f"""Symbol:\nname: {json_content['symbols'][0]['name']}, value: emoji \"{json_content['symbols'][0]['symbol_emoji']}" """
@@ -1120,14 +1120,14 @@ class pythonboat_database_handler:
 		json_content = json.load(json_file)
 
 		if module_name not in self.variable_dict.keys():
-			return "error", "module not found"
+			return "error", "❌ module not found"
 		module_index = self.variable_dict[module_name]
 
 		json_module_content = json_content["variables"][module_index]
 		try:
 			old_value = json_module_content[variable_name]
 		except:
-			return "error", f"variable name of module {module_name} not found"
+			return "error", f"❌ variable name of module {module_name} not found"
 
 		# changing value
 		json_module_content[variable_name] = new_value
@@ -1162,7 +1162,7 @@ class pythonboat_database_handler:
 
 		test_emoji = self.get_currency_symbol(True, new_emoji_name)
 		if test_emoji == "error":
-			return "error", "Emoji not found."
+			return "error", "❌ Emoji not found."
 
 		# changing value
 		json_emoji["symbol_emoji"] = new_emoji_name
@@ -1176,6 +1176,35 @@ class pythonboat_database_handler:
 
 		# overwrite, end
 		json_content["symbols"][0] = json_emoji
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# EDIT CURRENCY SYMBOL
+	#
+
+	async def set_income_reset(self, user, channel, username, user_pfp, new_income_reset):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		# info: we dont need to check anything
+		# because itll be either true/false
+		# if it doesnt exist, we create it. if it does, we change it. simple.
+
+		# changing value
+		json_content["symbols"][0]["income_reset"] = new_income_reset
+
+		# not asking for verification, would just have to reverse by another edit
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(description=f"✅  Changed income-reset to　`{new_income_reset}`", color=color)
+		embed.set_footer(text="info: if true (default), daily salary resets every day and does not accumulate.")
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
 		self.overwrite_json(json_content)
 
 		return "success", "success"
@@ -1198,7 +1227,7 @@ class pythonboat_database_handler:
 
 		for i in range(len(json_items)):
 			if json_items[i]["name"] == item_name:
-				return "error", "Item with such name already exists."
+				return "error", "❌ Item with such name already exists."
 
 		# calculate item duration
 		today = datetime.today()
@@ -1244,7 +1273,7 @@ class pythonboat_database_handler:
 				item_found = 1
 				item_index = i
 		if not item_found:
-			return "error", "Item not found."
+			return "error", "❌ Item not found."
 
 		# delete from the "items" section
 		json_items.pop(item_index)
@@ -1358,7 +1387,7 @@ class pythonboat_database_handler:
 		today = datetime.today()
 		expire = datetime.strptime(expiration_date, "%Y-%m-%d %H:%M:%S.%f")
 		if today > expire:
-			return "error", f"Item has already expired. Expiring date was {expiration_date}"
+			return "error", f"❌ Item has already expired. Expiring date was {expiration_date}"
 		# else we're good
 
 		# 1. check req roles
@@ -1368,10 +1397,10 @@ class pythonboat_database_handler:
 			else:
 				for i in range(len(req_roles)):
 					if int(req_roles[i]) not in user_roles:
-						return "error", f"User does not seem to have all required roles."
+						return "error", f"❌ User does not seem to have all required roles."
 		except Exception as e:
 			print("1", e)
-			return "error", f"Unexpected error."
+			return "error", f"❌ Unexpected error."
 
 		### BEFORE update, "check rem roles" and "check give roles" was located here. it seems that
 		### the intended usage i had back then was to do that stuff once the item is bought.
@@ -1385,20 +1414,20 @@ class pythonboat_database_handler:
 		user_content = json_content["userdata"][user_index]
 		user_cash = user_content["cash"]
 		if user_cash < sum_price:
-			return "error", f"Error! Not enough money in cash to purchase.\nto pay: {sum_price} ; in cash: {user_cash}"
+			return "error", f"❌ Not enough money in cash to purchase.\nto pay: {sum_price} ; in cash: {user_cash}"
 
 		# 5. check if not too much money
 		user_bank = user_content["bank"]
 		if max_bal != "none":
 			if (user_bank + user_cash) > max_bal:
-				return "error", f"Error! You have too much money to purchase.\nnet worth: {'{:,}'.format(int(user_bank + user_cash))} ; max bal: {max_bal}"
+				return "error", f"❌ You have too much money to purchase.\nnet worth: {'{:,}'.format(int(user_bank + user_cash))} ; max bal: {max_bal}"
 
 		# 6. check if enough in stock or not
 		if max_bal != "none":
 			if remaining_stock <= 0:
-				return "error", f"Error! Item not in stock."
+				return "error", f"❌ Item not in stock."
 			elif amount > remaining_stock:
-				return "error", f"Error! Not enough remaining in stock ({remaining_stock} remaining)."
+				return "error", f" Not enough remaining in stock ({remaining_stock} remaining)."
 
 		# 8. rem money, substract stock, print message, add to inventory
 		user_content["cash"] -= sum_price
@@ -1432,7 +1461,7 @@ class pythonboat_database_handler:
 					except:
 						continue
 		except Exception as e:
-			return "error", f"Unexpected error."
+			return "error", f"❌ Unexpected error."
 
 		# 3. check rem roles
 		try:
@@ -1448,7 +1477,7 @@ class pythonboat_database_handler:
 
 		except Exception as e:
 			print("3", e)
-			return "error", f"Unexpected error."
+			return "error", f"❌ Unexpected error."
 		color = self.discord_blue_rgb_code
 		embed = discord.Embed(
 			description=f"You have bought {amount} {item_display_name} and paid {str(self.currency_symbol)} **{'{:,}'.format(int(sum_price))}**",
@@ -1625,7 +1654,7 @@ class pythonboat_database_handler:
 
 			# number of pages which will be needed :
 			# we have 10 items per page
-			items_per_page = 10  # change to 10 after
+			items_per_page = 2  # change to 10 after
 
 			# our selection !
 			index_start = (page_number - 1) * items_per_page
@@ -1706,7 +1735,7 @@ class pythonboat_database_handler:
 					check = 1
 					item_index = i
 			if not check:
-				return "error", "Error! Item not found."
+				return "error", "❌ Item not found."
 			else:  # not needed, but for readability
 				try:
 					catalog_report = f"__Item {items[item_index]['display_name']} catalog:__\n\n"
@@ -1788,7 +1817,7 @@ class pythonboat_database_handler:
 
 		for i in range(len(json_income_roles)):
 			if json_income_roles[i]["role_id"] == income_role_id:
-				return "error", "Role already exists as income role."
+				return "error", "❌ Role already exists as income role."
 
 		now = str(datetime.now())
 		json_income_roles.append({
@@ -1828,7 +1857,7 @@ class pythonboat_database_handler:
 				role_found = 1
 				role_index = i
 		if not role_found:
-			return "error", "Role not found."
+			return "error", "❌ Role not found."
 
 		# delete from the "items" section
 		json_income_roles.pop(role_index)
@@ -1885,6 +1914,8 @@ class pythonboat_database_handler:
 		# first, we go into each role object
 		# then we check in everyones roles if they have the role
 
+		role_error = 0  # if a role is deleted or so
+
 		for role_index in range(len(json_income_roles)):
 			role_id = json_income_roles[role_index]["role_id"]
 
@@ -1902,7 +1933,12 @@ class pythonboat_database_handler:
 			# passed_time_final = passed_time.total_seconds() // 3600.0
 			passed_time_final = passed_time.days
 
-			role = discord.utils.get(server_object.roles, id=int(role_id))
+			try:
+				role = discord.utils.get(server_object.roles, id=int(role_id))
+			except:
+				role_error += 1
+				continue
+
 			for member in role.members:
 				try:
 					# also to create user in case he isnt registered yet
@@ -1924,12 +1960,14 @@ class pythonboat_database_handler:
 		json_content["income_roles"] = json_income_roles
 		self.overwrite_json(json_content)
 
-		return "success", "success"
+		if role_error == 0:
+			return "success", "success"
+		else:
+			return "error", f"error for `{role_error} role(s)`, maybe some got deleted?. Else the command successed."
 
 	#
 	# SOLO ROLE INCOME - UPDATE INCOMES SOLO
-	#
-	# get salary will have hourly income too
+	#   aka GET SALARY
 
 	async def update_incomes_solo(self, user, channel, username, user_pfp, server_object, user_roles):
 		# load json
@@ -1940,9 +1978,6 @@ class pythonboat_database_handler:
 		json_income_roles = json_content["income_roles"]
 		user_content = json_content["userdata"]
 
-		# pretty straight forward i think.
-		# first, we go into each role object
-		# then we check in everyones roles if they have the role
 		# this is the other way around than the global update income
 
 		role_ping_complete = []
@@ -1960,8 +1995,6 @@ class pythonboat_database_handler:
 					# new edit for daily income:
 					now = datetime.now()
 
-					# this : last_income_update_string = json_income_roles[role_index]["last_updated"]
-						# does not work single salary
 					# first check if he already got one at all
 					try:
 						last_income_update_string = json_income_roles[role_index]["last_single_called"][str(user)]
@@ -1971,20 +2004,38 @@ class pythonboat_database_handler:
 						passed_time = now - last_income_update
 						# passed_time_final = passed_time.total_seconds() // 3600.0
 						passed_time_final = passed_time.days
-						print(passed_time_final)
-
-						#role_ping_complete.append(discord.utils.get(server_object.roles, id=int(role_id)))
-
+						# print(passed_time_final)
 						json_user_content = json_content["userdata"][user_index]
-						# json_income_roles[role_index]["last_updated"] = str(now)
-						income_total += (json_income_roles[role_index]["role_income"] * int(passed_time_final))
+
+						# role_ping_complete.append(discord.utils.get(server_object.roles, id=int(role_id)))
+
+						"""
+						30.12.23: new edit. By default now, users will get a daily salary
+						and will have to retrieve it daily. You can also change that tho
+						by changing "income_reset" to true in the json.
+						Because this is an update and we want compatibility with older versions,
+						we will need to try and if not write a income_reset.
+						"""
+						# true by default
+						income_reset = True
+						try:
+							if json_content["symbols"][0]["income_reset"] == "false": income_reset = False
+						except:
+							# if not yet updated, we add this to json
+							json_content["symbols"][0]["income_reset"] = "true"
+
+						if income_reset:
+							# you only get it DAILY, other than that it resets !
+							income_total += json_income_roles[role_index]["role_income"]
+						else:
+							income_total += (json_income_roles[role_index]["role_income"] * int(passed_time_final))
+
 						if passed_time_final >= 1: json_income_roles[role_index]["last_single_called"][str(user)] = str(now)
 
-					except: # he didnt retrieve a salary yet
+					except:  # he didn't retrieve a salary yet
 						json_income_roles[role_index]["last_single_called"][str(user)] = str(now)
 						# also to create user in case he isnt registered yet
 						income_total += json_income_roles[role_index]["role_income"]
-
 
 					# role_ping_complete.append(discord.utils.get(server_object.roles, id=int(role_id)))
 
