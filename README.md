@@ -33,8 +33,7 @@ Another goal is to have the bot written in python so that it's easy to edit for 
 8. In your server, create a role named "botmaster" and give it to people who should be bot admins.
 9. Launch main.py with **python3**. Beware !! On Windows, please use powershell, else path might not be recognized.
 10. [optional]: by default, the currency emoji is set to 💰.  
-    You can change it as follows: changing line 75-77 in database/__init__.py. Note: if you uncomment 75, you gotta comment out line 77 ! (by putting a <#> before it, like in line 76.  
-    Then use change-currency-symbol (see src/commands.txt) or change "symbol_emoji" `in database/database.json`(needs to be a custom emoji)
+    You can change it as follows: changing line 75-77 in database/__init__.py. Note: if you uncomment 75, you gotta comment out line 77 ! (by putting a <#> before it, like in line 76. Then use change-currency-symbol (see src/commands.txt) or change "symbol_emoji" `in database/database.json`(needs to be a custom emoji). Contact me if you got issues.
 
 You should be good to go!
 
