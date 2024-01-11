@@ -951,10 +951,10 @@ class pythonboat_database_handler:
 				actual_name = str(all_users[i])
 			# update
 			all_users[i] = actual_name
-			try:
-				print(user_lb_position)
-			except:
-				user_lb_position = 10000 # did not find him
+		try:
+			print("user is at position ", user_lb_position)
+		except:
+			user_lb_position = 10000 # did not find him
 
 		# making nice number formats
 		for i in range(len(all_bal)):
