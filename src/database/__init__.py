@@ -953,13 +953,12 @@ class pythonboat_database_handler:
 			all_users[i] = actual_name
 		try:
 			print("user is at position ", user_lb_position)
-		except:
-			user_lb_position = 10000 # did not find him
+		except Exception:
+			user_lb_position = 10000  # did not find him
 
 		# making nice number formats
 		for i in range(len(all_bal)):
 			all_bal[i] = '{:,}'.format(all_bal[i])
-		### the code until here takes a LOT of time
 
 		# making the formatted output description
 		# number of pages which will be needed :
@@ -1258,7 +1257,7 @@ class pythonboat_database_handler:
 		return "success", "success"
 
 	#
-	# REMOVE ITEM
+	# REMOVE ITEM AKA DELETE ITEM
 	#
 
 	async def remove_item(self, item_name):
@@ -1284,6 +1283,10 @@ class pythonboat_database_handler:
 			# tricky
 			# i suppose the variable type will either be a string with "none"
 			# or a list with lists : ["item_name", amount], so items = [ [], [] ] etc
+			"""
+			info: on 11.01.24 added a break after pop(ii).
+			Only bug should be if user has 2 items with same name, but that shouldnt happen. 
+			"""
 			if user_content[i]["items"] == "none":
 				pass
 			else:
@@ -1292,6 +1295,7 @@ class pythonboat_database_handler:
 						current_name = user_content[i]["items"][ii][0]
 						if current_name == item_name:
 							user_content[i]["items"].pop(ii)
+							break
 				except Exception as e:
 					print(e)
 
