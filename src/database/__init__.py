@@ -1003,6 +1003,8 @@ class pythonboat_database_handler:
 			pos_name = "nd"
 		elif user_lb_position == 3:
 			pos_name = "rd"
+		else:
+			pos_name = ""
 		embed.set_footer(
 			text=f"Page {page_number}/{page_count}  •  Your leaderboard rank: {user_lb_position}{pos_name}")
 		await channel.send(embed=embed)
