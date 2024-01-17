@@ -813,7 +813,7 @@ async def on_message(message):
 		embed = discord.Embed(title=f"Help System", color=color)
 		embed.add_field(name="----------------------\n\nSTAFF ONLY", value=f"requires <botmaster> role", inline=False)
 		embed.add_field(name="add-money", value=f"Usage: `add-money <member> <amount>`", inline=False)
-		embed.add_field(name="remove-money", value=f"Usage: `remove-money <member> <amount>`", inline=False)
+		embed.add_field(name="remove-money", value=f"Usage: `remove-money <member> <amount> [cash/bank]`", inline=False)
 		embed.add_field(name="remove-money-role", value=f"Usage: `remove-money-role <role> <amount>`", inline=False)
 		embed.add_field(name="change", value=f"Usage: `change <module> <variable> <new value>`", inline=False)
 		embed.add_field(name="change-currency", value=f"Usage: `change-currency <new emoji name>`", inline=False)
@@ -966,9 +966,9 @@ async def on_message(message):
 			await channel.send(embed=embed)
 			return
 
-		if "none" in param[1] or "none" in param[2]:  # we need 2 parameters
+		if "none" in param[1] or "none" in param[2]:  # we need 3 parameters
 			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`remove-money <member> <amount>`", color=color)
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`remove-money <member> <amount> [cash/bank]`", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
@@ -988,7 +988,7 @@ async def on_message(message):
 			# we didnt find him
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"{emoji_error}  Invalid `<member>` argument given.\n\nUsage:"
-											  f"\n`remove-money <member> <amount>`", color=color)
+											  f"\n`remove-money <member> <amount> [cash/bank]`", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
@@ -1007,23 +1007,36 @@ async def on_message(message):
 			if amount < 1:
 				color = discord_error_rgb_code
 				embed = discord.Embed(
-					description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`remove-money <member> <amount>`",
+					description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`remove-money <member> <amount> [cash/bank]`",
 					color=color)
 				embed.set_author(name=username, icon_url=user_pfp)
 				await channel.send(embed=embed)
 				return
 		except:
 			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`remove-money <member> <amount>`", color=color)
+			embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`remove-money <member> <amount> [cash/bank]`", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
+
+		# CHECK 3
+		mode = "bank"
+		if param[3] != "none":
+			if param[3] in ["cash", "bank"]:
+				mode = param[3]
+			else:
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{emoji_error}  Invalid `[cash/bank]` argument given.\n\nUsage:"
+												  f"\n`remove-money <member> <amount> [cash/bank]`", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
 
 		# handler
 
 		try:
 			amount = str(amount)
-			status, rm_money_return = await db_handler.remove_money(user, channel, username, user_pfp, reception_user, amount, reception_user_name)
+			status, rm_money_return = await db_handler.remove_money(user, channel, username, user_pfp, reception_user, amount, reception_user_name, mode)
 
 			if status == "error":
 				color = discord_error_rgb_code
