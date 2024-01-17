@@ -1084,7 +1084,7 @@ class pythonboat_database_handler:
 	# REMOVE-MONEY
 	#
 
-	async def remove_money(self, user, channel, username, user_pfp, reception_user, amount, recept_uname):
+	async def remove_money(self, user, channel, username, user_pfp, reception_user, amount, recept_uname, mode):
 		# load json
 		json_file = open(self.pathToJson, "r")
 		json_content = json.load(json_file)
@@ -1095,12 +1095,12 @@ class pythonboat_database_handler:
 
 		json_recept_content = json_content["userdata"][reception_user_index]
 
-		json_recept_content["cash"] -= int(amount)
+		json_recept_content[mode] -= int(amount)
 
 		# inform user
 		color = self.discord_success_rgb_code
 		embed = discord.Embed(
-			description=f"✅  Removed {str(self.currency_symbol)} {'{:,}'.format(int(amount))} from {recept_uname.mention}'s cash balance",
+			description=f"✅  Removed {str(self.currency_symbol)} {'{:,}'.format(int(amount))} from {recept_uname.mention}'s {mode} balance",
 			color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
