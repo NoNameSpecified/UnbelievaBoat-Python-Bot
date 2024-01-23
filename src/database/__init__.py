@@ -2045,11 +2045,11 @@ class pythonboat_database_handler:
 
 					# role_ping_complete.append(discord.utils.get(server_object.roles, id=int(role_id)))
 
-					json_user_content = json_content["userdata"][user_index]
-					json_user_content["bank"] += income_total
-					# overwrite
-					json_content["userdata"][user_index] = json_user_content
-					json_content["income_roles"] = json_income_roles
+		json_user_content = json_content["userdata"][user_index]
+		json_user_content["bank"] += income_total
+		# overwrite
+		json_content["userdata"][user_index] = json_user_content
+		json_content["income_roles"] = json_income_roles
 
 		if no_money:
 			await channel.send("You have no income roles!")
