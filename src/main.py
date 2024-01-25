@@ -827,7 +827,7 @@ async def on_message(message):
 		embed.add_field(name="use", value=f"Usage: `use <item short name> <amount>`", inline=False)
 		embed.add_field(name="inventory", value=f"Usage: `inventory [page]`", inline=False)
 		embed.add_field(name="user-inventory", value=f"Usage: `user-inventory <member> [page]`", inline=False)
-		embed.add_field(name="catalog", value=f"Usage: `catalog <nothing or item name>`", inline=False)
+		embed.add_field(name="catalog", value=f"Usage: `catalog [item short name]`", inline=False)
 		embed.add_field(name="----------------------\n\nINCOME ROLES", value=f"create, delete and update requires <botmaster> role", inline=False)
 		embed.add_field(name="add-income-role", value=f"Usage: `add-income-role <role pinged> <income>`", inline=False)
 		embed.add_field(name="remove-income-role", value=f"Usage: `remove-income-role <role pinged>`", inline=False)
