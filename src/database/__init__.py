@@ -1670,6 +1670,7 @@ class pythonboat_database_handler:
 		else:
 			items = "none"
 			page_number = 1
+			page_count = 1
 
 		if items == "none":
 			# inventory_checkup = "**Inventory empty. No items owned.**"
