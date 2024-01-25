@@ -1751,7 +1751,7 @@ class pythonboat_database_handler:
 				req_roles = ""
 
 				for ii in range(len(items[item_index]["required_roles"])):
-					if items[item_index]["required_roles"][ii] == "none":
+					if items[item_index]["required_roles"][ii] in ["none", ""]:
 						req_roles += "none"
 					else:
 						role = discord.utils.get(server_object.roles, id=int(items[item_index]["required_roles"][ii]))
@@ -1759,7 +1759,7 @@ class pythonboat_database_handler:
 
 				give_roles = ""
 				for iii in range(len(items[item_index]["given_roles"])):
-					if items[item_index]["given_roles"][iii] == "none":
+					if items[item_index]["given_roles"][iii] in ["none", ""]:
 						give_roles += "none"
 					else:
 						role = discord.utils.get(server_object.roles, id=int(items[item_index]["given_roles"][iii]))
@@ -1767,7 +1767,7 @@ class pythonboat_database_handler:
 
 				rem_roles = ""
 				for iiii in range(len(items[item_index]["removed_roles"])):
-					if items[item_index]["removed_roles"][iiii] == "none":
+					if items[item_index]["removed_roles"][iiii] in ["none", ""]:
 						rem_roles += "none"
 					else:
 						role = discord.utils.get(server_object.roles, id=int(items[item_index]["removed_roles"][iiii]))
