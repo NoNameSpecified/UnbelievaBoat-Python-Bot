@@ -1455,7 +1455,7 @@ class pythonboat_database_handler:
 			if needAppend:
 				user_content["items"].append([item_name, amount])
 
-		# 2. check give roles
+		# 2. check remove roles
 		try:
 			if rem_roles[0] == "none":
 				pass
@@ -1469,9 +1469,9 @@ class pythonboat_database_handler:
 		except Exception as e:
 			return "error", f"❌ Unexpected error."
 
-		# 3. check rem roles
+		# 3. check give roles
 		try:
-			if req_roles[0] == "none":
+			if give_roles[0] == "none":
 				pass
 			else:
 				for i in range(len(give_roles)):
