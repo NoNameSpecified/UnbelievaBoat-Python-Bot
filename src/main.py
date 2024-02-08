@@ -832,7 +832,7 @@ async def on_message(message):
 		embed.add_field(name="add-income-role", value=f"Usage: `add-income-role <role pinged> <income>`", inline=False)
 		embed.add_field(name="remove-income-role", value=f"Usage: `remove-income-role <role pinged>`", inline=False)
 		embed.add_field(name="list-roles", value=f"Usage: `list-roles`", inline=False)
-		embed.add_field(name="get-salary", value=f"Usage: `get-salary` | get your salary. If you choose to use update-income, please disable this command.", inline=False)
+		embed.add_field(name="collect", value=f"Usage: `collect` | get your salary. If you choose to use update-income, please disable this command.", inline=False)
 		embed.add_field(name="update-income", value=f"Usage: `update-income` | income works DAILY! automatically updates ALL INCOMES time elapsed * income.", inline=False)
 		# edit stuff
 		embed.set_footer(text="For more info, contact an admin or <kendrik2.0>")
@@ -1910,8 +1910,9 @@ async def on_message(message):
 			page_number = 1
 		else:
 			try:
-				page_number = int(param[1])
-			except:
+				page_number = int(param[2])
+			except Exception as error_code:
+				print(error_code)
 				color = discord_error_rgb_code
 				embed = discord.Embed(
 					description=f"{emoji_error}  Invalid page number.\n\nUsage:\n`user-inventory <member> [page]`", color=color)
@@ -2216,7 +2217,7 @@ async def on_message(message):
 	#   UPDATE INCOME FOR YOURSELF ONLY
 	# ---------------------------
 
-	elif command in ["get-salary", "update-income-solo"]:
+	elif command in ["collect", "get-salary", "update-income-solo"]:
 
 		try:
 			status, update_incomes_return = await db_handler.update_incomes_solo(user, channel, username, user_pfp, server, user_roles)
