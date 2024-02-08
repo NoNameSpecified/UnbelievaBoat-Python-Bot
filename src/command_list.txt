@@ -34,7 +34,7 @@ Here I use the prefix "+" but you can change it to whatever you want.
     Change the custom currency emoji. It has to be an emoji you uploaded to the server, not a discord-wide one.
   +set-income-reset <false/true>
     Change "income reset". By default, it is set to "true".
-    This means that (if you use get-salary and not update-income, see below!) the daily salary will NOT accumulate.
+    This means that (if you use collect and not update-income, see below!) the daily salary will NOT accumulate.
     i.e. if you call it, you get X€, if you wait 3 days, you get X€ again.
     If you set-income-reset to "false", the user would get days passed * X€.
 
@@ -58,7 +58,7 @@ Here I use the prefix "+" but you can change it to whatever you want.
   +add-income-role <role pinged> <income> (botmaster required)
   +remove-income-role <role pinged> (botmaster required)
   +list-roles
-  +get-salary
+  +collect
     User will get their salary. Can/should be disabled depending on what you plan to do
   +update-income (botmaster required. This is to pay all users who have the role.
                   It can be used once a week for example, or whenever you want. The role incomes are daily income.
