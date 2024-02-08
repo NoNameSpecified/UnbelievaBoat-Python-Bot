@@ -1,6 +1,7 @@
 import json, os, time, random, math, sys, discord, math
 from datetime import datetime
 from datetime import timedelta
+import calendar
 
 # custom blackjack game thing
 from game_libs.blackjack import blackjack_discord_implementation
@@ -1660,7 +1661,7 @@ class pythonboat_database_handler:
 
 			# number of pages which will be needed :
 			# we have 10 items per page
-			items_per_page = 2  # change to 10 after
+			items_per_page = 5  # change to 10 after
 
 			# our selection !
 			index_start = (page_number - 1) * items_per_page
@@ -1830,8 +1831,7 @@ class pythonboat_database_handler:
 		json_income_roles.append({
 			"role_id": income_role_id,
 			"role_income": income,
-			"last_updated": now,
-			"last_single_called": {}
+			"last_updated": now
 		})
 
 		color = self.discord_blue_rgb_code
@@ -2004,14 +2004,6 @@ class pythonboat_database_handler:
 
 					# first check if he already got one at all
 					try:
-						last_income_update_string = json_income_roles[role_index]["last_single_called"][str(user)]
-						# get a timeobject from the string
-						last_income_update = datetime.strptime(last_income_update_string, '%Y-%m-%d %H:%M:%S.%f')
-						# calculate difference, see if it works
-						passed_time = now - last_income_update
-						# passed_time_final = passed_time.total_seconds() // 3600.0
-						passed_time_final = passed_time.days
-						# print(passed_time_final)
 						json_user_content = json_content["userdata"][user_index]
 
 						# role_ping_complete.append(discord.utils.get(server_object.roles, id=int(role_id)))
@@ -2023,24 +2015,40 @@ class pythonboat_database_handler:
 						Because this is an update and we want compatibility with older versions,
 						we will need to try and if not write a income_reset.
 						"""
+						"""
+						08.02.24: new new edit. Now, payday resets GLOBALLY (not one day since you specifically did)
+						"""
 						# true by default
-						income_reset = True
+						income_reset, new_day = True, False
 						try:
 							if json_content["symbols"][0]["income_reset"] == "false": income_reset = False
 						except:
 							# if not yet updated, we add this to json
 							json_content["symbols"][0]["income_reset"] = "true"
+						# get the current day
+						try:
+							last_global_update_string = json_content["symbols"][0]["global_collect"]
+							last_global_update = datetime.strptime(last_global_update_string, '%Y-%m-%d %H:%M:%S.%f')
+							today_day, last_day = int(now.strftime("%d")), int(last_global_update.strftime("%d"))
+							max_days = calendar.monthrange(int(now.strftime("%Y")), int(now.strftime("%m")))[1]
+							# print(today_day, last_day, max_days)
+							if today_day > max_days: last_day = 1
+							if today_day > last_day: new_day = True
+						except Exception as error_code:
+							print(error_code)
+							json_content["symbols"][0]["global_collect"] = str(now)
+							new_day = True
 
-						if income_reset:
+
+						if income_reset and new_day:
 							# you only get it DAILY, other than that it resets !
-							income_total += json_income_roles[role_index]["role_income"] if passed_time_final >= 1 else 0
-						else:
-							income_total += (json_income_roles[role_index]["role_income"] * int(passed_time_final))
+							income_total += json_income_roles[role_index]["role_income"]
 
-						if passed_time_final >= 1: json_income_roles[role_index]["last_single_called"][str(user)] = str(now)
+						json_content["symbols"][0]["global_collect"] = str(now)
 
-					except:  # he didn't retrieve a salary yet
-						json_income_roles[role_index]["last_single_called"][str(user)] = str(now)
+					except Exception as error_code:  # he didn't retrieve a salary yet
+						print(error_code)
+						# json_income_roles[role_index]["last_single_called"][str(user)] = str(now) # removed on 08.02. update
 						# also to create user in case he isnt registered yet
 						income_total += json_income_roles[role_index]["role_income"]
 
