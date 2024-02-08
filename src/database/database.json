@@ -76,7 +76,9 @@
     "symbols": [
         {
             "name": "currency_symbol",
-            "symbol_emoji": "my_currency_emoji_clear_name_only"
+            "symbol_emoji": "my_currency_emoji_clear_name_only",
+            "income_reset": "true",
+            "global_collect": "2024-02-08 19:34:36.648900"
         }
     ],
     "items": [],
