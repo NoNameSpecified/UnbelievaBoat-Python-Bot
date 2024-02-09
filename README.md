@@ -43,8 +43,9 @@ These images are loaded by URL - so they can be anything. I don't encourage howe
 But I definitely don't take any warranty as to what happens if you do use licensed images. Stay safe !
 
 ### - json usage
-TLDR: json is problematic but I think for small stuff this should still work, contact me if you got any problems / questions tho.  
+TLDR: json is problematic but I think this should still work, contact me if you got any problems / questions tho.  
 
-longer version: So i made this bot a long time ago and I decided to use json, which is honestly a bad idea for a database, as pointed out in https://stackoverflow.com/a/73869286.
+longer version: So i made this bot a long time ago and I decided to use json, which is honestly not the best idea for a database, as pointed out in https://stackoverflow.com/a/73869286.
 However, it would take way too long to change the whole system now, especially since I'm only fixing and adding minor stuff now and don't have the time to do big changes.
-But from what I can tell, this works fine aswell and not that slow! If you do face problems concerning speed, please contact me (discord or issue on github) and maybe I can do a little, if it's due to json usage I won't be able to help you tho.
+But from what I can tell, this works fine aswell, not that slow either and even with larger user amounts.  
+If you do face problems concerning speed, please contact me (discord or issue on github) and I'll see if I can do anything.
