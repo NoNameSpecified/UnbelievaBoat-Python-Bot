@@ -33,6 +33,8 @@ from discord.ext.commands import Bot
 # custom database handler
 import database
 from time import sleep
+# check img url
+import requests
 
 
 # init discord stuff and json handling
@@ -1217,7 +1219,6 @@ async def on_message(message):
 		await channel.send(info_text, embed=first_embed)
 
 		while currently_creating_item:
-			user_input = ""
 			# get input first
 			user_input = await get_user_input(message, default_spell=False)
 			print("at checkpoint ", checkpoints, "\ninput is ", user_input)
@@ -1242,15 +1243,24 @@ async def on_message(message):
 				next_info = ":one: Now we need a short name, which users will use when buying, giving etc. Only one word ! (you can use dashes and underscores)"
 				last_report = await channel.send(next_info, embed=first_embed)
 				checkpoints += 1
+				#item_name = await get_user_input(message)
+				#print(item_name)
+				trial = 0
 
 			if checkpoints == 1:
+				trial +=1
+				item_name = await get_user_input(message) if trial == 1 else user_input
+
 				# check 1: name
-				item_name = await get_user_input(message)
-				if len(item_name) > 200:
-					await channel.send(f"{emoji_error} The maximum length for an items name is 200 characters. Please try again.")
+				if len(item_name) > 10:
+					await channel.send(f"{emoji_error} The maximum length for an items short name is 10 characters. Please try again.")
 					continue
 				elif len(item_name) < 3:
-					await channel.send(f"{emoji_error}  The minimum length for an items name is 3 characters. Please try again.")
+					await channel.send(f"{emoji_error}  The minimum length for an items short name is 3 characters. Please try again.")
+					continue
+				elif " " in item_name.strip():
+					print(f"-{item_name}- -{item_name.strip()}")
+					await channel.send(f"{emoji_error}  short name has to be ONE word (dashes or underscores work).")
 					continue
 				# good input
 				first_embed.add_field(name="Short name", value=f"{item_name}")
@@ -1332,7 +1342,7 @@ async def on_message(message):
 
 				first_embed.add_field(name="Stock remaining", value=f"{stock}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":six: What role/roles must the user already have in order to buy this item?\nIf none, just reply `skip`. For multiple, ping the roles with a space between them."
+				next_info = ":six: What role(s) must the user already have in order to buy this item?\nIf none, just reply `skip`. For multiple, ping the roles with a space between them."
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
@@ -1371,7 +1381,7 @@ async def on_message(message):
 					roles_id_required = ["none"]
 				first_embed.add_field(name="Role required", value=f"{required_roles}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":seven: What role/roles do you want to be given when this item is bought?\nIf none, just reply `skip`. For multiple, ping them with a space between them."
+				next_info = ":seven: What role(s) do you want to be given when this item is bought?\nIf none, just reply `skip`. For multiple, ping them with a space between them."
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
@@ -1410,7 +1420,7 @@ async def on_message(message):
 					roles_id_to_give = ["none"]
 				first_embed.add_field(name="Role given", value=f"{roles_give}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":eight: What role/roles do you want to be removed from the user when this item is bought?\nIf none, just reply `skip`. For multiple, ping with a space between them."
+				next_info = ":eight: What role(s) do you want to be removed from the user when this item is bought?\nIf none, just reply `skip`. For multiple, ping with a space between them."
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
@@ -1482,6 +1492,26 @@ async def on_message(message):
 					user_input = f"Congrats on buying the item."
 				reply_message = user_input
 				first_embed.add_field(name="Reply message", value=f"{reply_message}", inline=False)
+				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
+				next_info = "`CHECK11`: What image should the item have? Enter complete url !\nIf none, just reply `skip`."
+				await last_report.edit(content=next_info, embed=first_embed)
+				checkpoints += 1
+
+			elif checkpoints == 11:
+				# check 11: item img
+				if user_input == "skip":
+					user_input = f"EMPTY"
+				try:
+					rq = requests.get(user_input)
+				except:
+					await channel.send(f"{emoji_error} URL not found. Please try again or skip.")
+					continue
+
+				if rq.status_code != 200:
+					await channel.send(f"{emoji_error} URL not found. Please try again or skip.")
+					continue
+				item_img_url = user_input
+				first_embed.set_thumbnail(url=item_img_url)
 				next_info = f"{emoji_worked}  Item created successfully!"
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints = -1
@@ -1491,7 +1521,7 @@ async def on_message(message):
 		# handler
 
 		try:
-			status, create_item_return = await db_handler.create_new_item(item_display_name, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give, roles_id_to_remove, max_bal, reply_message)
+			status, create_item_return = await db_handler.create_new_item(item_display_name, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give, roles_id_to_remove, max_bal, reply_message, item_img_url)
 			if status == "error":
 				color = discord_error_rgb_code
 				embed = discord.Embed(description=f"{create_item_return}", color=color)
