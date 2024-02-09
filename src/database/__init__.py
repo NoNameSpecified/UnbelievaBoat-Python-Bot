@@ -1220,7 +1220,7 @@ class pythonboat_database_handler:
 	#
 
 	async def create_new_item(self, item_display_name, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give,
-							  roles_id_to_remove, max_bal, reply_message):
+							  roles_id_to_remove, max_bal, reply_message, item_img_url):
 		# load json
 		json_file = open(self.pathToJson, "r")
 		json_content = json.load(json_file)
@@ -1250,7 +1250,8 @@ class pythonboat_database_handler:
 			"removed_roles": roles_id_to_remove,
 			"maximum_balance": max_bal,
 			"reply_message": reply_message,
-			"expiration_date": str(expiration_date)
+			"expiration_date": str(expiration_date),
+			"item_img_url": item_img_url
 		})
 
 		# overwrite, end
@@ -1737,7 +1738,7 @@ class pythonboat_database_handler:
 			catalog_report += "\n```\n*For details about an item: use* `catalog <item short name>`"
 
 		else:
-			check = 0
+			check, img_prob = 0, False
 			for i in range(len(items)):
 				if items[i]["name"] == item_check:
 					check = 1
@@ -1745,10 +1746,21 @@ class pythonboat_database_handler:
 			if not check:
 				return "error", "❌ Item not found."
 			else:  # not needed, but for readability
+
+				if items == "none":
+					# inventory_checkup = "**Inventory empty. No items owned.**"
+					color = self.discord_blue_rgb_code
+					embed = discord.Embed(title="inventory", description="**Inventory empty. No items owned.**",
+										  color=color)
+
+				else:
+					color = self.discord_blue_rgb_code
+
+
 				try:
-					catalog_report = f"__Item {items[item_index]['display_name']} catalog:__\n\n"
+					embed = discord.Embed(title=f"catalog: {items[item_index]['display_name']}", color=color)
 				except:
-					catalog_report = f"__Item {items[item_index]['name']} catalog:__\n\n"
+					embed = discord.Embed(title=f"catalog: item {items[item_index]['name']}", color=color)
 
 				req_roles = ""
 
@@ -1782,17 +1794,31 @@ class pythonboat_database_handler:
 					left_time = str(items[item_index]['expiration_date'])[:10]
 
 				try:
-					catalog_report += f"Item name: {items[item_index]['display_name']}\n" \
-									  f"Item short name: <{items[item_index]['name']}>\n" \
-									  f"Item price: {items[item_index]['price']}\n" \
-									  f"Item description: {items[item_index]['description']}\n" \
-									  f"Remaining time: item expires {left_time}\n" \
-									  f"Amount remaining: {items[item_index]['amount_in_stock']} in stock\n" \
-									  f"Maximum balance to purchase: {self.currency_symbol} {items[item_index]['maximum_balance']}\n" \
-									  f"Required roles: {req_roles}\n" \
-									  f"Given roles: {give_roles}\n" \
-									  f"Removed roles: {rem_roles}\n"
-				except:
+					embed.add_field(name=f"Item name:", value=f"{items[item_index]['display_name']}", inline=False)
+					embed.add_field(name=f"Item short name:", value=f"`{items[item_index]['name']}`", inline=True)
+					embed.add_field(name=f"Item price:", value=f"{items[item_index]['price']}", inline=True)
+					embed.add_field(name=f"Item description:", value=f"{items[item_index]['description']}", inline=False)
+					embed.add_field(name=f"Remaining time:", value=f"item expires {left_time}", inline=True)
+					embed.add_field(name=f"Max balance to purchase:", value=f"{self.currency_symbol} {items[item_index]['maximum_balance']}", inline=False)
+					embed.add_field(name=f"Roles:",
+											value=f"Required roles: {req_roles}　"
+												  f"Given roles: {give_roles}　"
+												  f"Removed roles: {rem_roles}", inline=False)
+					try:
+						if items[item_index]['item_img_url'] != "EMPTY":
+							embed.set_thumbnail(url=items[item_index]['item_img_url'])
+					except:
+						# basically we re trying to check if theres an image in the item object
+						# but we also try to set it as a thumbnail, and if that fails
+						# we wont replace it but warn the user with a specialised footer
+						#   yes this is ugly. Itll do for now.
+						try:
+							if items[item_index]['item_img_url'] != "EMPTY": img_prob = True
+						except:
+							img_prob = False
+				except Exception as error_code:
+					print(error_code)
+					await channel.send("# warning:\nfallback mode; This should not happen. Try to contact a bot admin (or see github at https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot)")
 					catalog_report +=  f"Item short name: <{items[item_index]['name']}>\n" \
 									  f"Item price: {items[item_index]['price']}\n" \
 									  f"Item description: {items[item_index]['description']}\n" \
@@ -1802,9 +1828,13 @@ class pythonboat_database_handler:
 									  f"Required roles: {req_roles}\n" \
 									  f"Given roles: {give_roles}\n" \
 									  f"Removed roles: {rem_roles}\n"
+					await channel.send(catalog_report)
+					return "success", "success"
 
-				catalog_report += "---------------------------------"
-
+				# embed.set_author(name=username, icon_url=user_pfp)
+				embed.set_footer(text="WARNING: URL for img was not found. Could be deprecated\nPlease look into the json file manually or contact an admin.") if img_prob else embed.set_footer(text="Info: always use the short name for commands.")
+				sent_embed = await channel.send(embed=embed)
+				return "success", "success"
 		await channel.send(catalog_report)
 
 		# overwrite, end
