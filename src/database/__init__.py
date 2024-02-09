@@ -1741,15 +1741,29 @@ class pythonboat_database_handler:
 		json_content = json.load(json_file)
 
 		items = json_content["items"]
+		catalog_final, max_items, current, finished = [], 10, 0, False
 		catalog_report = "__Items catalog:__\n```\n"
 		if item_check == "default_list":
 			for i in range(len(items)):
+				current += 1
 				try:
+					# print(current, max_items)
 					catalog_report += f"Item {i}: {items[i]['display_name']}\n      price: {self.currency_symbol} {items[i]['price']};　short name <{items[i]['name']}>\n\n"
+					if current >= max_items:
+						# catalog_report += "\n```\n*For details about an item: use* `catalog <item short name>`"
+						catalog_report += "\n```"
+						catalog_final.append(catalog_report)
+						catalog_report = "```"
+						current = 0
 				except:
 					await channel.send("compatbility error, please contact an admin.")
 					return "success", "success"
+
+			#if current != 0:
+			#	catalog_report += "\n*For details about an item: use* `catalog <item short name>`"
+			#else:
 			catalog_report += "\n```\n*For details about an item: use* `catalog <item short name>`"
+			catalog_final.append(catalog_report)
 
 		else:
 			check, img_prob = 0, False
@@ -1849,7 +1863,8 @@ class pythonboat_database_handler:
 				embed.set_footer(text="WARNING: URL for img was not found. Could be deprecated\nPlease look into the json file manually or contact an admin.") if img_prob else embed.set_footer(text="Info: always use the short name for commands.")
 				sent_embed = await channel.send(embed=embed)
 				return "success", "success"
-		await channel.send(catalog_report)
+		for i in range(len(catalog_final)):
+			await channel.send(catalog_final[i])
 
 		# overwrite, end
 		# not needed
