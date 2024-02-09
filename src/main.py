@@ -821,6 +821,7 @@ async def on_message(message):
 		embed.add_field(name="change-currency", value=f"Usage: `change-currency <new emoji name>`", inline=False)
 		embed.add_field(name="set-income-reset", value=f"Usage: `set-income-reset <false/true>`", inline=False)
 		embed.add_field(name="remove-user-item", value=f"Usage: `remove-user-item <member> <item short name> <amount>`", inline=False)
+		embed.add_field(name="spawn-item", value=f"Usage: `spawn-item <player pinged> <item short name> [amount]`", inline=False)
 		embed.add_field(name="----------------------\n\nITEM HANDLING", value=f"create and delete requires <botmaster> role", inline=False)
 		embed.add_field(name="create-item", value=f"Usage: `create-item`", inline=False)
 		embed.add_field(name="delete-item", value=f"Usage: `delete-item <item short name>`", inline=False)
@@ -1802,7 +1803,88 @@ async def on_message(message):
 		# handler
 
 		try:
-			status, give_item_return = await db_handler.give_item(user, channel, username, user_pfp, item_name, amount, player_ping, server, message.author, reception_user_name)
+			status, give_item_return = await db_handler.give_item(user, channel, username, user_pfp, item_name, amount, player_ping, server, message.author, reception_user_name, False) # false is for spawn_mode = False
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{give_item_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except Exception as e:
+			print(e)
+			await send_error(channel)
+		return
+
+	# ---------------------------
+	#   SPAWN ITEM
+	#      if admins want to "give" someone an item without having to buy and then give it
+	# ---------------------------
+
+	elif command in ["spawn-item"]:
+		if not staff_request:
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+
+		if "none" in param[1]:  # we need player pinged
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`spawn-item <player pinged> <item short name> [amount]`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		player_ping = await get_user_id(param)
+
+		try:
+			user_fetch = client.get_user(int(player_ping))
+			print(user_fetch)
+			reception_user_name = user_fetch
+			print(reception_user_name)
+
+		except:
+			# we didnt find him
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Invalid `<member>` argument given.\n\nUsage:"
+											  f"\n`spawn-item <player pinged> <item short name> [amount]`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		if "none" in param[2]:  # we need item name
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`spawn-item <player pinged> <item short name> [amount]`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+		item_name = param[2]
+
+		if "none" in param[3]:  # we need item amount
+			amount = 1
+		else:
+			amount = param[3]
+
+		try:
+			amount = int(amount)
+			if amount < 1:
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`spawn-item <player pinged> <item short name> [amount]`", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except:
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`spawn-item <player pinged> <item short name> [amount]`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		# handler
+
+		try:
+			status, give_item_return = await db_handler.give_item(user, channel, username, user_pfp, item_name, amount, player_ping, server, message.author, reception_user_name, True) # True is for spawn_mode = True
 			if status == "error":
 				color = discord_error_rgb_code
 				embed = discord.Embed(description=f"{give_item_return}", color=color)
