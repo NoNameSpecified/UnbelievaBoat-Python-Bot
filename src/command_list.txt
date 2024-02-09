@@ -45,6 +45,8 @@ Here I use the prefix "+" but you can change it to whatever you want.
     info: remove the item completely, for everyone.
   +remove-user-item <member> <item short name> <amount> (botmaster required)
     info: this will remove one or more items from a user's inventory.
+  +spawn-item <player pinged> <item short name> [amount] (botmaster required)
+    info: this will spawn an (already created) item in a user inventory.
   +buy-item <item name> <amount>
   +give-item <@member> <item name> <amount>
   +inventory [page]
