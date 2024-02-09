@@ -37,6 +37,10 @@ Another goal is to have the bot written in python so that it's easy to edit for 
 
 You should be good to go!
 
+### images
+On 09.02.24 update I added the option add images for items, that would be shown when calling the single item catalog info ("catalog item_name").
+These images are loaded by URL - so they can be anything. I don't encourage however nor do I care if you use licensed images, since i have no way of checking that.
+But I definitely don't take any warranty as to what happens if you do use licensed images. Stay safe !
 
 ### - json usage
 TLDR: json is problematic but I think for small stuff this should still work, contact me if you got any problems / questions tho.  
