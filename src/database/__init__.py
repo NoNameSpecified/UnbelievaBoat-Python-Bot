@@ -1,7 +1,6 @@
 import json, os, time, random, math, sys, discord, math
 from datetime import datetime
 from datetime import timedelta
-import calendar
 
 # custom blackjack game thing
 from game_libs.blackjack import blackjack_discord_implementation
@@ -73,9 +72,9 @@ class pythonboat_database_handler:
 			temp_json_content = json.load(temp_json_opening)
 			# the currency symbol is always at position 0 in the "symbols" part
 			currency_symbol = temp_json_content["symbols"][0]["symbol_emoji"]
-			#self.currency_symbol = discord.utils.get(self.client.emojis, name=currency_symbol)
+			self.currency_symbol = discord.utils.get(self.client.emojis, name=currency_symbol)
 			# perhaps currency symbol is too difficult for regular admins to handle, so ill disable it as default.
-			self.currency_symbol = "💰"
+			# self.currency_symbol = "💰"
 		else:
 			try:
 				self.currency_symbol = discord.utils.get(self.client.emojis, name=value)
@@ -1220,7 +1219,7 @@ class pythonboat_database_handler:
 	#
 
 	async def create_new_item(self, item_display_name, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give,
-							  roles_id_to_remove, max_bal, reply_message, item_img_url):
+							  roles_id_to_remove, max_bal, reply_message):
 		# load json
 		json_file = open(self.pathToJson, "r")
 		json_content = json.load(json_file)
@@ -1250,8 +1249,7 @@ class pythonboat_database_handler:
 			"removed_roles": roles_id_to_remove,
 			"maximum_balance": max_bal,
 			"reply_message": reply_message,
-			"expiration_date": str(expiration_date),
-			"item_img_url": item_img_url
+			"expiration_date": str(expiration_date)
 		})
 
 		# overwrite, end
@@ -1662,7 +1660,7 @@ class pythonboat_database_handler:
 
 			# number of pages which will be needed :
 			# we have 10 items per page
-			items_per_page = 5  # change to 10 after
+			items_per_page = 2  # change to 10 after
 
 			# our selection !
 			index_start = (page_number - 1) * items_per_page
@@ -1738,7 +1736,7 @@ class pythonboat_database_handler:
 			catalog_report += "\n```\n*For details about an item: use* `catalog <item short name>`"
 
 		else:
-			check, img_prob = 0, False
+			check = 0
 			for i in range(len(items)):
 				if items[i]["name"] == item_check:
 					check = 1
@@ -1746,21 +1744,10 @@ class pythonboat_database_handler:
 			if not check:
 				return "error", "❌ Item not found."
 			else:  # not needed, but for readability
-
-				if items == "none":
-					# inventory_checkup = "**Inventory empty. No items owned.**"
-					color = self.discord_blue_rgb_code
-					embed = discord.Embed(title="inventory", description="**Inventory empty. No items owned.**",
-										  color=color)
-
-				else:
-					color = self.discord_blue_rgb_code
-
-
 				try:
-					embed = discord.Embed(title=f"catalog: {items[item_index]['display_name']}", color=color)
+					catalog_report = f"__Item {items[item_index]['display_name']} catalog:__\n\n"
 				except:
-					embed = discord.Embed(title=f"catalog: item {items[item_index]['name']}", color=color)
+					catalog_report = f"__Item {items[item_index]['name']} catalog:__\n\n"
 
 				req_roles = ""
 
@@ -1794,31 +1781,17 @@ class pythonboat_database_handler:
 					left_time = str(items[item_index]['expiration_date'])[:10]
 
 				try:
-					embed.add_field(name=f"Item name:", value=f"{items[item_index]['display_name']}", inline=False)
-					embed.add_field(name=f"Item short name:", value=f"`{items[item_index]['name']}`", inline=True)
-					embed.add_field(name=f"Item price:", value=f"{items[item_index]['price']}", inline=True)
-					embed.add_field(name=f"Item description:", value=f"{items[item_index]['description']}", inline=False)
-					embed.add_field(name=f"Remaining time:", value=f"item expires {left_time}", inline=True)
-					embed.add_field(name=f"Max balance to purchase:", value=f"{self.currency_symbol} {items[item_index]['maximum_balance']}", inline=False)
-					embed.add_field(name=f"Roles:",
-											value=f"Required roles: {req_roles}　"
-												  f"Given roles: {give_roles}　"
-												  f"Removed roles: {rem_roles}", inline=False)
-					try:
-						if items[item_index]['item_img_url'] != "EMPTY":
-							embed.set_thumbnail(url=items[item_index]['item_img_url'])
-					except:
-						# basically we re trying to check if theres an image in the item object
-						# but we also try to set it as a thumbnail, and if that fails
-						# we wont replace it but warn the user with a specialised footer
-						#   yes this is ugly. Itll do for now.
-						try:
-							if items[item_index]['item_img_url'] != "EMPTY": img_prob = True
-						except:
-							img_prob = False
-				except Exception as error_code:
-					print(error_code)
-					await channel.send("# warning:\nfallback mode; This should not happen. Try to contact a bot admin (or see github at https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot)")
+					catalog_report += f"Item name: {items[item_index]['display_name']}\n" \
+									  f"Item short name: <{items[item_index]['name']}>\n" \
+									  f"Item price: {items[item_index]['price']}\n" \
+									  f"Item description: {items[item_index]['description']}\n" \
+									  f"Remaining time: item expires {left_time}\n" \
+									  f"Amount remaining: {items[item_index]['amount_in_stock']} in stock\n" \
+									  f"Maximum balance to purchase: {self.currency_symbol} {items[item_index]['maximum_balance']}\n" \
+									  f"Required roles: {req_roles}\n" \
+									  f"Given roles: {give_roles}\n" \
+									  f"Removed roles: {rem_roles}\n"
+				except:
 					catalog_report +=  f"Item short name: <{items[item_index]['name']}>\n" \
 									  f"Item price: {items[item_index]['price']}\n" \
 									  f"Item description: {items[item_index]['description']}\n" \
@@ -1828,13 +1801,9 @@ class pythonboat_database_handler:
 									  f"Required roles: {req_roles}\n" \
 									  f"Given roles: {give_roles}\n" \
 									  f"Removed roles: {rem_roles}\n"
-					await channel.send(catalog_report)
-					return "success", "success"
 
-				# embed.set_author(name=username, icon_url=user_pfp)
-				embed.set_footer(text="WARNING: URL for img was not found. Could be deprecated\nPlease look into the json file manually or contact an admin.") if img_prob else embed.set_footer(text="Info: always use the short name for commands.")
-				sent_embed = await channel.send(embed=embed)
-				return "success", "success"
+				catalog_report += "---------------------------------"
+
 		await channel.send(catalog_report)
 
 		# overwrite, end
@@ -1861,7 +1830,8 @@ class pythonboat_database_handler:
 		json_income_roles.append({
 			"role_id": income_role_id,
 			"role_income": income,
-			"last_updated": now
+			"last_updated": now,
+			"last_single_called": {}
 		})
 
 		color = self.discord_blue_rgb_code
@@ -2034,6 +2004,14 @@ class pythonboat_database_handler:
 
 					# first check if he already got one at all
 					try:
+						last_income_update_string = json_income_roles[role_index]["last_single_called"][str(user)]
+						# get a timeobject from the string
+						last_income_update = datetime.strptime(last_income_update_string, '%Y-%m-%d %H:%M:%S.%f')
+						# calculate difference, see if it works
+						passed_time = now - last_income_update
+						# passed_time_final = passed_time.total_seconds() // 3600.0
+						passed_time_final = passed_time.days
+						# print(passed_time_final)
 						json_user_content = json_content["userdata"][user_index]
 
 						# role_ping_complete.append(discord.utils.get(server_object.roles, id=int(role_id)))
@@ -2045,40 +2023,24 @@ class pythonboat_database_handler:
 						Because this is an update and we want compatibility with older versions,
 						we will need to try and if not write a income_reset.
 						"""
-						"""
-						08.02.24: new new edit. Now, payday resets GLOBALLY (not one day since you specifically did)
-						"""
 						# true by default
-						income_reset, new_day = True, False
+						income_reset = True
 						try:
 							if json_content["symbols"][0]["income_reset"] == "false": income_reset = False
 						except:
 							# if not yet updated, we add this to json
 							json_content["symbols"][0]["income_reset"] = "true"
-						# get the current day
-						try:
-							last_global_update_string = json_content["symbols"][0]["global_collect"]
-							last_global_update = datetime.strptime(last_global_update_string, '%Y-%m-%d %H:%M:%S.%f')
-							today_day, last_day = int(now.strftime("%d")), int(last_global_update.strftime("%d"))
-							max_days = calendar.monthrange(int(now.strftime("%Y")), int(now.strftime("%m")))[1]
-							# print(today_day, last_day, max_days)
-							if today_day > max_days: last_day = 1
-							if today_day > last_day: new_day = True
-						except Exception as error_code:
-							print(error_code)
-							json_content["symbols"][0]["global_collect"] = str(now)
-							new_day = True
 
-
-						if income_reset and new_day:
+						if income_reset:
 							# you only get it DAILY, other than that it resets !
-							income_total += json_income_roles[role_index]["role_income"]
+							income_total += json_income_roles[role_index]["role_income"] if passed_time_final >= 1 else 0
+						else:
+							income_total += (json_income_roles[role_index]["role_income"] * int(passed_time_final))
 
-						json_content["symbols"][0]["global_collect"] = str(now)
+						if passed_time_final >= 1: json_income_roles[role_index]["last_single_called"][str(user)] = str(now)
 
-					except Exception as error_code:  # he didn't retrieve a salary yet
-						print(error_code)
-						# json_income_roles[role_index]["last_single_called"][str(user)] = str(now) # removed on 08.02. update
+					except:  # he didn't retrieve a salary yet
+						json_income_roles[role_index]["last_single_called"][str(user)] = str(now)
 						# also to create user in case he isnt registered yet
 						income_total += json_income_roles[role_index]["role_income"]
 
