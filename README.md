@@ -5,22 +5,16 @@ Code is finished, so there won't be any big updates anymore.
 But please report any problems to me via Discord or by opening an issue !
 
 ## Official repo:   
-https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot
-
+https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot  
 You're free to do anything with the code, I'd appreciate it if you would keep a link to the official repo tho :)
 
 
 ### - Info
 The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho).  
-I have actually tweaked it a bit and added things that people suggested. 
+With time, I have added quite some modifications, couldn't really say which tho, since I dont even use UB anymore lol.
 
 ### Please read `src/command_list.txt`.
 It not only helps users with how/what commands to use, it also gives tips for admins (using get-salary vs update-income for example).
-
-### - Goal
-It emerged from the problem of UB having a balance ceiling and no automated role-income increasing to user's balances. Obviously it's way bigger now.  
-The goal was to make an easily customizable Template of a discord bot, also fixing the issues stated above.  
-Another goal is to have the bot written in python so that it's easy to edit for every user. You can adjust the code so it fits exactly what you need.
 
 ### - Install & Use
 1. Create a Discord Application for your bot (see https://youtu.be/b61kcgfOm_4, https://discord.com/developers/applications)
@@ -36,6 +30,12 @@ Another goal is to have the bot written in python so that it's easy to edit for 
     You can change it as follows: changing line 75-77 in database/__init__.py. Note: if you uncomment 75, you gotta comment out line 77 ! (by putting a <#> before it, like in line 76. Then use change-currency-symbol (see src/commands.txt) or change "symbol_emoji" `in database/database.json`(needs to be a custom emoji). Contact me if you got issues.
 
 You should be good to go!
+
+
+### - Goal
+It emerged from the problem of UB having a balance ceiling and no automated role-income increasing to user's balances. Obviously it's way bigger now.  
+The goal was to make an easily customizable Template of a discord bot, also fixing the issues stated above.  
+Another goal is to have the bot written in python so that it's easy to edit for every user. You can adjust the code so it fits exactly what you need.   
 
 ### images
 On 09.02.24 update I added the option add images for items, that would be shown when calling the single item catalog info ("catalog item_name").
