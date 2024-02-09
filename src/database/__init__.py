@@ -1506,7 +1506,7 @@ class pythonboat_database_handler:
 	#
 
 	async def give_item(self, user, channel, username, user_pfp, item_name, amount, reception_user, server_object,
-						user_object, recept_username):
+						user_object, recept_username, spawn_mode):
 		# load json
 		json_file = open(self.pathToJson, "r")
 		json_content = json.load(json_file)
@@ -1520,19 +1520,27 @@ class pythonboat_database_handler:
 		json_recept_content = json_content["userdata"][reception_user_index]
 
 		try:
-			if json_user_content["items"] == "none":
-				return "error", f"❌ You do not have any items to give"
+			if not spawn_mode:  # not doing this if an admin just spawns an item
+				if json_user_content["items"] == "none":
+					return "error", f"❌ You do not have any items to give"
+				else:
+					worked = False
+					for ii_i in range(len(json_user_content["items"])):
+						if json_user_content["items"][ii_i][0] == item_name:
+							if (json_user_content["items"][ii_i][1] - amount) < 0:
+								return "error", f"❌ You do not have enough items of that item to give."
+							json_user_content["items"][ii_i][1] -= amount
+							worked = True
+							break
+					if worked == False:
+						return "error", f"❌ You do not have that item to give"
 			else:
-				worked = False
-				for ii_i in range(len(json_user_content["items"])):
-					if json_user_content["items"][ii_i][0] == item_name:
-						if (json_user_content["items"][ii_i][1] - amount) < 0:
-							return "error", f"❌ You do not have enough items of that item to give."
-						json_user_content["items"][ii_i][1] -= amount
-						worked = True
-						break
-				if worked == False:
-					return "error", f"❌ You do not have that item to give"
+				item_found = False
+				for i in range(len(json_content["items"])):
+					if json_content["items"][i]["name"] == item_name:
+						item_found = True
+				if not item_found:
+					return "error", "Item not found (needs to be created before spawning)."
 
 			# so we should be good, now handling the reception side
 			if json_recept_content["items"] == "none":
@@ -1552,9 +1560,14 @@ class pythonboat_database_handler:
 
 		# inform user
 		color = self.discord_success_rgb_code
-		embed = discord.Embed(
-			description=f"✅ {recept_uname.mention} has received {'{:,}'.format(int(amount))} {item_name} from you!",
-			color=color)
+		if not spawn_mode:
+			embed = discord.Embed(
+				description=f"✅ {recept_uname.mention} has received {'{:,}'.format(int(amount))} {item_name} from you!",
+				color=color)
+		else:
+			embed = discord.Embed(
+				description=f"✅ {recept_uname.mention} has received {'{:,}'.format(int(amount))} {item_name} (spawned)!",
+				color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 
@@ -1732,9 +1745,10 @@ class pythonboat_database_handler:
 		if item_check == "default_list":
 			for i in range(len(items)):
 				try:
-					catalog_report += f"Item {i}: {items[i]['display_name']}\n      (short name <{items[i]['name']}>)\n\n"
+					catalog_report += f"Item {i}: {items[i]['display_name']}\n      price: {self.currency_symbol} {items[i]['price']};　short name <{items[i]['name']}>\n\n"
 				except:
-					catalog_report += f"Item {i}: {items[i]['name']}\n"
+					await channel.send("compatbility error, please contact an admin.")
+					return "success", "success"
 			catalog_report += "\n```\n*For details about an item: use* `catalog <item short name>`"
 
 		else:
@@ -2018,6 +2032,7 @@ class pythonboat_database_handler:
 		# this is the other way around than the global update income
 
 		role_ping_complete = []
+		hours_remaining = "24"
 		no_money = True
 		income_total = 0
 		ii = 0
@@ -2063,7 +2078,10 @@ class pythonboat_database_handler:
 							max_days = calendar.monthrange(int(now.strftime("%Y")), int(now.strftime("%m")))[1]
 							# print(today_day, last_day, max_days)
 							if today_day > max_days: last_day = 1
-							if today_day > last_day: new_day = True
+							if today_day > last_day:
+								new_day = True
+							else:
+								hours_remaining = f"{24- int(now.strftime('%H'))}:{60 - int(now.strftime('%M'))}"
 						except Exception as error_code:
 							print(error_code)
 							json_content["symbols"][0]["global_collect"] = str(now)
@@ -2093,7 +2111,10 @@ class pythonboat_database_handler:
 		if no_money:
 			await channel.send("You have no income roles!")
 		else:
-			await channel.send(f"You have received your income ({self.currency_symbol} {'{:,}'.format(int(income_total))}) from a total of {ii} different roles!", silent=True)
+			if int(income_total) != 0:
+				await channel.send(f"You have received your income ({self.currency_symbol} {'{:,}'.format(int(income_total))}) from a total of {ii} different roles!", silent=True)
+			else:
+				await channel.send(f"`You already collected! Reset in: {hours_remaining} hours.`", silent=True)
 
 		# overwrite, end
 		self.overwrite_json(json_content)
