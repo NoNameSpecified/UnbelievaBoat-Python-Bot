@@ -2054,8 +2054,10 @@ class pythonboat_database_handler:
 		for role in user_roles:
 
 			for role_index in range(len(json_income_roles)):
+
 				role_id = json_income_roles[role_index]["role_id"]
 				if int(role) == int(role_id):
+					print(" NEW   ROLE   TRIED   ")
 					no_money = False
 					ii += 1
 
@@ -2090,14 +2092,14 @@ class pythonboat_database_handler:
 							last_global_update_string = json_content["symbols"][0]["global_collect"]
 							last_global_update = datetime.strptime(last_global_update_string, '%Y-%m-%d %H:%M:%S.%f')
 							last_single_called = json_income_roles[role_index]["last_single_called"][str(user)]
-							last_single = int(datetime.strptime(last_single_called, '%Y-%m-%d %H:%M:%S.%f').strftime(("%d")))
+							last_single = int(datetime.strptime(last_single_called, '%Y-%m-%d %H:%M:%S.%f').strftime("%d"))
 							today_day, last_day = int(now.strftime("%d")), int(last_global_update.strftime("%d"))
 							max_days = calendar.monthrange(int(now.strftime("%Y")), int(now.strftime("%m")))[1]
 							# print(today_day, last_day, max_days)
 							print(last_single, today_day, last_day)
 							if today_day > max_days: last_day = 1
 							print(today_day, last_day)
-							if last_single > last_day:
+							if last_single < last_day:
 								new_day = True
 							else:
 								print(24 - int(now.strftime('%H')))
