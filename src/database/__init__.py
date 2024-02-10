@@ -2057,7 +2057,6 @@ class pythonboat_database_handler:
 
 				role_id = json_income_roles[role_index]["role_id"]
 				if int(role) == int(role_id):
-					print(" NEW   ROLE   TRIED   ")
 					no_money = False
 					ii += 1
 
@@ -2091,20 +2090,27 @@ class pythonboat_database_handler:
 						try:
 							last_global_update_string = json_content["symbols"][0]["global_collect"]
 							last_global_update = datetime.strptime(last_global_update_string, '%Y-%m-%d %H:%M:%S.%f')
+
 							last_single_called = json_income_roles[role_index]["last_single_called"][str(user)]
 							last_single = int(datetime.strptime(last_single_called, '%Y-%m-%d %H:%M:%S.%f').strftime("%d"))
+
 							today_day, last_day = int(now.strftime("%d")), int(last_global_update.strftime("%d"))
 							max_days = calendar.monthrange(int(now.strftime("%Y")), int(now.strftime("%m")))[1]
 							# print(today_day, last_day, max_days)
-							print(last_single, today_day, last_day)
+							# print(last_single, today_day, last_day)
 							if today_day > max_days: last_day = 1
-							print(today_day, last_day)
 							if last_single < last_day:
 								new_day = True
+
+							# for example if i last called on 08th JANUARY and today is 07th FEBRUARY
+							# the check above would say nope, so this is to fix that
+							if datetime.strptime(last_single_called, '%Y-%m-%d %H:%M:%S.%f') < last_global_update and last_single > last_day:
+								new_day = True
+
 							else:
-								print(24 - int(now.strftime('%H')))
 								hour_rem = 0 if 24 - int(now.strftime('%H')) == 24 else 24 - int(now.strftime('%H')) - 1
-								min_rem = 0 if 60 - int(now.strftime('%M')) == 60 else 60 - int(now.strftime('%M'))
+								min_rem_raw = 0 if 60 - int(now.strftime('%M')) == 60 else 60 - int(now.strftime('%M'))
+								min_rem = f"0{min_rem_raw}" if min_rem_raw < 10 else min_rem_raw
 								hours_remaining = f"{hour_rem}:{min_rem}"
 						except Exception as error_code:
 							print(error_code)
