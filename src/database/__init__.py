@@ -1,4 +1,4 @@
-import json, os, time, random, math, sys, discord, math
+import json, os, time, random, math, sys, discord, math, asyncio
 from datetime import datetime
 from datetime import timedelta
 import calendar
@@ -1890,6 +1890,7 @@ class pythonboat_database_handler:
 		json_income_roles.append({
 			"role_id": income_role_id,
 			"role_income": income,
+			"last_single_called": {},
 			"last_updated": now
 		})
 
@@ -2050,18 +2051,17 @@ class pythonboat_database_handler:
 		hours_remaining = "24"
 		no_money = True
 		income_total = 0
-		ii = 0
+		received_instances = 0
 		for role in user_roles:
-
 			for role_index in range(len(json_income_roles)):
-
 				role_id = json_income_roles[role_index]["role_id"]
 				if int(role) == int(role_id):
 					no_money = False
-					ii += 1
+
 
 					# new edit for daily income:
 					now = datetime.now()
+					# now = datetime.strptime("2024-02-11 00:01:33.884845", '%Y-%m-%d %H:%M:%S.%f')
 
 					# first check if he already got one at all
 					try:
@@ -2108,12 +2108,13 @@ class pythonboat_database_handler:
 								new_day = True
 
 							else:
-								hour_rem = 0 if 24 - int(now.strftime('%H')) == 24 else 24 - int(now.strftime('%H')) - 1
+								hour_rem = 24 - int(now.strftime('%H')) - 1
 								min_rem_raw = 0 if 60 - int(now.strftime('%M')) == 60 else 60 - int(now.strftime('%M'))
 								min_rem = f"0{min_rem_raw}" if min_rem_raw < 10 else min_rem_raw
 								hours_remaining = f"{hour_rem}:{min_rem}"
 						except Exception as error_code:
 							print(error_code)
+							await channel.send("setting up")
 							json_content["symbols"][0]["global_collect"] = str(now)
 							new_day = True
 
@@ -2122,14 +2123,16 @@ class pythonboat_database_handler:
 							# you only get it DAILY, other than that it resets !
 							income_total += json_income_roles[role_index]["role_income"]
 							json_income_roles[role_index]["last_single_called"][str(user)] = str(now)
-
+							received_instances += 1
 						json_content["symbols"][0]["global_collect"] = str(now)
 
 					except Exception as error_code:  # he didn't retrieve a salary yet
 						print(error_code)
-						# json_income_roles[role_index]["last_single_called"][str(user)] = str(now) # removed on 08.02. update
+						await channel.send("creating your first entry...")
+						json_income_roles[role_index]["last_single_called"][str(user)] = str(now) # removed on 08.02. update
 						# also to create user in case he isnt registered yet
 						income_total += json_income_roles[role_index]["role_income"]
+						received_instances += 1
 
 					# role_ping_complete.append(discord.utils.get(server_object.roles, id=int(role_id)))
 
@@ -2143,7 +2146,7 @@ class pythonboat_database_handler:
 			await channel.send("You have no income roles!")
 		else:
 			if int(income_total) != 0:
-				await channel.send(f"You have received your income ({self.currency_symbol} {'{:,}'.format(int(income_total))}) from a total of {ii} different roles!", silent=True)
+				await channel.send(f"You have received your income ({self.currency_symbol} {'{:,}'.format(int(income_total))}) from a total of {received_instances} different roles!", silent=True)
 			else:
 				await channel.send(f"`You already collected! Reset in: {hours_remaining} hours.`", silent=True)
 
