@@ -4,7 +4,7 @@ ROULETTE GAME SLOTS found on https://github.com/ntaliceo/roulette-simulator,
 rest is done here
 """
 
-import random, discord, time
+import random, discord, time, asyncio
 
 
 # what will be called to play the game
@@ -43,14 +43,15 @@ class roulette_discord_implementation:
 
 	async def play(self, bot, channel, username, user_pfp, bet, space, mention):
 		self.bot = bot
-
+		
 		# get space type
 		spaceType = "string"
 		try:
 			space = int(space)
 			spaceType = "int"
 		except:
-			space = str(space)
+			pass
+		space = str(space).lower().strip()
 
 		color = discord.Color.from_rgb(3, 169, 244)
 		embed = discord.Embed(description=f"You have placed a bet of {str(self.currency_symbol)} {bet} on `{space}`.", color=color)
@@ -59,7 +60,7 @@ class roulette_discord_implementation:
 		await channel.send(embed=embed)
 
 		# wait the 10 seconds
-		time.sleep(10)
+		await asyncio.sleep(10)
 
 		win = lose = multiplicator = None
 
@@ -86,14 +87,14 @@ class roulette_discord_implementation:
 			win = 1 if (result % 2) != 0 else 0
 
 		elif spaceType == "int":
-			win = 1 if int(space) == result else 0
+			win = 1 if space == result else 0
 
 		else:
 			# shouldnt happen
 			print("error")
 
 		if win:
-			result_prompt += f"**Winner:**\n{mention} won {str(self.currency_symbol)} {bet*multiplicator}"
+			result_prompt += f"🎉  **Winner:**  🎉\n{mention} won {str(self.currency_symbol)} {bet*multiplicator}"
 		else:
 			result_prompt += "**No Winner :(**"
 
