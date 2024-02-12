@@ -882,6 +882,53 @@ class pythonboat_database_handler:
 
 		return "success", "success"
 
+
+	#
+	# REMOVE GONE USERS / CLEAN LEADERBOARD
+	#
+	
+	async def clean_leaderboard(self, server):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		
+		json_users = json_content["userdata"]
+		json_income_roles = json_content["income_roles"]
+		amount_removed = 0
+		pops = []
+		
+		# we're gonna remove the user instance and the user params in collect etc.
+		for user_index in range(len(json_users)):
+			on_server = False
+			for on_server_check in range(len(server.members)):
+				if json_users[user_index]["user_id"] == server.members[on_server_check].id:
+					on_server = True
+					break
+			
+			if not on_server:
+				# delete from the user section
+				pop_index, b = self.find_index_in_db(json_users, json_users[user_index]["user_id"])
+				pops.append(pop_index)
+				
+				# delete from user income role section
+				for i in range(len(json_income_roles)):
+					try:
+						json_income_roles[i]["last_single_called"].pop(str(json_users[user_index]["user_id"]))
+					except:
+						pass
+				amount_removed += 1
+		
+		for index in pops:
+			json_content["userdata"].pop(index)
+		
+		# overwrite, end
+		json_content["userdata"] = json_users
+		json_content["income_roles"] = json_income_roles
+		self.overwrite_json(json_content)
+
+		return "success", amount_removed
+
+
 	#
 	# LEADERBOARD
 	#
