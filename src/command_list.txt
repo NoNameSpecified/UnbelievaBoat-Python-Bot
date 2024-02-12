@@ -18,6 +18,8 @@ Here I use the prefix "+" but you can change it to whatever you want.
   +remove-money <@member> <amount> [cash/bank]
     info: default is bank
   +remove-money-role <@role> <amount>
+  +clean-leaderboard
+    info: removes users that left the server completely.
 
 3. Income Commands
   +slut
