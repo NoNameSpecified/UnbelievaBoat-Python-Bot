@@ -822,6 +822,7 @@ async def on_message(message):
 		embed.add_field(name="set-income-reset", value=f"Usage: `set-income-reset <false/true>`", inline=False)
 		embed.add_field(name="remove-user-item", value=f"Usage: `remove-user-item <member> <item short name> <amount>`", inline=False)
 		embed.add_field(name="spawn-item", value=f"Usage: `spawn-item <player pinged> <item short name> [amount]`", inline=False)
+		embed.add_field(name="clean-leaderboard", value=f"Usage: `clean-leaderboard` - remove gone users", inline=False)
 		embed.add_field(name="----------------------\n\nITEM HANDLING", value=f"create and delete requires <botmaster> role", inline=False)
 		embed.add_field(name="create-item", value=f"Usage: `create-item`", inline=False)
 		embed.add_field(name="delete-item", value=f"Usage: `delete-item <item short name>`", inline=False)
@@ -1664,12 +1665,58 @@ async def on_message(message):
 			print(e)
 			await send_error(channel)
 		return
+	
+	# ---------------------------
+	#   REMOVE GONE USERS
+	# ---------------------------
+
+	elif command in ["clean-leaderboard", "clean-lb"]:
+		if not staff_request:
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		# since this will completely remove those users
+		# we should make sure you rly want to do this.
+		security_check = False
+		sec_embed = discord.Embed(title="Attention", description="🚨 This will permanently delete all user instances that left the server!\nDo you wish to continue? [y/N]", color=discord.Color.from_rgb(3, 169, 244))
+		await channel.send(embed=sec_embed)
+
+		security_check_input = await get_user_input(message)
+		if security_check_input.strip().lower() not in ["yes", "y"]:
+			await channel.send(f"{emoji_error}  Cancelled command.")
+			return
+
+		# handler
+
+		try:
+			status, clean_lb_return = await db_handler.clean_leaderboard(server)
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{clean_lb_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except Exception as e:
+			print(e)
+			await send_error(channel)
+			return
+
+		color = discord.Color.from_rgb(102, 187, 106) # green
+		embed = discord.Embed(description=f"{emoji_worked} {clean_lb_return} user(s) have been removed from database.", color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		return
+
 
 	# ---------------------------
 	#   BUY ITEM
 	# ---------------------------
 
-	elif command in ["buy-item", "get-item"]:
+	elif command in ["buy-item", "get-item", "buy"]:
 		# idk why i said you need botmaster to buy items ?
 		"""
 		if not staff_request:
