@@ -131,7 +131,7 @@ class pythonboat_database_handler:
 		user_to_find = int(user_to_find)
 		for i in range(len(data_to_search)):
 			if data_to_search[i]["user_id"] == user_to_find:
-				print("\nfound user\n")
+				# print("\nfound user\n")
 				return int(i), "none"
 
 		# in this case, this isnt a user which isnt yet registrated
@@ -143,6 +143,7 @@ class pythonboat_database_handler:
 		print("\ncreating user\n")
 		# we did NOT find him, which means he doesn't exist yet
 		# so we automatically create him
+		# edit on 13.02.24: this is fucking useless WTF
 		data_to_search.append({
 			"user_id": user_to_find,
 			"cash": 0,
@@ -156,6 +157,7 @@ class pythonboat_database_handler:
 			"last_crime": "none",
 			"last_rob": "none"
 		})
+		
 		"""
 			POSSIBLE ISSUE :
 				that we need to create user by overwrite, then problem of doing that while another command is
@@ -749,6 +751,7 @@ class pythonboat_database_handler:
 		embed.set_footer(text=f"today at {formatted_time}")
 		await channel.send(embed=embed)
 
+		self.overwrite_json(json_content)
 		return
 
 	#
@@ -910,17 +913,25 @@ class pythonboat_database_handler:
 				pop_index, b = self.find_index_in_db(json_users, json_users[user_index]["user_id"])
 				pops.append(pop_index)
 				
-				# delete from user income role section
-				for i in range(len(json_income_roles)):
-					try:
-						json_income_roles[i]["last_single_called"].pop(str(json_users[user_index]["user_id"]))
-					except:
-						pass
 				amount_removed += 1
 		
-		for index in pops:
-			json_content["userdata"].pop(index)
+		# basically minus because we go reverse, else we change the whole
+		# list and then we cant work per index anymore !
+		# print(pops)
+		pops.reverse()
+		# print(pops)
 		
+		for index in range(len(pops)):
+			
+			# delete from user income role section
+			for i in range(len(json_income_roles)):
+				try:
+					json_income_roles[i]["last_single_called"].pop(str(json_users[pops[index]]["user_id"]))
+				except:
+					pass
+			
+			del json_users[pops[index]]
+
 		# overwrite, end
 		json_content["userdata"] = json_users
 		json_content["income_roles"] = json_income_roles
