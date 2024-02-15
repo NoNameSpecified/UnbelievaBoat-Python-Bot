@@ -70,8 +70,8 @@ class roulette_discord_implementation:
 			multiplicator = 35
 
 		result = random.choice(list(self.slots.keys()))
-		print(self.slots[result], result)
-
+		# print(self.slots[result], result)
+		# print(type(result))
 		result_prompt = f"The ball landed on: **{self.slots[result]} {result}**!\n\n"
 
 		if space == "black":
@@ -81,9 +81,11 @@ class roulette_discord_implementation:
 			win = 1 if self.slots[result] == "red" else 0
 
 		elif space == "even":
+			result = int(result)
 			win = 1 if (result % 2) == 0 else 0
 
 		elif space == "odd":
+			result = int(result)
 			win = 1 if (result % 2) != 0 else 0
 
 		elif spaceType == "int":
@@ -92,7 +94,7 @@ class roulette_discord_implementation:
 		else:
 			# shouldnt happen
 			print("error")
-
+		# print("here")
 		if win:
 			result_prompt += f"🎉  **Winner:**  🎉\n{mention} won {str(self.currency_symbol)} {bet*multiplicator}"
 		else:
