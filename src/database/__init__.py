@@ -1278,7 +1278,7 @@ class pythonboat_database_handler:
 	#
 
 	async def create_new_item(self, item_display_name, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give,
-							  roles_id_to_remove, max_bal, reply_message, item_img_url):
+							  roles_id_to_remove, max_bal, reply_message, item_img_url, roles_id_excluded):
 		# load json
 		json_file = open(self.pathToJson, "r")
 		json_content = json.load(json_file)
@@ -1306,6 +1306,7 @@ class pythonboat_database_handler:
 			"required_roles": roles_id_required,
 			"given_roles": roles_id_to_give,
 			"removed_roles": roles_id_to_remove,
+			"excluded_roles": roles_id_excluded,
 			"maximum_balance": max_bal,
 			"reply_message": reply_message,
 			"expiration_date": str(expiration_date),
@@ -1436,7 +1437,7 @@ class pythonboat_database_handler:
 		item = json_items[item_index]
 		# get variables
 		item_name = item_name
-		try:
+		try: # compatibility
 			item_display_name = item["display_name"]
 		except:
 			item_display_name = item_name
@@ -1444,6 +1445,10 @@ class pythonboat_database_handler:
 		req_roles = item["required_roles"]
 		give_roles = item["given_roles"]
 		rem_roles = item["removed_roles"]
+		try:
+			excluded_roles = item["excluded_roles"]
+		except:  # compatibility
+			excluded_roles = ["none"]
 		max_bal = item["maximum_balance"]
 		remaining_stock = item["amount_in_stock"]
 		expiration_date = item["expiration_date"]
@@ -1466,6 +1471,18 @@ class pythonboat_database_handler:
 						return "error", f"❌ User does not seem to have all required roles."
 		except Exception as e:
 			print("1", e)
+			return "error", f"❌ Unexpected error."
+		
+		# 2. check excluded roles - meaning roles with which you CANT buy
+		try:
+			if excluded_roles[0] == "none":
+				pass
+			else:
+				for i in range(len(excluded_roles)):
+					if int(excluded_roles[i]) in user_roles:
+						return "error", f"❌ User possesses excluded role (id: {excluded_roles[i]})."
+		except Exception as e:
+			print("2", e)
 			return "error", f"❌ Unexpected error."
 
 		### BEFORE update, "check rem roles" and "check give roles" was located here. it seems that
