@@ -1503,17 +1503,19 @@ async def on_message(message):
 				# check 11: item img
 				if user_input == "skip":
 					user_input = f"EMPTY"
-				try:
-					rq = requests.get(user_input)
-				except:
-					await channel.send(f"{emoji_error} URL not found. Please try again or skip.")
-					continue
-
-				if rq.status_code != 200:
-					await channel.send(f"{emoji_error} URL not found. Please try again or skip.")
-					continue
-				item_img_url = user_input
-				first_embed.set_thumbnail(url=item_img_url)
+					item_img_url = user_input
+				else:
+					try:
+						rq = requests.get(user_input)
+					except:
+						await channel.send(f"{emoji_error} URL not found. Please try again or skip.")
+						continue
+	
+					if rq.status_code != 200:
+						await channel.send(f"{emoji_error} URL not found. Please try again or skip.")
+						continue
+					item_img_url = user_input
+					first_embed.set_thumbnail(url=item_img_url)
 				next_info = f"{emoji_worked}  Item created successfully!"
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints = -1
