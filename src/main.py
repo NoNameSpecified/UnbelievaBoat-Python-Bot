@@ -39,7 +39,7 @@ import requests
 
 # init discord stuff and json handling
 BOT_PREFIX = ("+")  # tupple in case we'd need multiple
-token = "putyourtokenhere"  # add your own token
+token = "NzkzMTEzNzM2NjEyNjc1NjI1.Gkyp4q.8ax0OnysLSJU97CDRLKK9-nHamQZ91dzeKKY18"  # add your own token
 # emojis
 emoji_worked = "✅"
 emoji_error = "❌"
@@ -1383,12 +1383,51 @@ async def on_message(message):
 					roles_id_required = ["none"]
 				first_embed.add_field(name="Role required", value=f"{required_roles}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":seven: What role(s) do you want to be given when this item is bought?\nIf none, just reply `skip`. For multiple, ping them with a space between them."
+				next_info = ":seven: What roles should make purchase of this item impossible ? (excluded role(s))?\nIf none, just reply `skip`. For multiple, ping them with a space between them."
+				await last_report.edit(content=next_info, embed=first_embed)
+				checkpoints += 1
+				
+			elif checkpoints == 7:
+				# check 7: excluded role - meaning you cant buy if possessing it.
+				try:
+					if user_input in ["skip", "none"]:
+						raise ValueError
+
+					roles_clean_one = await get_role_id_multiple(user_input)
+
+					excluded_roles = ""
+					for role_id in roles_clean_one:
+						try:
+							role = discord.utils.get(server.roles, id=int(role_id))
+							print(role)
+							excluded_roles += f"{str(role.mention)} "
+						except:
+							await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
+							raise NameError
+
+				except NameError:
+					continue
+
+				except ValueError:
+					if user_input in ["skip", "none"]:
+						excluded_roles = ["none"]
+
+				except Exception as e:
+					await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
+					continue
+				try:
+					roles_id_excluded = roles_clean_one
+					print(roles_id_excluded)
+				except:
+					roles_id_excluded = ["none"]
+				first_embed.add_field(name="Excluded roles", value=f"{roles_id_excluded}")
+				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
+				next_info = ":eight: What role(s) do you want to be given when this item is bought?\nIf none, just reply `skip`. For multiple, ping them with a space between them."
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
-			elif checkpoints == 7:
-				# check 7: role to be given when item bought
+			elif checkpoints == 8:
+				# check 8: role to be given when item bought
 				try:
 					if user_input in ["skip", "none"]:
 						raise ValueError
@@ -1422,12 +1461,12 @@ async def on_message(message):
 					roles_id_to_give = ["none"]
 				first_embed.add_field(name="Role given", value=f"{roles_give}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":eight: What role(s) do you want to be removed from the user when this item is bought?\nIf none, just reply `skip`. For multiple, ping with a space between them."
+				next_info = ":nine: What role(s) do you want to be removed from the user when this item is bought?\nIf none, just reply `skip`. For multiple, ping with a space between them."
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
-			elif checkpoints == 8:
-				# check 8: role to be removed when item bought
+			elif checkpoints == 9:
+				# check 9: role to be removed when item bought
 				try:
 					if user_input in ["skip", "none"]:
 						raise ValueError
@@ -1462,12 +1501,12 @@ async def on_message(message):
 					roles_id_to_remove = ["none"]
 				first_embed.add_field(name="Role removed", value=f"{roles_remove}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":nine: What is the maximum balanace a user can have in order to buy this item?\nIf none, just reply `skip`."
+				next_info = ":keycap_ten: What is the maximum balanace a user can have in order to buy this item?\nIf none, just reply `skip`."
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
-			elif checkpoints == 9:
-				# check 9: max balance
+			elif checkpoints == 10:
+				# check 10: max balance
 				try:
 					max_bal = int(user_input)
 					if max_bal < 1:
@@ -1481,12 +1520,12 @@ async def on_message(message):
 						continue
 				first_embed.add_field(name="Required balance", value=f"{max_bal}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":keycap_ten: What message do you want the bot to reply with, when the item is bought?\nIf none, just reply `skip`."
+				next_info = "`CHECK11`: What message do you want the bot to reply with, when the item is bought?\nIf none, just reply `skip`."
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
-			elif checkpoints == 10:
-				# check 10: reply message
+			elif checkpoints == 11:
+				# check 11: reply message
 				if len(user_input) > 150:
 					await channel.send(f"{emoji_error} The maximum length for a reply message is 150 characters. Please try again.")
 					continue
@@ -1495,12 +1534,12 @@ async def on_message(message):
 				reply_message = user_input
 				first_embed.add_field(name="Reply message", value=f"{reply_message}", inline=False)
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = "`CHECK11`: What image should the item have? Enter complete url !\nIf none, just reply `skip`."
+				next_info = "`CHECK12`: What image should the item have? Enter complete url !\nIf none, just reply `skip`."
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
 
-			elif checkpoints == 11:
-				# check 11: item img
+			elif checkpoints == 12:
+				# check 12: item img
 				if user_input == "skip":
 					user_input = f"EMPTY"
 					item_img_url = user_input
@@ -1525,7 +1564,7 @@ async def on_message(message):
 		# handler
 
 		try:
-			status, create_item_return = await db_handler.create_new_item(item_display_name, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give, roles_id_to_remove, max_bal, reply_message, item_img_url)
+			status, create_item_return = await db_handler.create_new_item(item_display_name, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give, roles_id_to_remove, max_bal, reply_message, item_img_url, roles_id_excluded)
 			if status == "error":
 				color = discord_error_rgb_code
 				embed = discord.Embed(description=f"{create_item_return}", color=color)
