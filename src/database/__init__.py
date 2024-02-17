@@ -1,2450 +1,2292 @@
+import json, os, time, random, math, sys, discord, math, asyncio
+from datetime import datetime
+from datetime import timedelta
+import calendar
 
-# --------- Info and general informations -----------
-
-"""
-INFO
-  Official Repo: https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot
-
-	This is a discord bot written in python, designed to copy some of Unbelievaboat's functions,
-	  but add custom stuff to it (e.g no balance limit, automatic balance increase etc)
-
-	The Discord things are from the discord API (import discord)
-
-	the databses are stored in database/ and handled by database/__init__.py
-	  that name is chosen to make it something easily importable
-
-	some of these functions and methods are based on another Bot i made, https://github.com/NoNameSpecified/selenor
-"""
-
-# --------- BOT CODE BELOW -----------
-
-
+# custom blackjack game thing
+from game_libs.blackjack import blackjack_discord_implementation
+# custom roulette game thing
+from game_libs.roulette import roulette_discord_implementation
 
 """
 
-// INIT
+	the database handler of the unbelievaboat-python discord bot
+	// is imported by ../main.py
 
 """
 
-# imports
-import discord
-import random
-from discord.ext.commands import Bot
-# custom database handler
-import database
-from time import sleep
-# check img url
-import requests
 
+class pythonboat_database_handler:
+	# always called when imported in main.py
+	def __init__(self, client):
+		# we do the path from the main.py file, so we go into the db folder, then select
+		self.pathToJson = "database/database.json"
+		self.client = client
+		# for the json "variables", dont want to make a whole function to find index for variables
+		# wont be many anyways. so making it manually
+		self.variable_dict = {
+			"slut": 0,
+			"crime": 1,
+			"work": 2,
+			"rob": 3
+		}
 
-# init discord stuff and json handling
-BOT_PREFIX = ("+")  # tupple in case we'd need multiple
-token = "NzkzMTEzNzM2NjEyNjc1NjI1.GxwiFY.3e4MPK4uZx8G6k3fEXHhVMLxlKE3uNL-GWyhgk"  # add your own token
-# emojis
-emoji_worked = "✅"
-emoji_error = "❌"
-discord_error_rgb_code = discord.Color.from_rgb(239, 83, 80)
-intents = discord.Intents.all()
-client = Bot(command_prefix=BOT_PREFIX, intents=intents)  # init bot
-db_handler = database.pythonboat_database_handler(client)  # ("database.json")
+		# for colors
+		self.discord_error_rgb_code = discord.Color.from_rgb(239, 83, 80)
+		self.discord_blue_rgb_code = discord.Color.from_rgb(3, 169, 244)
+		self.discord_success_rgb_code = discord.Color.from_rgb(102, 187, 106)
 
-
-"""
-
-// GLOBAL FUNCTIONS
-
-"""
-
-async def get_user_input(message, default_spell=True):
-	print("Awaiting User Entry")
-	# we want an answer from the guy who wants to give an answer
-	answer = await client.wait_for("message", check=lambda response: response.author == message.author and response.channel == message.channel)
-	answer = answer.content
-	# clean input
-	if default_spell:
-		answer = answer.lower().strip()
-
-	return answer
-
-async def get_user_id(param):
-	reception_user_beta = str(param[1])  # the mention in channel gives us <@!USERID> OR <@USERIRD>
-	reception_user = ""
-	for i in range(len(reception_user_beta)):
-		try:
-			reception_user += str(int(reception_user_beta[i]))
-		except:
-			pass
-	return reception_user
-
-async def get_role_id_multiple(user_input):
-	roles = user_input.split(" ")  # so we get a list
-	roles_clean = []
-
-	for i in range(len(roles)):
-		current_role = roles[i]
-		new_current_role = ""
-		for i in range(len(current_role)):
-			try:
-				new_current_role += str(int(current_role[i]))
-			except:
-				pass
-		roles_clean.append(new_current_role)
-	return roles_clean
-
-async def get_role_id_single(parameter):
-	role_beta = str(parameter)  # see another instance where i use this to see why
-	role_clean = ""
-	for i in range(len(role_beta)):
-		try:
-			role_clean += str(int(role_beta[i]))
-		except:
-			pass
-	return role_clean
-
-async def send_embed(title, description, channel, color="default"):
-	# some default colors
-	colors = [0xe03ca5, 0xdd7b28, 0x60c842, 0x8ae1c2, 0x008c5a, 0xc5bcc5]
-	if color == "default": color = 0xe03ca5
-	# create the embed
-	embed = discord.Embed(title=title, description=description, color=color)
-	await channel.send(embed=embed)
-	return
-
-
-async def send_error(channel):
-	embed = discord.Embed(title="Error.", description="Internal Error, call admin.", color=0xff0000)
-	await channel.send(embed=embed)
-	return
-
-
-# ~~~ set custom status ~~~
-@client.event
-async def on_ready():
-	activity = discord.Game(name=f"My default prefix is <{BOT_PREFIX}>")
-	await client.change_presence(status=discord.Status.online, activity=activity)
-	# log_channel = 807057317396217947 # in your server, select a channel you want log info to be sent to
-									# rightclick and copy id. put the id here. it should look like this : 807057317396217947
-	"""
-	NEED LOG CHANNEL ID
-	"""
-	# channel = client.get_channel(log_channel)
-	# await channel.send("running")
-
-
-	# check json, putting it here because has to be in a async function
-	check_status = await db_handler.check_json()
-
-	if check_status == "error":
-		# channel = client.get_channel(log_channel)
-		color = discord_error_rgb_code
-		embed = discord.Embed(description=f"Critical error. JSON file is corrupted or has missing variables.\n\n"
-										# f"`Error` code : {error_info}`\n" # -- Possibly to add
-										  f" Please contact an admin or delete the JSON database, but do a backup before -\n"
-										  f"this will result in re-creating the default config but will also **delete all user data**\n\n", color=color)
-		embed.set_author(name="UnbelievaBoat-Python Bot", icon_url="https://blog.learningtree.com/wp-content/uploads/2017/01/error-handling.jpg")
-		embed.set_footer(text="tip: default config at https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot")
-		# await channel.send(embed=embed)
-		quit()
-
-	db_handler.get_currency_symbol()
-
-"""
-
-USER-BOT INTERACTION
-
-"""
-
-@client.event
-async def on_message(message):
-
-	"""
-	start general variable definition
-	"""
-
-	# check if message is for our bot
-	if not ( message.content.startswith(BOT_PREFIX) ) : return 0;
-
-	# prefix checked, we can continue
-	usedPrefix = message.content[0] # in case we would add more prefixes later
-	# in selenor bot : check for case sensitive or not c.s. commands, not needed for this bot,
-	# make it a clean input
-	command = message.content.split(usedPrefix)[1].lower().split(" ")
-
-	# stop if not meant for bot. (like just a "?")
-	if command[0] in ["", " "]: return 0;
-
-	"""
-	basically, if the command is :
-		+give money blabla
-		we take what is after the prefix and before everything else, to just get the command
-		in this case : "give"
-		edit : for now we just splitted it, pure command will be taken with command = command[0]
-	this is to redirect the command to further handling
-	"""
-	# print(command) # for testing purposes
-
-	param_index = 1
-	param = ["none", "none", "none", "none"]
-	command_updated = []
-	# lets say our command says "remove-item <your mom>"
-
-	try:
-		for test_cmd in range(len(command)):
-			if command[test_cmd].startswith('"') or command[test_cmd].startswith("'"):
-				new_slide = ""
-				temp_cmd = test_cmd
-				while not(command[temp_cmd].endswith('"') or command[temp_cmd].endswith("'")):
-					new_slide += command[temp_cmd] + " "
-					temp_cmd += 1
-				new_slide += command[temp_cmd]
-				command_updated.append(new_slide[1:len(new_slide)-1])
-				break
-			elif command[test_cmd] in [" ", ""]:
-				continue
-			else:
-				command_updated.append(command[test_cmd])
-	except:
-			await message.channel.send("Error. You maybe opened a single/doublequote or a < and didnt close it")
-	command = command_updated
-	# print(command)
-	for param_index in range(len(command)):
-		param[param_index] = command[param_index]
-	print(f"Command called with parameters : {param}")
-	# for use of parameters later on, will have to start at 0, not 1
-
-	# ~~~~ GET DISCORD VARIABLES for use later on
-	# to directly answer in the channel the user called in
-	channel = message.channel
-	server = message.guild
-	user = message.author.id
-	user_mention = message.author.mention
-	user_pfp = message.author.display_avatar.url
-	username = str(message.author)
-	nickname = str(message.author.display_name)
-	user_roles = [randomvar.id for randomvar in message.author.roles]
-
-	# some stuff will be only for staff, which will be recognizable by the botmaster role
-	staff_request = 0
-	for role_to_check in message.author.roles:
-		if role_to_check.name == "botmaster": staff_request = 1
-	print("staff status : ", staff_request)
-	command = command[0]
+		# check if file is created, else create it
+		if not os.path.exists(self.pathToJson):
+			creating_file = open(self.pathToJson, "w")
+			# adding default json config into the file if creating new
+			# all the users will get created automatically in the function self.find_index_in_db()
+			# but for the different jobs etc the program needs configs for variables and symbols
+			creating_file.write("""{\n\t"userdata": [],
+										"variables":[
+											{"name":"slut","delay":15,"min_revenue":50,"max_revenue":400,"proba":50,"win_phrases":["You made","Your dad likes it so much he gives you"],"lose_phrases":["You were fined","Your uncle didn't like the encounter. You pay"],"min_lose_amount_percentage":2,"max_lose_amount_percentage":5},
+											{"name":"crime","delay":60,"min_revenue":100,"max_revenue":1200,"proba":30,"win_phrases":["You commited a crime and got","You robbed a bank and got"],"lose_phrases":["You were fined","MacGyver finds you, you pay"],"min_lose_amount_percentage":10,"max_lose_amount_percentage":20},
+											{"name":"work","delay":10,"min_revenue":50,"max_revenue":200,"win_phrases":["You worked at SubWay and made","You helped someone do his homework and got"]},
+											{"name":"rob","delay":45,"proba":50,"min_gain_amount_percentage":10,"max_gain_amount_percentage":20,"min_lose_amount_percentage":10,"max_lose_amount_percentage":20,"win_phrases":["You robbed and got"],"lose_phrases":["You were caught robbing and have to pay"]}],
+										"symbols": [
+											{"name":"currency_symbol","symbol_emoji":":dollar:"}
+										],
+										"items": [
+											{}
+										],
+										"income_roles": [
+											{}
+										]
+										\n}""")
+			creating_file.close()
 
 	#
 
-	"""
-	START PROCESSING COMMANDS
-	"""
-
-	"""
-
-	possible improvements : everything in int, not float
-							all displayed numbers with "," as thousands operator
-							people can enter amounts with thousands operator
-	"""
-
-	"""
-		REGULAR COMMANDS (not staff only)
-	"""
-	# list of commands # their aliases, to make the help section easier
-	all_reg_commands_aliases = {
-		"blackjack" : "bj",
-		"roulette"  : "",
-		"slut": "",
-		"crime": "",
-		"work": "",
-		"rob": "steal",
-		"balance": "bal",
-		"deposit": "dep",
-		"withdraw": "with",
-		"give": "pay",
-		"leaderboard": "lb",
-		"help": "info",
-		"module": "moduleinfo",
-		"use": "use-item"
-	}
-	all_reg_commands = list(all_reg_commands_aliases.keys())
-
-	# --------------
-	# BLACKJACK GAME
-	# --------------
-
-	if command in [ "blackjack", all_reg_commands_aliases["blackjack"] ]:
-		if "none" in param[1] or param[2] != "none": # only bj <bet> ; nothing more than that 1 parameter
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`blackjack <bet>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		try:
-			bet = int(param[1])
-		except Exception as e:
-			print(e)
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<bet>` argument given.\n\nUsage:\n`blackjack <bet>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		if bet < 100:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  You must choose at least `100` for your bet.", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		try:
-			# gotta check if enough money, if bet enough, etc etc then do the actual game
-			status, bj_return = await db_handler.blackjack(user, bet, client, channel, username, user_pfp, message)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{bj_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-		# "success" case where code doesnt fail is answering client directly in handler
-		# same for all other games
-		return
-
-	# --------------
-	# ROULETTE GAME
-	# --------------
-
-	# ATTENTION : for now roulette is only playable by ONE person, multiple can't play at once
-
-	elif command in [ "roulette", all_reg_commands_aliases["roulette"] ]: # no alias
-		if "none" in param[1] or "none" in param[2]: # we need 2 parameters
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`roulette <bet> <space>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# bet must be in 1st place, and an int
-		try:
-			bet = int(param[1])
-		except:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<bet>` argument given.\n\nUsage:\n`roulette <bet> <space>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# space must be in second, and a valid space
-		space = str(param[2])
-		if space not in ["odd", "even", "black", "red"]:
-			fail = 0
-			try:
-				space = int(space)
-				if not(space >= 0 and space <= 36):
-					fail = 1
-			except Exception as e:
-				print(e)
-				fail = 1
-			if fail == 1:
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  Invalid `<space>` argument given.\n\nUsage:\n`roulette <bet> <space>`", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		# convert to str, even if number. will be checked in the game itself later
-		space = str(space)
-
-		if bet < 100:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  You must choose at least `100` for your bet.", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		try:
-			# gotta check if enough money, if bet enough, etc etc then do the actual game
-			status, roulette_return = await db_handler.roulette(user, bet, space, client, channel, username, user_pfp, user_mention)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{roulette_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-		return
-
-	# --------------
-	# 	  SLUT
-	# --------------
-
-	elif command in ["slut", all_reg_commands_aliases["slut"]]:  # no alias
-		try:
-			status, slut_return = await db_handler.slut(user, channel, username, user_pfp)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{slut_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# --------------
-	# 	  CRIME
-	# --------------
-
-	elif command in ["crime", all_reg_commands_aliases["crime"]]:  # no alias
-		try:
-			status, crime_return = await db_handler.crime(user, channel, username, user_pfp)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{crime_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# --------------
-	# 	  WORK
-	# --------------
-
-	elif command in ["work", all_reg_commands_aliases["work"]]:  # no alias
-		try:
-			status, work_return = await db_handler.work(user, channel, username, user_pfp)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{work_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-
-
-	# --------------
-	# 	  ROB
-	# --------------
-
-	elif command in ["rob", all_reg_commands_aliases["rob"]]:  # no alias
-		# you gotta rob someone
-		if "none" in param[1] or param[2] != "none": # we only one param
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`rob <user>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		user_to_rob = await get_user_id(param)
-
-		try:
-			status, rob_return = await db_handler.rob(user, channel, username, user_pfp, user_to_rob)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{rob_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# --------------
-	#    BALANCE
-	# --------------
-
-	elif command in ["balance", all_reg_commands_aliases["balance"]]:
-		# you can either check your own balance or someone else's bal
-		if "none" in param[1]:
-			# tell handler to check bal of this user
-			userbal_to_check = user
-			username_to_check = username
-			userpfp_to_check = user_pfp
-		# only one user to check, so only 1 param, if 2 -> error
-		elif param[1] != "none" and param[2] != "none":
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `[user]` argument given.\n\nUsage:\n`balance <user>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-		# else we want the balance of someone else
-		else:
-			userbal_to_check = await get_user_id(param)
-			try:
-				user_fetch = client.get_user(int(userbal_to_check))
-				print("hello ?")
-				username_to_check = user_fetch
-				userpfp_to_check = user_fetch.avatar
-			except:
-				# we didnt find him
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  Invalid `[user]` argument given.\n\nUsage:\n`balance <user>`", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		# go through the handler
-		try:
-			await db_handler.balance(user, channel, userbal_to_check, username_to_check, userpfp_to_check)
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# --------------
-	# 	  DEP
-	# --------------
-
-	elif command in ["deposit", all_reg_commands_aliases["deposit"]]:
-		if "none" in param[1] or param[2] != "none": # we need 1 and only 1 parameter
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`deposit <amount or all>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		amount = param[1]
-		# either all or an amount, not some random string
-		if amount != "all":
-			try:
-				# they can use the thousands separator comma
-				newAmount = []
-				for char in amount:
-					if char != ",":
-						newAmount.append(char)
-				amount = "".join(newAmount)
-				amount = int(amount)
-				if amount < 1:
-					color = discord_error_rgb_code
-					embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount or all>` argument given.\n\nUsage:\n`deposit <amount or all>`", color=color)
-					embed.set_author(name=username, icon_url=user_pfp)
-					await channel.send(embed=embed)
-					return
-			except:
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount or all>` argument given.\n\nUsage:\n`deposit <amount or all>`", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		try:
-			amount = str(amount)
-			status, dep_return = await db_handler.deposit(user, channel, username, user_pfp, amount)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{dep_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# --------------
-	# 	  WITH
-	# --------------
-
-	elif command in ["withdraw", all_reg_commands_aliases["withdraw"]]:
-		if "none" in param[1] or param[2] != "none": # we need 1 and only 1 parameter
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`withdraw <amount or all>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		amount = param[1]
-		# either all or an amount, not some random string
-		if amount != "all":
-			try:
-				# they can use the thousands separator comma
-				newAmount = []
-				for char in amount:
-					if char != ",":
-						newAmount.append(char)
-				amount = "".join(newAmount)
-				amount = int(amount)
-				if amount < 1:
-					color = discord_error_rgb_code
-					embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount or all>` argument given.\n\nUsage:\n`withdraw <amount or all>`", color=color)
-					embed.set_author(name=username, icon_url=user_pfp)
-					await channel.send(embed=embed)
-					return
-			except:
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount or all>` argument given.\n\nUsage:\n`withdraw <amount or all>`", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		try:
-			amount = str(amount)
-			status, with_return = await db_handler.withdraw(user, channel, username, user_pfp, amount)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{with_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# --------------
-	# 	  GIVE
-	# --------------
-
-	elif command in ["give", all_reg_commands_aliases["give"]]:
-		if "none" in param[1] or "none" in param[2]:  # we need 2 parameters
-			color = discord_error_rgb_code
-			embed = discord.Embed(
-				description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`give <member> <amount or all>`\nInfo: for items use give-item!",
-				color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# we need to check validity of both parameters
-
-		# CHECK 1
-
-		reception_user = await get_user_id(param)
-
-		try:
-			user_fetch = client.get_user(int(reception_user))
-			print(user_fetch)
-			reception_user_name = user_fetch
-
-			if int(reception_user) == user:
-				# cannot send money to yourself
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  You cannot trade money with yourself. That would be pointless.\n"
-												  f"(You may be looking for the `add-money` command.)", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		except:
-			# we didnt find him
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<member>` argument given.\n\nUsage:"
-											  f"\n`give <member> <amount or all>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# CHECK 2
-
-		amount = param[2]
-		# either all or an amount, not some random string
-		if amount != "all":
-			try:
-				# they can use the thousands separator comma
-				newAmount = []
-				for char in amount:
-					if char != ",":
-						newAmount.append(char)
-				amount = "".join(newAmount)
-				amount = int(amount)
-				if amount < 1:
-					color = discord_error_rgb_code
-					embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount or all>` argument given.\n\nUsage:\n`give <member> <amount or all>`", color=color)
-					embed.set_author(name=username, icon_url=user_pfp)
-					await channel.send(embed=embed)
-					return
-			except:
-				color = discord_error_rgb_code
-				embed = discord.Embed(
-					description=f"{emoji_error}  Invalid `<amount or all>` argument given.\n\nUsage:\n`give <member> <amount or all>`",
-					color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		# handler
-
-		try:
-			amount = str(amount)
-			status, give_return = await db_handler.give(user, channel, username, user_pfp, reception_user, amount, reception_user_name)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{give_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# --------------
-	#  LEADERBOARD
-	# --------------
-
-	elif command in ["leaderboard", all_reg_commands_aliases["leaderboard"]]:
-		modes = ["-cash", "-bank", "-total"]
-		page_number = 1
-		mode_type = modes[2]
-		server_name = server.name
-		full_name = server_name  # + mode_type
-
-		# first, vanilla
-		if "none" in param[1] and "none" in param[2]:
-			# using default vars
-			page_number = 1
-			mode_type = modes[2]
-			full_name += " Leaderboard"
-		# one argument
-		elif param[1] != "none" and "none" in param[2]:
-			if param[1] in modes:
-				mode_type = param[1]
-				page_number = 1
-				if mode_type == "-total": full_name += " Leaderboard"
-				if mode_type == "-cash": full_name += " Cash Leaderboard"
-				if mode_type == "-bank": full_name += " Bank Leaderboard"
-			else:
-				try:
-					page_number = int(param[1])
-					mode_type = modes[2]
-					full_name += " Leaderboard"
-				except:
-					color = discord_error_rgb_code
-					embed = discord.Embed(
-						description=f"{emoji_error}  Invalid `[-cash | -bank | -total]` argument given.\n\nUsage:\n"
-									f"`leaderboard [page] [-cash | -bank | -total]`", color=color)
-					embed.set_author(name=username, icon_url=user_pfp)
-					await channel.send(embed=embed)
-					return
-		# two arguments
+	# check if json file is corrupted
+	#  -> in self.check_json()
+	# called from main.py
+
+	def get_currency_symbol(self, test=False, value="unset"):
+		if not test:
+			# get currency symbol to use
+			temp_json_opening = open(self.pathToJson, "r")
+			temp_json_content = json.load(temp_json_opening)
+			# the currency symbol is always at position 0 in the "symbols" part
+			currency_symbol = temp_json_content["symbols"][0]["symbol_emoji"]
+			#self.currency_symbol = discord.utils.get(self.client.emojis, name=currency_symbol)
+			# perhaps currency symbol is too difficult for regular admins to handle, so ill disable it as default.
+			self.currency_symbol = "💰"
 		else:
 			try:
-				page_number = int(param[1])
-				mode_type = param[2]
-				if mode_type == "-total": full_name += " Leaderboard"
-				elif mode_type == "-cash": full_name += " Cash Leaderboard"
-				elif mode_type == "-bank": full_name += " Bank Leaderboard"
-				else:
-					color = discord_error_rgb_code
-					embed = discord.Embed(
-						description=f"{emoji_error}  Invalid `[-cash | -bank | -total]` argument given.\n\nUsage:\n"
-									f"`leaderboard [page] [-cash | -bank | -total]`", color=color)
-					embed.set_author(name=username, icon_url=user_pfp)
-					await channel.send(embed=embed)
-					return
+				self.currency_symbol = discord.utils.get(self.client.emojis, name=value)
+				print(str(self.currency_symbol))
+				if self.currency_symbol == None:
+					return "error"
 			except:
-				color = discord_error_rgb_code
-				embed = discord.Embed(
-					description=f"{emoji_error}  Invalid `[-cash | -bank | -total]` argument given.\n\nUsage:\n"
-								f"`leaderboard [page] [-cash | -bank | -total]`", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
+				return "error"
 
-		print(f"Looking for {full_name}, at page {page_number}, in mode {mode_type}")
-
-		# handler
-
+	# if we handle a already created file, we need certain variables
+	async def check_json(self):
+		temp_json_opening = open(self.pathToJson, "r")
+		temp_json_content = json.load(temp_json_opening)
+		"""
+		possibly to add :
+			improve the error system, raising specific errors with a "error_info"
+			for example : "userdata missing", or "slut missing", or even "slut min_revenue missing"
+		"""
 		try:
-			status, lb_return = await db_handler.leaderboard(user, channel, username, full_name, page_number, mode_type, client)
+			check_content = temp_json_content
+			# userdata space
+			userdata = check_content["userdata"]
+			# variables
+			variables = check_content["variables"]
+			slut = variables[self.variable_dict["slut"]]
+			crime = variables[self.variable_dict["crime"]]
+			work = variables[self.variable_dict["work"]]
+			rob = variables[self.variable_dict["rob"]]
+			# symbol
+			currency_symbol = check_content["symbols"][0]
+			items = check_content["items"]
+			roles = check_content["income_roles"]
 
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{lb_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
+			# didnt fail, so we're good
+			temp_json_opening.close()
 		except Exception as e:
-			print(e)
-			await send_error(channel)
+			# something is missing, inform client
+			return "error"
 
-	# --------------
-	#     HELP
-	# --------------
+	"""
+	GLOBAL FUNCTIONS
+	"""
 
-	elif command in ["help", all_reg_commands_aliases["help"]]:
-		color = discord.Color.from_rgb(3, 169, 244)
-		embed = discord.Embed(title=f"Help System", color=color)
+	# need to overwrite the whole json when updating, luckily the database won't be enormous
+	def overwrite_json(self, content):
+		self.json_db = open(self.pathToJson, "w")
+		self.clean_json = json.dumps(content, indent=4, separators=(",", ": "))
+		self.json_db.write(self.clean_json)
+		self.json_db.close()
 
-		embed.add_field(name=all_reg_commands[0], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[0]]}  |  "
-														f"Usage: `blackjack <bet>`", inline=False)
-		embed.add_field(name=all_reg_commands[1], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[1]]}  |  "
-														f"Usage: `roulette <bet> <space>`", inline=False)
-		embed.add_field(name=all_reg_commands[2], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[2]]}  |  "
-												f"Usage: `slut`", inline=False)
-		embed.add_field(name=all_reg_commands[3], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[3]]}  |  "
-												f"Usage: `crime`", inline=False)
-		embed.add_field(name=all_reg_commands[4], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[4]]}  |  "
-												f"Usage: `work`", inline=False)
-		embed.add_field(name=all_reg_commands[5], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[5]]}  |  "
-													f"Usage: `rob`", inline=False)
-		embed.add_field(name=all_reg_commands[6], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[6]]}  |  "
-													f"Usage: `balance`", inline=False)
-		embed.add_field(name=all_reg_commands[7], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[7]]}  |  "
-													f"Usage: `deposit <amount>`", inline=False)
-		embed.add_field(name=all_reg_commands[8], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[8]]}  |  "
-													f"Usage: `withdraw <amount>`", inline=False)
-		embed.add_field(name=all_reg_commands[9], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[9]]}  |  "
-												f"Usage: `give <member> <amount or all>`", inline=False)
-		embed.add_field(name=all_reg_commands[10], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[10]]}  |  "
-													f"Usage: `leaderboard [page] [-cash | -bank | -total]`", inline=False)
-		embed.add_field(name=all_reg_commands[11], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[11]]}  |  "
-													f"Usage: `help` - shows this", inline=False)
-		embed.add_field(name=all_reg_commands[12], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[12]]}  |  "
-													f"Usage: `module <module, e.g. slut>`", inline=False)
-		# edit stuff
-		embed.set_footer(text="For more info, contact an admin or <kendrik2.0>")
-		await channel.send(embed=embed)
+	# find the user in the database
+	def find_index_in_db(self, data_to_search, user_to_find, fail_safe=False):
+		user_to_find = int(user_to_find)
+		for i in range(len(data_to_search)):
+			if data_to_search[i]["user_id"] == user_to_find:
+				# print("\nfound user\n")
+				return int(i), "none"
 
-		#### in 2 parts because one was too long
+		# in this case, this isnt a user which isnt yet registrated
+		# but someone who doesnt exist on the server
+		# or at least thats what is expected when calling with this parameter
+		if fail_safe:
+			return 0, "error"
 
-		embed = discord.Embed(title=f"Help System", color=color)
-		embed.add_field(name="----------------------\n\nSTAFF ONLY", value=f"requires <botmaster> role", inline=False)
-		embed.add_field(name="add-money", value=f"Usage: `add-money <member> <amount>`", inline=False)
-		embed.add_field(name="remove-money", value=f"Usage: `remove-money <member> <amount> [cash/bank]`", inline=False)
-		embed.add_field(name="remove-money-role", value=f"Usage: `remove-money-role <role> <amount>`", inline=False)
-		embed.add_field(name="change", value=f"Usage: `change <module> <variable> <new value>`", inline=False)
-		embed.add_field(name="change-currency", value=f"Usage: `change-currency <new emoji name>`", inline=False)
-		embed.add_field(name="set-income-reset", value=f"Usage: `set-income-reset <false/true>`", inline=False)
-		embed.add_field(name="remove-user-item", value=f"Usage: `remove-user-item <member> <item short name> <amount>`", inline=False)
-		embed.add_field(name="spawn-item", value=f"Usage: `spawn-item <player pinged> <item short name> [amount]`", inline=False)
-		embed.add_field(name="clean-leaderboard", value=f"Usage: `clean-leaderboard` - remove gone users", inline=False)
-		embed.add_field(name="----------------------\n\nITEM HANDLING", value=f"create and delete requires <botmaster> role", inline=False)
-		embed.add_field(name="create-item", value=f"Usage: `create-item`", inline=False)
-		embed.add_field(name="delete-item", value=f"Usage: `delete-item <item short name>`", inline=False)
-		embed.add_field(name="buy-item", value=f"Usage: `buy-item <item short name> <amount>`", inline=False)
-		embed.add_field(name="give-item", value=f"Usage: `give-item <member> <item short name> <amount>`", inline=False)
-		embed.add_field(name="use", value=f"Usage: `use <item short name> <amount>`", inline=False)
-		embed.add_field(name="inventory", value=f"Usage: `inventory [page]`", inline=False)
-		embed.add_field(name="user-inventory", value=f"Usage: `user-inventory <member> [page]`", inline=False)
-		embed.add_field(name="catalog", value=f"Usage: `catalog [item short name]`", inline=False)
-		embed.add_field(name="----------------------\n\nINCOME ROLES", value=f"create, delete and update requires <botmaster> role", inline=False)
-		embed.add_field(name="add-income-role", value=f"Usage: `add-income-role <role pinged> <income>`", inline=False)
-		embed.add_field(name="remove-income-role", value=f"Usage: `remove-income-role <role pinged>`", inline=False)
-		embed.add_field(name="list-roles", value=f"Usage: `list-roles`", inline=False)
-		embed.add_field(name="collect", value=f"Usage: `collect` | get your salary. If you choose to use update-income, please disable this command.", inline=False)
-		embed.add_field(name="update-income", value=f"Usage: `update-income` | income works DAILY! automatically updates ALL INCOMES time elapsed * income.", inline=False)
-		# edit stuff
-		embed.set_footer(text="For more info, contact an admin or <kendrik2.0>")
+		print("\ncreating user\n")
+		# we did NOT find him, which means he doesn't exist yet
+		# so we automatically create him
+		# edit on 13.02.24: this is fucking useless WTF
+		data_to_search.append({
+			"user_id": user_to_find,
+			"cash": 0,
+			"bank": 0,
+			# "balance" : cash + bank
+			# "roles": "None" ; will be checked when calculating weekly auto-role-income
+			"items": "none",
+			"used_items": "none",
+			"last_slut": "none",
+			"last_work": "none",
+			"last_crime": "none",
+			"last_rob": "none"
+		})
+		
+		"""
+			POSSIBLE ISSUE :
+				that we need to create user by overwrite, then problem of doing that while another command is
+				supposed to have it open etc. hopefully it works just as such
+		"""
+		# now that the user is created, re-check and return int
 
-		await channel.send(embed=embed)
+		for i in range(len(data_to_search)):
+			if data_to_search[i]["user_id"] == user_to_find:
+				return int(i), data_to_search
 
-	# --------------
-	#  MODULE INFO
-	# --------------
+	"""
+	CLIENT-DB HANDLING
+	"""
 
-	elif command in ["module", all_reg_commands_aliases["module"]]:
-		if "none" in param[1] or param[2] != "none":  # we need 1 and only 1 parameter
-			color = discord_error_rgb_code
-			embed = discord.Embed(
-				description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`module <module>`",
-				color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
+	async def blackjack(self, user, bet, bot, channel, username, user_pfp, message):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
 
-		module = param[1]
+		if new_data != "none":
+			json_content["userdata"] = new_data
 
-		# handler
+		json_user_content = json_content["userdata"][user_index]
 
-		try:
-			status, module_return = await db_handler.module(user, channel, module)
+		# get user stuff
+		user_cash = json_user_content["cash"]
+		if user_cash < bet:
+			self.overwrite_json(json_content)
+			return "error", f"❌ You don't have enough money for this bet.\nYou currently have {str(self.currency_symbol)} **{'{:,}'.format(int(user_cash))}** in cash."
 
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{module_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
+		# the actual game
+		# start it
+		startInstance = blackjack_discord_implementation(bot, channel, self.currency_symbol)
+		bjPlay = await startInstance.play(bot, channel, username, user_pfp, message, bet)
+
+		if bjPlay == "win":
+			json_user_content["cash"] += bet
+		elif bjPlay == "loss":
+			json_user_content["cash"] -= bet
+		elif bjPlay == "bust":
+			pass
+		else:
+			return "error", "❌ error unknown, contact admin"
+
+		# overwrite, end
+		json_content["userdata"][user_index] = json_user_content
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# ROULETTE
+	#
+
+	async def roulette(self, user, bet, space, bot, channel, username, user_pfp, mention):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_user_content = json_content["userdata"][user_index]
+
+		# get user stuff
+		user_cash = json_user_content["cash"]
+		if user_cash < bet:
+			self.overwrite_json(json_content)
+			return "error", f"❌ You don't have enough money for this bet.\nYou currently have {str(self.currency_symbol)} **{'{:,}'.format(int(user_cash))}** in cash."
+
+		# the actual game
+		# start it
+		startInstance = roulette_discord_implementation(bot, channel, self.currency_symbol)
+		roulettePlay, multiplicator = await startInstance.play(bot, channel, username, user_pfp, bet, space, mention)
+		# roulettePlay will be 1 for won, 0 for lost
+		if roulettePlay:
+			json_user_content["cash"] += (bet * multiplicator) - bet
+		elif roulettePlay == 0:
+			json_user_content["cash"] -= bet
+		else:
+			return "error", "❌ error unknown, contact admin"
+
+		# overwrite, end
+		json_content["userdata"][user_index] = json_user_content
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# SLUT
+	#
+
+	async def slut(self, user, channel, username, user_pfp):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_user_content = json_content["userdata"][user_index]
 
 		"""
-			STAFF COMMANDS
+		SPECIFIC TIME ETC
 		"""
+		# grep values
+		slut_data = json_content["variables"][self.variable_dict["slut"]]
 
-	# --------------
-	#   ADD-MONEY
-	# --------------
+		# delay will ALWAYS be in MINUTES
+		delay = slut_data["delay"]
+		proba = slut_data["proba"]
 
-	elif command == "add-money":
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		if "none" in param[1] or "none" in param[2]:  # we need 2 parameters
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`add-money <member> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# we need to check validity of both parameters
-
-		# CHECK 1
-
-		reception_user = await get_user_id(param)
-		try:
-			user_fetch = client.get_user(int(reception_user))
-			print(user_fetch)
-			reception_user_name = user_fetch
-
-		except:
-			# we didnt find him
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<member>` argument given.\n\nUsage:"
-											  f"\n`add-money <member> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# CHECK 2
-
-		amount = param[2]
-		try:
-			# they can use the thousands separator comma
-			newAmount = []
-			for char in amount:
-				if char != ",":
-					newAmount.append(char)
-			amount = "".join(newAmount)
-			amount = int(amount)
-			if amount < 1:
-				color = discord_error_rgb_code
-				embed = discord.Embed(
-					description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`add-money <member> <amount>`",
-					color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`add-money <member> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# handler
-
-		try:
-			amount = str(amount)
-			status, add_money_return = await db_handler.add_money(user, channel, username, user_pfp, reception_user, amount, reception_user_name)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{add_money_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# --------------
-	#  REMOVE-MONEY
-	# --------------
-
-	elif command == "remove-money":
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		if "none" in param[1] or "none" in param[2]:  # we need 3 parameters
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`remove-money <member> <amount> [cash/bank]`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# we need to check validity of both parameters
-
-		# CHECK 1
-
-		reception_user = await get_user_id(param)
-
-		try:
-			user_fetch = client.get_user(int(reception_user))
-			print(user_fetch)
-			reception_user_name = user_fetch
-
-		except:
-			# we didnt find him
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<member>` argument given.\n\nUsage:"
-											  f"\n`remove-money <member> <amount> [cash/bank]`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# CHECK 2
-
-		amount = param[2]
-		try:
-			# they can use the thousands separator comma
-			newAmount = []
-			for char in amount:
-				if char != ",":
-					newAmount.append(char)
-			amount = "".join(newAmount)
-			amount = int(amount)
-			if amount < 1:
-				color = discord_error_rgb_code
-				embed = discord.Embed(
-					description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`remove-money <member> <amount> [cash/bank]`",
-					color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`remove-money <member> <amount> [cash/bank]`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# CHECK 3
-		mode = "bank"
-		if param[3] != "none":
-			if param[3] in ["cash", "bank"]:
-				mode = param[3]
+		time_check = False
+		now = datetime.now()
+		if json_user_content["last_slut"] == "none":
+			# never done it, so go ahead
+			time_check = True
+		# else, gotta check if enough time passed since last slut
+		else:
+			last_slut_string = json_user_content["last_slut"]
+			# get a timeobject from the string
+			last_slut = datetime.strptime(last_slut_string, '%Y-%m-%d %H:%M:%S.%f')
+			# calculate difference, see if it works
+			passed_time = now - last_slut
+			passed_time_minutes = passed_time.total_seconds() // 60.0
+			if passed_time_minutes == 0:
+				# because of // division it might display 0
+				passed_time_minutes = 1
+			if passed_time_minutes > delay:
+				time_check = True
 			else:
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  Invalid `[cash/bank]` argument given.\n\nUsage:"
-												  f"\n`remove-money <member> <amount> [cash/bank]`", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		# handler
-
-		try:
-			amount = str(amount)
-			status, rm_money_return = await db_handler.remove_money(user, channel, username, user_pfp, reception_user, amount, reception_user_name, mode)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{rm_money_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# --------------
-	#   EDIT VARS
-	# --------------
-
-	elif command in ["change", "edit"]:
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
+				time_check = False
+				delay_remaining = delay - passed_time_minutes
+		# moving the block here for cleaner code
+		if time_check == False:
+			color = self.discord_blue_rgb_code
+			embed = discord.Embed(description=f"⏱ ️You cannot be a slut for {math.ceil(delay_remaining)} minutes.",
+								  color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
-			return
+			return "success", "success"
+		# else:
+			# he can do it
 
-		if "none" in param[1] or "none" in param[2] or "none" in param[3]:  # we need 3 parameters
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`change <module> <variable> <new value>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
+		"""
+		ACTUAL FUNCTION
+		"""
+		# so, explanation :
+		# not actually using probabilites or so, just a random number between 1 and 2
+		# and if for example probability is 50%, then the random num should be > 1.5 in order to win
+		slut_success = random.randint(0, 100)
 
-		# that would end up messing everything up
-		if param[2] == "name":
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  You cannot change module names.", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
+		if proba < slut_success:
+			# LOST
 
-		# we need to check validity of new value parameter
-		# other checks will be done in the handler
-
-		# CHECK
-		module_name = param[1]
-		variable_name = param[2]
-		new_value = param[3]
-		try:
-			new_value = int(new_value)
-		except:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<new value>` argument given.\n\nUsage:\n`change <module> <variable> <new value>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# handler
-
-		try:
-			new_value = str(new_value)
-			status, edit_return = await db_handler.edit_variables(user, channel, username, user_pfp, module_name, variable_name, new_value)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{edit_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# ---------------------------
-	#   CHANGE CURRENCY SYMBOL
-	# ---------------------------
-
-	elif command in ["change-currency", "edit_currency"]:
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		if "none" in param[1]:  # we need 1 parameters
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`change-currency <new emoji name>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		new_emoji_name = param[1]
-
-		# handler
-
-		try:
-			status, emoji_edit_return = await db_handler.change_currency_symbol(user, channel, username, user_pfp, new_emoji_name)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_edit_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# ---------------------------
-	#   SET INCOME RESET
-	# ---------------------------
-
-	elif command in ["set-income-reset", "change-income-reset"]:
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		if "none" in param[1]:  # we need 1 parameter
-			color = discord_error_rgb_code
+			lose_phrases = random.choice(slut_data["lose_phrases"])
+			lose_percentage = random.randint(slut_data["min_lose_amount_percentage"],
+											 slut_data["max_lose_amount_percentage"])
+			balance = json_user_content["cash"] + json_user_content["bank"]
+			loss = balance * (lose_percentage / 100)
+			# round up, no floats
+			loss = round(loss, 0)
+			color = self.discord_error_rgb_code
 			embed = discord.Embed(
-				description=f"{emoji_error}  Too few arguments given.\n\nUsage: `set-income-reset <false/true>`",
+				description=f"{lose_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(loss))}**", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			embed.set_footer(text="r.i.p")
+			await channel.send(embed=embed)
+			json_user_content["cash"] -= loss
+			# update last slut time
+			json_user_content["last_slut"] = str(now)
+			# overwrite, end
+			json_content["userdata"][user_index] = json_user_content
+			self.overwrite_json(json_content)
+
+			return "success", "success"
+
+		else:
+			# SUCCESS
+			win_phrases = random.choice(slut_data["win_phrases"])
+			gain = random.randint(slut_data["min_revenue"], slut_data["max_revenue"])
+			# round up, no floats
+			gain = round(gain, 0)
+			color = self.discord_success_rgb_code
+			embed = discord.Embed(
+				description=f"{win_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(gain))}**", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			embed.set_footer(text="gg")
+			await channel.send(embed=embed)
+			json_user_content["cash"] += gain
+			# update last slut time
+			json_user_content["last_slut"] = str(now)
+			# overwrite, end
+			json_content["userdata"][user_index] = json_user_content
+			self.overwrite_json(json_content)
+
+			return "success", "success"
+
+	# we never reach this part of the code
+
+	#
+	# CRIME
+	#
+
+	async def crime(self, user, channel, username, user_pfp):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_user_content = json_content["userdata"][user_index]
+
+		"""
+		SPECIFIC TIME ETC
+		"""
+		# grep values
+		crime_data = json_content["variables"][self.variable_dict["crime"]]
+
+		# delay will ALWAYS be in MINUTES
+		delay = crime_data["delay"]
+		proba = crime_data["proba"]
+
+		time_check = False
+		now = datetime.now()
+		if json_user_content["last_crime"] == "none":
+			# never done it, so go ahead
+			time_check = True
+		# else, gotta check if enough time passed since last slut
+		else:
+			last_slut_string = json_user_content["last_crime"]
+			# get a timeobject from the string
+			last_slut = datetime.strptime(last_slut_string, '%Y-%m-%d %H:%M:%S.%f')
+			# calculate difference, see if it works
+			passed_time = now - last_slut
+			passed_time_minutes = passed_time.total_seconds() // 60.0
+			if passed_time_minutes == 0:
+				# because of // division it might display 0
+				passed_time_minutes = 1
+			if passed_time_minutes > delay:
+				time_check = True
+			else:
+				time_check = False
+				delay_remaining = delay - passed_time_minutes
+		# moving the block here for cleaner code
+		if time_check == False:
+			color = self.discord_blue_rgb_code
+			embed = discord.Embed(description=f"⏱ ️You cannot commit a crime for {math.ceil(delay_remaining)} minutes.",
+								  color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return "success", "success"
+		# else:
+			# print("he can do it")
+
+		"""
+		ACTUAL FUNCTION
+		"""
+		# so, explanation :
+		# not actually using probabilites or so, just a random number between 1 and 2
+		# and if for example probability is 50%, then the random num should be > 1.5 in order to win
+		crime_success = random.randint(0, 100)
+
+		if proba < crime_success:
+			# LOST
+
+			lose_phrases = random.choice(crime_data["lose_phrases"])
+			lose_percentage = random.randint(crime_data["min_lose_amount_percentage"],
+											 crime_data["max_lose_amount_percentage"])
+			balance = json_user_content["cash"] + json_user_content["bank"]
+			loss = balance * (lose_percentage / 100)
+			# round up, no floats
+			loss = round(loss, 0)
+			color = self.discord_error_rgb_code
+			embed = discord.Embed(
+				description=f"{lose_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(loss))}**", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			embed.set_footer(text="r.i.p")
+			await channel.send(embed=embed)
+			json_user_content["cash"] -= loss
+			# update last slut time
+			json_user_content["last_crime"] = str(now)
+			# overwrite, end
+			json_content["userdata"][user_index] = json_user_content
+			self.overwrite_json(json_content)
+
+			return "success", "success"
+
+		else:
+			# SUCCESS
+			win_phrases = random.choice(crime_data["win_phrases"])
+			gain = random.randint(crime_data["min_revenue"], crime_data["max_revenue"])
+			# round up, no floats
+			gain = round(gain, 0)
+			color = self.discord_success_rgb_code
+			embed = discord.Embed(
+				description=f"{win_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(gain))}**", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			embed.set_footer(text="gg")
+			await channel.send(embed=embed)
+			json_user_content["cash"] += gain
+			# update last slut time
+			json_user_content["last_crime"] = str(now)
+			# overwrite, end
+			json_content["userdata"][user_index] = json_user_content
+			self.overwrite_json(json_content)
+
+			return "success", "success"
+
+	# we never reach this part of the code
+
+	#
+	# WORK
+	#
+
+	async def work(self, user, channel, username, user_pfp):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_user_content = json_content["userdata"][user_index]
+
+		"""
+		SPECIFIC TIME ETC
+		"""
+		# grep values
+		work_data = json_content["variables"][self.variable_dict["work"]]
+
+		# delay will ALWAYS be in MINUTES
+		delay = work_data["delay"]
+
+		time_check = False
+		now = datetime.now()
+		if json_user_content["last_work"] == "none":
+			# never done it, so go ahead
+			time_check = True
+		# else, gotta check if enough time passed since last slut
+		else:
+			last_slut_string = json_user_content["last_work"]
+			# get a timeobject from the string
+			last_slut = datetime.strptime(last_slut_string, '%Y-%m-%d %H:%M:%S.%f')
+			# calculate difference, see if it works
+			passed_time = now - last_slut
+			passed_time_minutes = passed_time.total_seconds() // 60.0
+			if passed_time_minutes == 0:
+				# because of // division it might display 0
+				passed_time_minutes = 1
+			if passed_time_minutes > delay:
+				time_check = True
+			else:
+				time_check = False
+				delay_remaining = delay - passed_time_minutes
+		# moving the block here for cleaner code
+		if time_check == False:
+			color = self.discord_blue_rgb_code
+			embed = discord.Embed(description=f"⏱ ️You cannot work for {math.ceil(delay_remaining)} minutes.",
+								  color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return "success", "success"
+		# else:
+			# print("he can do it")
+
+		"""
+		ACTUAL FUNCTION
+		"""
+
+		# work is always a success
+		win_phrases = random.choice(work_data["win_phrases"])
+		gain = random.randint(work_data["min_revenue"], work_data["max_revenue"])
+		# round up, no floats
+		gain = round(gain, 0)
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(description=f"{win_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(gain))}**",
+							  color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		embed.set_footer(text="capitalism is great")
+		await channel.send(embed=embed)
+		json_user_content["cash"] += gain
+		# update last slut time
+		json_user_content["last_work"] = str(now)
+		# overwrite, end
+		json_content["userdata"][user_index] = json_user_content
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# ROB
+	#
+
+	async def rob(self, user, channel, username, user_pfp, user_to_rob):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_user_content = json_content["userdata"][user_index]
+
+		"""
+		SPECIFIC TIME ETC
+		"""
+		# grep values
+		rob_data = json_content["variables"][self.variable_dict["rob"]]
+
+		# delay will ALWAYS be in MINUTES
+		delay = rob_data["delay"]
+		proba = rob_data["proba"]
+
+		time_check = False
+		now = datetime.now()
+		if json_user_content["last_rob"] == "none":
+			# never done it, so go ahead
+			time_check = True
+		# else, gotta check if enough time passed since last slut
+		else:
+			last_slut_string = json_user_content["last_rob"]
+			# get a timeobject from the string
+			last_slut = datetime.strptime(last_slut_string, '%Y-%m-%d %H:%M:%S.%f')
+			# calculate difference, see if it works
+			passed_time = now - last_slut
+			passed_time_minutes = passed_time.total_seconds() // 60.0
+			if passed_time_minutes == 0:
+				# because of // division it might display 0
+				passed_time_minutes = 1
+			if passed_time_minutes > delay:
+				time_check = True
+			else:
+				time_check = False
+				delay_remaining = delay - passed_time_minutes
+		# moving the block here for cleaner code
+		if time_check == False:
+			color = self.discord_blue_rgb_code
+			embed = discord.Embed(description=f"⏱ ️You cannot rob someone for {math.ceil(delay_remaining)} minutes.",
+								  color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return "success", "success"
+		# else:
+			# print("he can do it")
+
+		"""
+		ACTUAL FUNCTION
+		"""
+
+		# check if user you want to rob exists
+		robbed_user, status = self.find_index_in_db(json_content["userdata"], user_to_rob, fail_safe=True)
+		if (robbed_user == 0 and status == "error"):
+			# we didnt find him
+			color = self.discord_error_rgb_code
+			embed = discord.Embed(description=f"❌ Invalid `<user>` argument given.\n\nUsage:\n`rob <user>`",
+								  color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return "success", "success"
+
+		if str(user).strip() == str(user_to_rob).strip():
+			# you cannot rob yourself
+			color = self.discord_error_rgb_code
+			embed = discord.Embed(description=f"❌ You cannot rob yourself!", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return "success", "success"
+
+		# you cannot rob from people who have less money than you
+		robbed_user_data = json_content["userdata"][robbed_user]
+		robbed_balance = robbed_user_data["cash"] + robbed_user_data["bank"]
+		user_balance = json_user_content["cash"] + json_user_content["bank"]
+		if robbed_balance < user_balance:
+			lose_percentage = random.randint(rob_data["min_lose_amount_percentage"],
+											 rob_data["max_lose_amount_percentage"])
+			balance = json_user_content["cash"] + json_user_content["bank"]
+			loss = balance * (lose_percentage / 100)
+			# round up, no floats
+			loss = round(loss, 0)
+
+			color = self.discord_error_rgb_code
+			embed = discord.Embed(
+				description=f"❌ You've been fined {str(self.currency_symbol)} **{'{:,}'.format(int(loss))}** for trying to rob a person more poor than you.",
 				color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
-			return
 
-		if param[1] not in ["true", "false"]:  # and that param has to be true/false
-			color = discord_error_rgb_code
+			return "success", "success"
+
+		#
+		# Normal robbing now
+		#
+
+		# so, explanation :
+		# not actually using probabilites or so, just a random number between 1 and 2
+		# and if for example probability is 50%, then the random num should be > 1.5 in order to win
+		crime_success = random.randint(0, 100)
+
+		if proba < crime_success:
+			# LOST
+
+			lose_phrases = random.choice(rob_data["lose_phrases"])
+			lose_percentage = random.randint(rob_data["min_lose_amount_percentage"],
+											 rob_data["max_lose_amount_percentage"])
+			balance = json_user_content["cash"] + json_user_content["bank"]
+			loss = balance * (lose_percentage / 100)
+			# round up, no floats
+			loss = round(loss, 0)
+			color = self.discord_error_rgb_code
 			embed = discord.Embed(
-				description=f"{emoji_error}  Too few arguments given.\n\nUsage: `set-income-reset <false/true>`",
-				color=color)
+				description=f"❌ {lose_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(loss))}**", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
+			embed.set_footer(text="robbing isn't cool")
 			await channel.send(embed=embed)
-			return
+			json_user_content["cash"] -= loss
+			# update last slut time
+			json_user_content["last_rob"] = str(now)
+			# overwrite, end
+			json_content["userdata"][user_index] = json_user_content
+			self.overwrite_json(json_content)
 
-		# ok so all checks done
-		new_income_reset = param[1]
+			return "success", "success"
 
-		# handler
-		try:
-			status, new_income_reset_return = await db_handler.set_income_reset(user, channel, username, user_pfp,
-																				new_income_reset)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{new_income_reset_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
+		else:
+			# SUCCESS
 
+			win_phrases = random.choice(rob_data["win_phrases"])
+			gain_percentage = random.randint(rob_data["min_gain_amount_percentage"],
+											 rob_data["max_gain_amount_percentage"])
 
-		"""
-			SPECIAL COMMANDS
-		"""
+			robbed_cash = robbed_user_data["cash"]
+			gain = robbed_cash * (gain_percentage / 100)
 
-	# ---------------------------
-	#   ITEM CREATION / Create item
-	# ---------------------------
-
-	elif command in ["create-item", "new-item", "item-create"]:
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
+			# round up, no floats
+			gain = round(gain, 0)
+			color = self.discord_success_rgb_code
+			embed = discord.Embed(
+				description=f"✅ {win_phrases} {str(self.currency_symbol)} **{'{:,}'.format(int(gain))}**", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
+			embed.set_footer(text="lucky")
 			await channel.send(embed=embed)
-			return
+			json_user_content["cash"] += gain
+			# update last slut time
+			json_user_content["last_rob"] = str(now)
+			# overwrite, end
+			json_content["userdata"][user_index] = json_user_content
+			self.overwrite_json(json_content)
 
-		currently_creating_item = True
-		checkpoints = 0
-		last_report = ""
-		color = discord.Color.from_rgb(3, 169, 244)
-		# send a first input which we will then edit
-		info_text = ":zero: What should the new item be called?\nThis name should be unique and no more than 200 characters.\nIt can contain symbols and multiple words."
-		first_embed = discord.Embed(title="Item Info", description="Display Name\n.", color=color)
-		first_embed.set_footer(text="Type cancel to quit")
-		await channel.send(info_text, embed=first_embed)
+			return "success", "success"
 
-		while currently_creating_item:
-			# get input first
-			user_input = await get_user_input(message, default_spell=False)
-			print("at checkpoint ", checkpoints, "\ninput is ", user_input)
-			# check if user wants cancel
-			if user_input == "cancel":
-				await channel.send(f"{emoji_error}  Cancelled command.")
-				return
+	# this code is never reached
 
-			if checkpoints == 0:
-				# check 0: display name
-				if len(user_input) > 200:
-					await channel.send(f"{emoji_error} The maximum length for an items name is 200 characters. Please try again.")
-					continue
-				elif len(user_input) < 3:
-					await channel.send(f"{emoji_error}  The minimum length for an items name is 3 characters. Please try again.")
-					continue
-				# good input
-				item_display_name = user_input
-				first_embed = discord.Embed(title="Item Info", color=color)
-				first_embed.add_field(name="Display Name", value=f"{item_display_name}")
-				first_embed.set_footer(text="Type cancel to quit")
-				next_info = ":one: Now we need a short name, which users will use when buying, giving etc. Only one word ! (you can use dashes and underscores)"
-				last_report = await channel.send(next_info, embed=first_embed)
-				checkpoints += 1
-				#item_name = await get_user_input(message)
-				#print(item_name)
-				trial = 0
+	#
+	# BALANCE
+	#
 
-			if checkpoints == 1:
-				trial +=1
-				item_name = await get_user_input(message) if trial == 1 else user_input
+	async def balance(self, user, channel, userbal_to_check, username_to_check, userpfp_to_check):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+		# check if user exists
+		# no need for fail_safe option because that is already checked in main.py before calling this function
+		checked_user, status = self.find_index_in_db(json_content["userdata"], userbal_to_check)
 
-				# check 1: name
-				if len(item_name) > 10:
-					await channel.send(f"{emoji_error} The maximum length for an items short name is 10 characters. Please try again.")
-					continue
-				elif len(item_name) < 3:
-					await channel.send(f"{emoji_error}  The minimum length for an items short name is 3 characters. Please try again.")
-					continue
-				elif " " in item_name.strip():
-					print(f"-{item_name}- -{item_name.strip()}")
-					await channel.send(f"{emoji_error}  short name has to be ONE word (dashes or underscores work).")
-					continue
-				# good input
-				first_embed.add_field(name="Short name", value=f"{item_name}")
-				first_embed.set_footer(text="Type cancel to quit")
-				next_info = ":two: How much should the item cost to purchase?"
-				await last_report.edit(content=next_info, embed=first_embed)
-				checkpoints += 1
+		if new_data != "none":
+			json_content["userdata"] = new_data
 
-			elif checkpoints == 2:
-				# check 2: cost
-				try:
-					cost = int(user_input)
-					if cost < 1:
-						await channel.send(f"{emoji_error}  Invalid price given. Please try again or type cancel to exit.")
-						continue
-				except:
-					await channel.send(f"{emoji_error}  Invalid price given. Please try again or type cancel to exit.")
-					continue
-				first_embed.add_field(name="Price", value=f"{cost}")
-				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":three: Please provide a description of the item.\nThis should be no more than 200 characters."
-				await last_report.edit(content=next_info, embed=first_embed)
-				checkpoints += 1
+		json_user_content = json_content["userdata"][checked_user]
+		check_cash = "{:,}".format(int(json_user_content["cash"]))
+		check_bank = "{:,}".format(int(json_user_content["bank"]))
+		check_bal = "{:,}".format(int(json_user_content["cash"] + json_user_content["bank"]))
 
-			elif checkpoints == 3:
-				# check 3: description
-				if len(user_input) > 200:
-					await channel.send(f"{emoji_error} The maximum length for an items description is 200 characters. Please try again.")
-					continue
-				if user_input == "skip":
-					description = "none"
-				else:
-					description = user_input
-				first_embed.add_field(name="Description", value=f"{description}", inline=False)
-				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":four: How long should this item stay in the store ? (integer, in days)\nMinimum duration is 1 day.\nIf no limit, just reply `skip`."
-				await last_report.edit(content=next_info, embed=first_embed)
-				checkpoints += 1
+		formatted_time = str(f"{datetime.now().hour}:{datetime.now().minute}")
 
-			elif checkpoints == 4:
-				# check 4: duration
-				try:
-					duration = int(user_input)
-					if duration < 1:
-						await channel.send(f"{emoji_error}  Invalid time duration given. Please try again or type cancel to exit.")
-						continue
-				except:
-					if user_input == "skip":
-						#duration = "none"
-						duration = 99999 # the problem is that database.py always wants an int to calculate an expiration date.
-									   # so ill just put it to 993 days for now, maybe ill add a real fix later
-									   # edit: now changed to 99999 which should be enough, will show as "unlimited"
-					else:
-						await channel.send(f"{emoji_error}  Invalid time duration given. Please try again or type cancel to exit.")
-						continue
-				if duration == 99999:
-					duration_str = "unlimited"
-				else:
-					duration_str = int(user_input)
-				first_embed.add_field(name="Time remaining", value=f"{duration} days left")
-				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":five: How much stock of this item will there be?\nIf unlimited, just reply `skip` or `infinity`."
-				await last_report.edit(content=next_info, embed=first_embed)
-				checkpoints += 1
+		color = self.discord_blue_rgb_code
+		embed = discord.Embed(color=color)
+		embed.add_field(name="**Cash**", value=f"{str(self.currency_symbol)} {check_cash}", inline=True)
+		embed.add_field(name="**Bank**", value=f"{str(self.currency_symbol)} {check_bank}", inline=True)
+		embed.add_field(name="**Net Worth:**", value=f"{str(self.currency_symbol)} {check_bal}", inline=True)
+		embed.set_author(name=username_to_check, icon_url=userpfp_to_check)
+		embed.set_footer(text=f"today at {formatted_time}")
+		await channel.send(embed=embed)
 
-			elif checkpoints == 5:
-				# check 5: stock
-				try:
-					stock = int(user_input)
-					if stock < 1:
-						await channel.send(f"{emoji_error}  Invalid stock amount given. Please try again or type cancel to exit.")
-						continue
-				except:
-					if user_input == "skip" or user_input == "infinity":
-						stock = "unlimited"
-					else:
-						await channel.send(f"{emoji_error}  Invalid stock amount given. Please try again or type cancel to exit.")
-						continue
+		self.overwrite_json(json_content)
+		return
 
-				first_embed.add_field(name="Stock remaining", value=f"{stock}")
-				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":six: What role(s) must the user already have in order to buy this item?\nIf none, just reply `skip`. For multiple, ping the roles with a space between them."
-				await last_report.edit(content=next_info, embed=first_embed)
-				checkpoints += 1
+	#
+	# DEPOSIT
+	#
 
-			elif checkpoints == 6:
-				# check 6: required role
-				try:
-					if user_input in ["skip", "none"]:
-						raise ValueError
+	async def deposit(self, user, channel, username, user_pfp, amount):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
 
-					roles_clean_one = await get_role_id_multiple(user_input)
+		if new_data != "none":
+			json_content["userdata"] = new_data
 
-					required_roles = ""
-					for role_id in roles_clean_one:
-						try:
-							role = discord.utils.get(server.roles, id=int(role_id))
-							print(role)
-							required_roles += f"{str(role.mention)} "
-						except:
-							await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
-							raise NameError
+		json_user_content = json_content["userdata"][user_index]
 
-				except NameError:
-					continue
+		user_cash = json_user_content["cash"]
 
-				except ValueError:
-					if user_input in ["skip", "none"]:
-						required_roles = ["none"]
+		if amount == "all":
+			amount = user_cash
+			if amount < 0:
+				return "error", "❌ No negative values."
+		else:
+			amount = int(amount)
+			if amount > user_cash:
+				return "error", f"❌ You don't have that much money to deposit. You currently have {str(self.currency_symbol)} {'{:,}'.format(user_cash)} on hand."
 
-				except Exception as e:
-					await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
-					continue
-				try:
-					roles_id_required = roles_clean_one
-					print(roles_id_required)
-				except:
-					roles_id_required = ["none"]
-				first_embed.add_field(name="Role required", value=f"{required_roles}")
-				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":seven: What roles should make purchase of this item impossible ? (excluded role(s))?\nIf none, just reply `skip`. For multiple, ping them with a space between them."
-				await last_report.edit(content=next_info, embed=first_embed)
-				checkpoints += 1
+		json_user_content["cash"] -= amount
+		json_user_content["bank"] += amount
+
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(
+			description=f"✅ Deposited {str(self.currency_symbol)} {'{:,}'.format(int(amount))} to your bank!",
+			color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["userdata"][user_index] = json_user_content
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# WITHDRAW
+	#
+
+	async def withdraw(self, user, channel, username, user_pfp, amount):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_user_content = json_content["userdata"][user_index]
+
+		user_bank = json_user_content["bank"]
+
+		if amount == "all":
+			amount = user_bank
+			if amount < 0:
+				return "error", "❌ No negative values."
+		else:
+			amount = int(amount)
+			if amount > user_bank:
+				return "error", f"❌ You don't have that much money to withdraw. You currently have {str(self.currency_symbol)} {'{:,}'.format(user_bank)} in the bank."
+
+		json_user_content["cash"] += amount
+		json_user_content["bank"] -= amount
+
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(
+			description=f"✅ Withdrew {str(self.currency_symbol)} {'{:,}'.format(int(amount))} from your bank!",
+			color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["userdata"][user_index] = json_user_content
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# GIVE
+	#
+
+	async def give(self, user, channel, username, user_pfp, reception_user, amount, recept_uname):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+		reception_user_index, new_data = self.find_index_in_db(json_content["userdata"], reception_user)
+
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_user_content = json_content["userdata"][user_index]
+		json_recept_content = json_content["userdata"][reception_user_index]
+
+		user_cash = json_user_content["cash"]
+		recept_cash = json_recept_content["cash"]
+
+		if amount == "all":
+			amount = user_cash
+			if amount < 0:
+				return "error", "❌ No negative values."
+		else:
+			amount = int(amount)
+			if amount > user_cash:
+				return "error", f"❌ You don't have that much money to give. You currently have {str(self.currency_symbol)} {'{:,}'.format(int(user_cash))} in the bank."
+
+		json_user_content["cash"] -= amount
+		json_recept_content["cash"] += amount
+
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(
+			description=f"✅ {recept_uname.mention} has received your {str(self.currency_symbol)} {'{:,}'.format(int(amount))}",
+			color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["userdata"][user_index] = json_user_content
+		json_content["userdata"][reception_user_index] = json_recept_content
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+
+	#
+	# REMOVE GONE USERS / CLEAN LEADERBOARD
+	#
+	
+	async def clean_leaderboard(self, server):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		
+		json_users = json_content["userdata"]
+		json_income_roles = json_content["income_roles"]
+		amount_removed = 0
+		pops = []
+		
+		# we're gonna remove the user instance and the user params in collect etc.
+		for user_index in range(len(json_users)):
+			on_server = False
+			for on_server_check in range(len(server.members)):
+				if json_users[user_index]["user_id"] == server.members[on_server_check].id:
+					on_server = True
+					break
+			
+			if not on_server:
+				# delete from the user section
+				pop_index, b = self.find_index_in_db(json_users, json_users[user_index]["user_id"])
+				pops.append(pop_index)
 				
-			elif checkpoints == 7:
-				# check 7: excluded role - meaning you cant buy if possessing it.
+				amount_removed += 1
+		
+		# basically minus because we go reverse, else we change the whole
+		# list and then we cant work per index anymore !
+		# print(pops)
+		pops.reverse()
+		# print(pops)
+		
+		for index in range(len(pops)):
+			
+			# delete from user income role section
+			for i in range(len(json_income_roles)):
 				try:
-					if user_input in ["skip", "none"]:
-						raise ValueError
-
-					roles_clean_one = await get_role_id_multiple(user_input)
-
-					excluded_roles = ""
-					for role_id in roles_clean_one:
-						try:
-							role = discord.utils.get(server.roles, id=int(role_id))
-							print(role)
-							excluded_roles += f"{str(role.mention)} "
-						except:
-							await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
-							raise NameError
-
-				except NameError:
-					continue
-
-				except ValueError:
-					if user_input in ["skip", "none"]:
-						excluded_roles = ["none"]
-
-				except Exception as e:
-					await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
-					continue
-				try:
-					roles_id_excluded = roles_clean_one
-					print(roles_id_excluded)
+					json_income_roles[i]["last_single_called"].pop(str(json_users[pops[index]]["user_id"]))
 				except:
-					roles_id_excluded = ["none"]
-				first_embed.add_field(name="Excluded roles", value=f"{excluded_roles}")
-				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":eight: What role(s) do you want to be given when this item is bought?\nIf none, just reply `skip`. For multiple, ping them with a space between them."
-				await last_report.edit(content=next_info, embed=first_embed)
-				checkpoints += 1
+					pass
+			
+			del json_users[pops[index]]
 
-			elif checkpoints == 8:
-				# check 8: role to be given when item bought
-				try:
-					if user_input in ["skip", "none"]:
-						raise ValueError
+		# overwrite, end
+		json_content["userdata"] = json_users
+		json_content["income_roles"] = json_income_roles
+		self.overwrite_json(json_content)
 
-					roles_clean_two = await get_role_id_multiple(user_input)
-
-					roles_give = ""
-					for role_id in roles_clean_two:
-						try:
-							role = discord.utils.get(server.roles, id=int(role_id))
-							print(role)
-							roles_give += f"{str(role.mention)} "
-						except:
-							await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
-							raise NameError
-
-				except NameError:
-					continue
-
-				except ValueError:
-					if user_input in ["skip", "none"]:
-						roles_give = ["none"]
-
-				except Exception as e:
-					await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
-					continue
-
-				try:
-					roles_id_to_give = roles_clean_two
-				except:
-					roles_id_to_give = ["none"]
-				first_embed.add_field(name="Role given", value=f"{roles_give}")
-				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":nine: What role(s) do you want to be removed from the user when this item is bought?\nIf none, just reply `skip`. For multiple, ping with a space between them."
-				await last_report.edit(content=next_info, embed=first_embed)
-				checkpoints += 1
-
-			elif checkpoints == 9:
-				# check 9: role to be removed when item bought
-				try:
-					if user_input in ["skip", "none"]:
-						raise ValueError
-
-					roles_clean_three = await get_role_id_multiple(user_input)
-
-					roles_remove = ""
-					for role_id in roles_clean_three:
-						try:
-							role = discord.utils.get(server.roles, id=int(role_id))
-							print(role)
-							roles_remove += f"{str(role.mention)} "
-						except:
-							await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
-							raise NameError
-
-				except NameError as b:
-					print(b)
-					continue
-
-				except ValueError:
-					if user_input in ["skip", "none"]:
-						roles_remove = ["none"]
-
-				except Exception as e:
-					await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
-					continue
-
-				try:
-					roles_id_to_remove = roles_clean_three
-				except:
-					roles_id_to_remove = ["none"]
-				first_embed.add_field(name="Role removed", value=f"{roles_remove}")
-				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ":keycap_ten: What is the maximum balanace a user can have in order to buy this item?\nIf none, just reply `skip`."
-				await last_report.edit(content=next_info, embed=first_embed)
-				checkpoints += 1
-
-			elif checkpoints == 10:
-				# check 10: max balance
-				try:
-					max_bal = int(user_input)
-					if max_bal < 1:
-						await channel.send(f"{emoji_error}  Invalid minimum balance given. Please try again or type cancel to exit.")
-						continue
-				except:
-					if user_input == "skip":
-						max_bal = "none"
-					else:
-						await channel.send(f"{emoji_error}  Invalid minimum balance given. Please try again or type cancel to exit.")
-						continue
-				first_embed.add_field(name="Required balance", value=f"{max_bal}")
-				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = "`CHECK11`: What message do you want the bot to reply with, when the item is bought?\nIf none, just reply `skip`."
-				await last_report.edit(content=next_info, embed=first_embed)
-				checkpoints += 1
-
-			elif checkpoints == 11:
-				# check 11: reply message
-				if len(user_input) > 150:
-					await channel.send(f"{emoji_error} The maximum length for a reply message is 150 characters. Please try again.")
-					continue
-				if user_input == "skip":
-					user_input = f"Congrats on buying the item."
-				reply_message = user_input
-				first_embed.add_field(name="Reply message", value=f"{reply_message}", inline=False)
-				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = "`CHECK12`: What image should the item have? Enter complete url !\nIf none, just reply `skip`."
-				await last_report.edit(content=next_info, embed=first_embed)
-				checkpoints += 1
-
-			elif checkpoints == 12:
-				# check 12: item img
-				if user_input == "skip":
-					user_input = f"EMPTY"
-					item_img_url = user_input
-				else:
-					try:
-						rq = requests.get(user_input)
-					except:
-						await channel.send(f"{emoji_error} URL not found. Please try again or skip.")
-						continue
-	
-					if rq.status_code != 200:
-						await channel.send(f"{emoji_error} URL not found. Please try again or skip.")
-						continue
-					item_img_url = user_input
-					first_embed.set_thumbnail(url=item_img_url)
-				next_info = f"{emoji_worked}  Item created successfully!"
-				await last_report.edit(content=next_info, embed=first_embed)
-				checkpoints = -1
-				# finished with the checks
-				currently_creating_item = False
-
-		# handler
-
-		try:
-			status, create_item_return = await db_handler.create_new_item(item_display_name, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give, roles_id_to_remove, max_bal, reply_message, item_img_url, roles_id_excluded)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{create_item_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# ---------------------------
-	#   DELETE ITEM - REMOVE ITEM
-	# ---------------------------
-
-	elif command in ["delete-item", "remove-item"]:
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		if "none" in param[1]:  # we need 1 parameters
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`delete-item <item short name>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		item_name = param[1]
-
-		# since this will completely remove the item
-		# we should make sure you rly want to do this (and not remove-user-item).
-		security_check = False
-		sec_embed = discord.Embed(title="Attention", description="🚨 This will permanently delete the item, also for every user!\nDo you wish to continue? [y/N]", color=discord.Color.from_rgb(3, 169, 244))
-		sec_embed.set_footer(text="Info: use remove-user-item to remove an item from a specific user.")
-		await channel.send(embed=sec_embed)
-
-		security_check_input = await get_user_input(message)
-		if security_check_input.strip().lower() not in ["yes", "y"]:
-			await channel.send(f"{emoji_error}  Cancelled command.")
-			return
-
-		# handler
-
-		try:
-			status, remove_item_return = await db_handler.remove_item(item_name)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{remove_item_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-		color = discord.Color.from_rgb(102, 187, 106) # green
-		embed = discord.Embed(description=f"{emoji_worked}  Item has been removed from the store.\nNote: also deletes from everyone's inventory.", color=color)
-		embed.set_author(name=username, icon_url=user_pfp)
-		await channel.send(embed=embed)
-
-		return
-
-	# ---------------------------
-	#   REMOVE USER ITEM
-	# ---------------------------
-
-	elif command in ["remove-user-item"]:
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		if "none" in param[1]:  # we need player pinged
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`remove-user-item <member> <item short name> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		player_ping = await get_user_id(param)
-
-		try:
-			user_fetch = client.get_user(int(player_ping))
-			print(user_fetch)
-			reception_user_name = user_fetch
-
-		except:
-			# we didnt find him
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<member>` argument given.\n\nUsage:"
-											  f"\n`remove-user-item <member> <item short name> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		if "none" in param[2]:  # we need item name
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`remove-user-item <member> <item short name> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-		item_name = param[2]
-
-		if "none" in param[3]:  # we need item amount
-			amount = 1
-		else:
-			amount = param[3]
-
-		try:
-			amount = int(amount)
-			if amount < 1:
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`remove-user-item <member> <item short name> <amount>", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`remove-user-item <member> <item short name> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# handler
-
-		try:
-			status, remove_user_item_return = await db_handler.remove_user_item(user, channel, username, user_pfp, item_name, amount, player_ping, reception_user_name)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{remove_user_item_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-		return
-	
-	# ---------------------------
-	#   REMOVE GONE USERS
-	# ---------------------------
-
-	elif command in ["clean-leaderboard", "clean-lb"]:
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# since this will completely remove those users
-		# we should make sure you rly want to do this.
-		security_check = False
-		sec_embed = discord.Embed(title="Attention", description="🚨 This will permanently delete all user instances that left the server!\nDo you wish to continue? [y/N]", color=discord.Color.from_rgb(3, 169, 244))
-		await channel.send(embed=sec_embed)
-
-		security_check_input = await get_user_input(message)
-		if security_check_input.strip().lower() not in ["yes", "y"]:
-			await channel.send(f"{emoji_error}  Cancelled command.")
-			return
-
-		# handler
-
-		try:
-			status, clean_lb_return = await db_handler.clean_leaderboard(server)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{clean_lb_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-			return
-
-		color = discord.Color.from_rgb(102, 187, 106) # green
-		embed = discord.Embed(description=f"{emoji_worked} {clean_lb_return} user(s) have been removed from database.", color=color)
-		embed.set_author(name=username, icon_url=user_pfp)
-		await channel.send(embed=embed)
-
-		return
+		return "success", amount_removed
 
 
-	# ---------------------------
-	#   BUY ITEM
-	# ---------------------------
+	#
+	# LEADERBOARD
+	#
 
-	elif command in ["buy-item", "get-item", "buy"]:
-		# idk why i said you need botmaster to buy items ?
+	async def leaderboard(self, user, channel, username, full_name, page_number, mode_type, client):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_user_content = json_content["userdata"][user_index]
+
 		"""
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
+		sorting algorithm
 		"""
+		# yes, i could use a dict
+		all_users = []
+		all_bal = []
+		i = 0
+		for i in range(len(json_content["userdata"])):
+			all_users.append(json_content["userdata"][i]["user_id"])
+			if mode_type == "-cash":
+				all_bal.append(int(json_content["userdata"][i]["cash"]))
+			elif mode_type == "-bank":
+				all_bal.append(int(json_content["userdata"][i]["bank"]))
+			else:  # elif mode_type == "-total":
+				# print(json_content["userdata"][i]["cash"] + json_content["userdata"][i]["bank"])
+				all_bal.append(int(json_content["userdata"][i]["cash"] + json_content["userdata"][i]["bank"]))
+		# print(all_bal)
+		# so, data is set, now sort
 
-		if "none" in param[1]:  # we need item name
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`buy-item <item short name> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-		item_name = param[1]
-
-		if "none" in param[2]:  # we need item amount
-			amount = 1
-		else:
-			amount = param[2]
-
-		try:
-			amount = int(amount)
-			if amount < 1:
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`buy-item <item short name> <amount>`", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`buy-item <item short name> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# handler
-		user_role_ids = [randomvar.id for randomvar in message.author.roles]
-
-		try:
-			status, buy_item_return = await db_handler.buy_item(user, channel, username, user_pfp, item_name, amount, user_role_ids, server, message.author)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{buy_item_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-		return
-
-	# ---------------------------
-	#   GIVE ITEM -- can also be used to "sell"
-	#				but theyll need to not fuck each other and actually pay up
-	# ---------------------------
-
-	elif command in ["give-item"]:
-		"""
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-		"""
-
-		if "none" in param[1]:  # we need player pinged
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`give-item <player pinged> <item short name> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		player_ping = await get_user_id(param)
-
-		try:
-			user_fetch = client.get_user(int(player_ping))
-			print(user_fetch)
-			reception_user_name = user_fetch
-			print(reception_user_name)
-
-			if int(player_ping) == user:
-				# cannot send money to yourself
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  You cannot trade items with yourself. That would be pointless...", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		except:
-			# we didnt find him
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<member>` argument given.\n\nUsage:"
-											  f"\n`give-item <player pinged> <item> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		if "none" in param[2]:  # we need item name
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`give-item <player pinged> <item short name> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-		item_name = param[2]
-
-		if "none" in param[3]:  # we need item amount
-			amount = 1
-		else:
-			amount = param[3]
-
-		try:
-			amount = int(amount)
-			if amount < 1:
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`give-item <player pinged> <item short "
-												  f"name> <amount>`", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`give-item <player pinged> <item short name> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# handler
-
-		try:
-			status, give_item_return = await db_handler.give_item(user, channel, username, user_pfp, item_name, amount, player_ping, server, message.author, reception_user_name, False) # false is for spawn_mode = False
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{give_item_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-		return
-
-	# ---------------------------
-	#   SPAWN ITEM
-	#      if admins want to "give" someone an item without having to buy and then give it
-	# ---------------------------
-
-	elif command in ["spawn-item"]:
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-
-		if "none" in param[1]:  # we need player pinged
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`spawn-item <player pinged> <item short name> [amount]`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		player_ping = await get_user_id(param)
-
-		try:
-			user_fetch = client.get_user(int(player_ping))
-			print(user_fetch)
-			reception_user_name = user_fetch
-			print(reception_user_name)
-
-		except:
-			# we didnt find him
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<member>` argument given.\n\nUsage:"
-											  f"\n`spawn-item <player pinged> <item short name> [amount]`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		if "none" in param[2]:  # we need item name
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`spawn-item <player pinged> <item short name> [amount]`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-		item_name = param[2]
-
-		if "none" in param[3]:  # we need item amount
-			amount = 1
-		else:
-			amount = param[3]
-
-		try:
-			amount = int(amount)
-			if amount < 1:
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`spawn-item <player pinged> <item short name> [amount]`", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `amount` given.\n\nUsage:\n`spawn-item <player pinged> <item short name> [amount]`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# handler
-
-		try:
-			status, give_item_return = await db_handler.give_item(user, channel, username, user_pfp, item_name, amount, player_ping, server, message.author, reception_user_name, True) # True is for spawn_mode = True
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{give_item_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-		return
-
-	# --------------
-	# 	  USE ITEM     # this will MERELY remove the item from inventory
-	# --------------
-
-	elif command in ["use", all_reg_commands_aliases["use"]]:  # no alias
-
-		if "none" in param[1]:  # we need an item used
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`use-item <item short name> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-		else:
-			item_used = param[1]
-
-		if "none" in param[2]:  # we need item amount
-			amount_used = 1     # by default it will be 1
-		else:
-			amount_used = param[2]
+		i = -1
+		while i <= len(all_bal):
+			i += 1
 			try:
-				amount_used = int(amount_used)
-			except:
-				color = discord_error_rgb_code
-				embed = discord.Embed(
-					description=f"{emoji_error}  Amount must be a (whole) integer.\n\nUsage:\n`use-item <item short name> <amount>`",
-					color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		try:
-			status, use_return = await db_handler.use_item(user, channel, username, user_pfp, item_used, amount_used)
-
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{use_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-	# ---------------------------------------
-	#   CHECK INVENTORY (check own inventory)
-	# ---------------------------------------
-
-	elif command in ["inventory"]:
-		# by default, you look at your own inventory.
-		# this is prob useless and its easier to just put user_to_check_uname=none in the func init.py
-		# but for now this will do
-		user_to_check, user_to_check_uname, user_to_check_pfp = "self", "self", "self"
-		# or if for another member
-		if param[1] == "none":
-			page_number = 1
-		else:
-			try:
-				page_number = int(param[1])
-			except:
-				color = discord_error_rgb_code
-				embed = discord.Embed(
-					description=f"{emoji_error}  Invalid page number.\n\nUsage:\n`inventory [page]`", color=color)
-				embed.set_footer(text="info: use it without page once, output will show amount of total pages.\ninfo: use user-inventory to see inventory of another user.")
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		# handler
-
-		try:
-			status, inventory_return = await db_handler.check_inventory(user, channel, username, user_pfp, user_to_check, user_to_check_uname, user_to_check_pfp, page_number)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{inventory_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-		return
-
-	# --------------------------------------------------------
-	#   CHECK USER INVENTORY (check inventory of another user)
-	# --------------------------------------------------------
-
-	elif command in ["user-inventory"]:
-		# by default, you look at your own inventory.
-		# this is prob useless and its easier to just put user_to_check_uname=none in the func init.py
-		# but for now this will do
-		# or if for another member
-
-		if "none" in param[1]:  # we need a member pinged
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`user-inventory <member> [page]`", color=color)
-			embed.set_footer(text="info: use `inventory` to see your own inventory.")
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-		else:
-			# to get his id
-			user_to_check = await get_user_id(param)
-
-			try:
-				# used for @-mention.
-
-				user_to_check_uname_b = client.get_user(int(user_to_check))
-				user_to_check_uname = user_to_check_uname_b.name  # idk why we need this but without it breaks
-				user_to_check_pfp = user_to_check_uname_b.display_avatar
-				if int(user_to_check) == user:
-					user_to_check, user_to_check_uname, user_to_check_pfp = "self", "self", "self"
-			except:
-				# we didnt find him
-				color = discord_error_rgb_code
-				embed = discord.Embed(
-					description=f"{emoji_error}  Invalid member ping.\n\nUsage:\n`user-inventory <member> [page]`", color=color)
-				embed.set_footer(text="info: use `inventory` to see your own inventory.")
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-		if param[2] == "none":
-			page_number = 1
-		else:
-			try:
-				page_number = int(param[2])
-			except Exception as error_code:
-				print(error_code)
-				color = discord_error_rgb_code
-				embed = discord.Embed(
-					description=f"{emoji_error}  Invalid page number.\n\nUsage:\n`user-inventory <member> [page]`", color=color)
-				embed.set_footer(text="info: use it without page once, output will show amount of total pages")
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-
-
-
-		# handler
-
-		try:
-			status, inventory_return = await db_handler.check_inventory(user, channel, username, user_pfp, user_to_check, user_to_check_uname, user_to_check_pfp, page_number)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{inventory_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-		return
-
-	# ---------------------------
-	#   ITEMS CATALOG
-	# ---------------------------
-
-	elif command in ["catalog", "items", "item-list", "list-items"]:
-
-		if "none" in param[1]:  # we need item name
-			item_check = "default_list"
-		else:
-			item_check = param[1]
-
-		# handler
-		try:
-			status, catalog_return = await db_handler.catalog(user, channel, username, user_pfp, item_check, server)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{catalog_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-		return
-
-
-	# ---------------------------
-	#   ADD ROLE INCOME ROLE
-	# ---------------------------
-
-	elif command in ["add-income-role", "add-role-income"]:
-		await channel.send("Info: the income amount specified is an DAILY one.\nRemember: you need to manually update income.")
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		if "none" in param[1] or "none" in param[2]:  # we need 3 parameters
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`add-income-role <role pinged> <income>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# check role
-
-
-		income_role = await get_role_id_single(param[1])
-
-		try:
-			role = discord.utils.get(server.roles, id=int(income_role))
-		except Exception as e:
-			print(e)
-			await channel.send(f"{emoji_error}  Invalid role given.")
-			return
-
-		# check amount
-		amount = param[2]
-		# they can use the thousands separator comma
-		try:
-			newAmount = []
-			for char in amount:
-				if char != ",":
-					newAmount.append(char)
-			amount = "".join(newAmount)
-			amount = int(amount)
-			if amount < 1:
-				color = discord_error_rgb_code
-				embed = discord.Embed(
-					description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`add-income-role <role pinged> <amount>`",
-					color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`add-income-role <role pinged> <amount>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# handler
-		try:
-			status, create_role_return = await db_handler.new_income_role(user, channel, username, user_pfp, income_role, amount)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{create_role_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-		return
-
-	# ---------------------------
-	#   REMOVE ROLE
-	# ---------------------------
-
-	elif command in ["remove-income-role", "delete-income-role", "remove-role-income", "delete-role-income"]:
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		if "none" in param[1]:  # we need 1 parameters
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`remove-income-role <role pinged>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# check role
-
-		income_role_beta = str(param[1])  # see another instance where i use this to see why
-		income_role = ""
-		for i in range(len(income_role_beta)):
-			try:
-				income_role += str(int(income_role_beta[i]))
+				if all_bal[i] < all_bal[i + 1]:
+					# save the higher stats one into buffer
+					saved = all_bal[i]
+					# this one has lower stats, so move him right
+					all_bal[i] = all_bal[i + 1]
+					# the higher one (saved) takes that position
+					all_bal[i + 1] = saved
+					# repeat process, but for the player-names
+					saved = all_users[i]
+					all_users[i] = all_users[i + 1]
+					all_users[i + 1] = saved
+					i = -1
 			except:
 				pass
 
-		try:
-			role = discord.utils.get(server.roles, id=int(income_role))
-		except Exception as e:
-			print(e)
-			await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
-			return
+		"""
+		this seems to be whats taking the longest time while sorting
+		"""
 
-		# handler
+		# use names instead of just ID, except if we cannot find names
+		# so for example if someone left the server
+		for i in range(len(all_users)):
+			try:
+				name_object = client.get_user(int(all_users[i])).name
+				# print(i, all_users[i], name_object)
+				actual_name = str(name_object)
+				if all_users[i] == user:
+					user_lb_position = i + 1
+			except:
+				actual_name = str(all_users[i])
+			# update
+			all_users[i] = actual_name
 		try:
-			status, remove_role_return = await db_handler.remove_income_role(user, channel, username, user_pfp, income_role)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{remove_role_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
+			print("user is at position ", user_lb_position)
+		except Exception:
+			user_lb_position = 10000  # did not find him
 
-		color = discord.Color.from_rgb(102, 187, 106)  # green
-		embed = discord.Embed(description=f"{emoji_worked}  Role has been disabled as income role.", color=color)
+		# making nice number formats
+		for i in range(len(all_bal)):
+			all_bal[i] = '{:,}'.format(all_bal[i])
+
+		# making the formatted output description
+		# number of pages which will be needed :
+		# we have 10 ranks per page
+		"""
+		btw before did this (idk why i did this and not just ceil ?)
+		if ".0" in str(page_count): page_count = int(page_count)
+		if not isinstance(page_count, int):
+			page_count += 1
+		"""
+		ranks_per_page = 10
+		page_count = math.ceil(len(all_bal) / ranks_per_page)
+		# page_count = (len(all_bal) + ranks_per_page - 1)
+
+		# our selection !
+		index_start = (page_number - 1) * ranks_per_page
+		index_end = index_start + ranks_per_page
+		user_selection = all_users[index_start: index_end]
+		bal_selection = all_bal[index_start: index_end]
+
+		# making the formatted !
+		i = 0 if page_number == 1 else page_number * ranks_per_page # this is because if we call page 2 we wanna start at 20
+		leaderboard_formatted = f""
+		for i_i in range(len(user_selection)):
+			leaderboard_formatted += f"\n**{str(i + 1)}.** {user_selection[i_i]} • {str(self.currency_symbol)} {bal_selection[i_i]}"
+			i += 1
+		# making a nice output
+		if page_count == 1:
+			page_number = 1
+		elif page_number > page_count:
+			page_number = 1
+
+		# inform user
+		color = self.discord_blue_rgb_code
+		embed = discord.Embed(description=f"\n\n{leaderboard_formatted}", color=color)
+		# same pfp as unbelievaboat uses
+		embed.set_author(name=full_name,
+						 icon_url="https://media.discordapp.net/attachments/506838906872922145/506899959816126493/h5D6Ei0.png")
+		if user_lb_position == 1:
+			pos_name = "st"
+		elif user_lb_position == 2:
+			pos_name = "nd"
+		elif user_lb_position == 3:
+			pos_name = "rd"
+		else:
+			pos_name = ""
+		embed.set_footer(
+			text=f"Page {page_number}/{page_count}  •  Your leaderboard rank: {user_lb_position}{pos_name}")
+		await channel.send(embed=embed)
+
+		return "success", "success"
+
+	#
+	# MODULE INFO
+	#
+
+	async def module(self, user, channel, module):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		"""
+		variable_dict = {
+			"slut": 0,
+			"crime": 1,
+			"work": 2,
+			"rob": 3
+		}
+		"""
+
+		if module not in self.variable_dict.keys() and module not in ["symbols", "currency_symbol"]:
+			possible = "slut, crime, work, rob, symbols"
+			return "error", f"❌ Module not found. Possibilites : {possible}"
+
+		if module in ["symbols", "currency_symbol"]:
+			info_output = f"""Symbol:\nname: {json_content['symbols'][0]['name']}, value: emoji \"{json_content['symbols'][0]['symbol_emoji']}" """
+		else:
+			module_index = self.variable_dict[module]
+			info_output = f"Module: **{module}** info:\nOutput as : <variable name> ; <value>\n```"
+			mod = json_content["variables"][module_index]
+			module_content = json_content["variables"][module_index]
+			for i in range(len(module_content)):
+				module_content_vars = list(json_content["variables"][module_index].keys())[i]
+
+				info_output += f'\n"{module_content_vars}" ; {mod[module_content_vars]}'
+			info_output += "\n```\n**Note**: Delay is in minutes, proba is x%, percentages are in % too"
+		await channel.send(info_output)
+
+		return "success", "success"
+
+	#
+	# ADD-MONEY
+	#
+
+	async def add_money(self, user, channel, username, user_pfp, reception_user, amount, recept_uname):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		reception_user_index, new_data = self.find_index_in_db(json_content["userdata"], reception_user)
+
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_recept_content = json_content["userdata"][reception_user_index]
+
+		json_recept_content["cash"] += int(amount)
+
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(
+			description=f"✅  Added {str(self.currency_symbol)} {'{:,}'.format(int(amount))} to {recept_uname.mention}'s cash balance",
+			color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 
-		return
+		# overwrite, end
+		json_content["userdata"][reception_user_index] = json_recept_content
+		self.overwrite_json(json_content)
 
-	# ---------------------------
-	#   REMOVE MONEY BY ROLE
-	# ---------------------------
+		return "success", "success"
 
-	elif command in ["remove-money-role", "remove-role-money"]:
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
+	#
+	# REMOVE-MONEY
+	#
 
-		if "none" in param[1] or "none" in param[2]:  # we need 2 parameters
-			color = discord_error_rgb_code
-			embed = discord.Embed(
-				description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`remove-money-role <role pinged> <amount>`",
-				color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
+	async def remove_money(self, user, channel, username, user_pfp, reception_user, amount, recept_uname, mode):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		reception_user_index, new_data = self.find_index_in_db(json_content["userdata"], reception_user)
 
-		amount = param[2]
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_recept_content = json_content["userdata"][reception_user_index]
+
+		json_recept_content[mode] -= int(amount)
+
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(
+			description=f"✅  Removed {str(self.currency_symbol)} {'{:,}'.format(int(amount))} from {recept_uname.mention}'s {mode} balance",
+			color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["userdata"][reception_user_index] = json_recept_content
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# EDIT VARIABLES
+	#
+
+	async def edit_variables(self, user, channel, username, user_pfp, module_name, variable_name, new_value):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		if module_name not in self.variable_dict.keys():
+			return "error", "❌ module not found"
+		module_index = self.variable_dict[module_name]
+
+		json_module_content = json_content["variables"][module_index]
 		try:
-			# they can use the thousands separator comma
-			newAmount = []
-			for char in amount:
-				if char != ",":
-					newAmount.append(char)
-			amount = "".join(newAmount)
-			amount = int(amount)
-			if amount < 1:
-				color = discord_error_rgb_code
-				embed = discord.Embed(
-					description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`remove-money-role <role pinged> <amount>`",
-					color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
+			old_value = json_module_content[variable_name]
 		except:
-			color = discord_error_rgb_code
+			return "error", f"❌ variable name of module {module_name} not found"
+
+		# changing value
+		json_module_content[variable_name] = new_value
+
+		# not asking for verification, would just have to reverse by another edit
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(
+			description=f"✅  Changed variable '{variable_name}' of module '{module_name}'\nBefore: '{old_value}'. Now: '{new_value}'",
+			color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["variables"][module_index] = json_module_content
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# EDIT CURRENCY SYMBOL
+	#
+
+	async def change_currency_symbol(self, user, channel, username, user_pfp, new_emoji_name):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		json_emoji = json_content["symbols"][0]
+
+		old_value = json_emoji["symbol_emoji"]
+
+		test_emoji = self.get_currency_symbol(True, new_emoji_name)
+		if test_emoji == "error":
+			return "error", "❌ Emoji not found."
+
+		# changing value
+		json_emoji["symbol_emoji"] = new_emoji_name
+
+		# not asking for verification, would just have to reverse by another edit
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(description=f"✅  Changed emoji from '{old_value}' to '{new_emoji_name}'", color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["symbols"][0] = json_emoji
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# EDIT CURRENCY SYMBOL
+	#
+
+	async def set_income_reset(self, user, channel, username, user_pfp, new_income_reset):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		# info: we dont need to check anything
+		# because itll be either true/false
+		# if it doesnt exist, we create it. if it does, we change it. simple.
+
+		# changing value
+		json_content["symbols"][0]["income_reset"] = new_income_reset
+
+		# not asking for verification, would just have to reverse by another edit
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(description=f"✅  Changed income-reset to　`{new_income_reset}`", color=color)
+		embed.set_footer(text="info: if true (default), daily salary resets every day and does not accumulate.")
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	"""
+	ITEM HANDLING
+	"""
+
+	#
+	# CREATE NEW ITEM / create item
+	#
+
+	async def create_new_item(self, item_display_name, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give,
+							  roles_id_to_remove, max_bal, reply_message, item_img_url, roles_id_excluded):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		json_items = json_content["items"]
+
+		for i in range(len(json_items)):
+			if json_items[i]["name"] == item_name:
+				return "error", "❌ Item with such name already exists."
+
+		# calculate item duration
+		today = datetime.today()
+		# print(today)
+		expiration_date = today + timedelta(days=duration)
+
+		# print("expiration date : ", expiration_date)
+
+		json_items.append({
+			"name": item_name,
+			"display_name": item_display_name,
+			"price": cost,
+			"description": description,
+			"duration": duration,
+			"amount_in_stock": stock,
+			"required_roles": roles_id_required,
+			"given_roles": roles_id_to_give,
+			"removed_roles": roles_id_to_remove,
+			"excluded_roles": roles_id_excluded,
+			"maximum_balance": max_bal,
+			"reply_message": reply_message,
+			"expiration_date": str(expiration_date),
+			"item_img_url": item_img_url
+		})
+
+		# overwrite, end
+		json_content["items"] = json_items
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# REMOVE ITEM AKA DELETE ITEM
+	#
+
+	async def remove_item(self, item_name):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		json_items = json_content["items"]
+		item_found = item_index = 0
+		for i in range(len(json_items)):
+			if json_items[i]["name"] == item_name:
+				item_found = 1
+				item_index = i
+		if not item_found:
+			return "error", "❌ Item not found."
+
+		# delete from the "items" section
+		json_items.pop(item_index)
+
+		# delete for everyone who had it in their inventory
+		user_content = json_content["userdata"]
+		for i in range(len(user_content)):
+			# tricky
+			# i suppose the variable type will either be a string with "none"
+			# or a list with lists : ["item_name", amount], so items = [ [], [] ] etc
+			"""
+			info: on 11.01.24 added a break after pop(ii).
+			Only bug should be if user has 2 items with same name, but that shouldnt happen. 
+			"""
+			if user_content[i]["items"] == "none":
+				pass
+			else:
+				try:
+					for ii in range(len(user_content[i]["items"])):
+						current_name = user_content[i]["items"][ii][0]
+						if current_name == item_name:
+							user_content[i]["items"].pop(ii)
+							break
+				except Exception as e:
+					print(e)
+
+		# overwrite, end
+		json_content["items"] = json_items
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# REMOVE ITEM FROM SPECIFIC USER's INVENTORY
+	#
+
+	async def remove_user_item(self, user, channel, username, user_pfp, item_name, amount_removed, reception_user, recept_uname):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		reception_user_index, new_data = self.find_index_in_db(json_content["userdata"], reception_user)
+
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_recept_content = json_content["userdata"][reception_user_index]
+
+		# i just copied and adjusted the code snippet from give_item btw.
+		try:
+			if json_recept_content["items"] == "none":
+				return "error", f"❌ User does not have any items."
+			else:
+				worked = False
+				for ii_i in range(len(json_recept_content["items"])):
+					if json_recept_content["items"][ii_i][0] == item_name:
+						if (json_recept_content["items"][ii_i][1] - amount_removed) < 0:
+							return "error", f"❌ User does not have the necessary amount of items.\nInfo: has {json_recept_content['items'][ii_i][1]} items of that item."
+						json_recept_content["items"][ii_i][1] -= amount_removed
+						worked = True
+						break
+				if worked == False:
+					return "error", f"❌ User does not possess the specified item."
+
+		except:
+			return "error", f"❌"
+
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(
+			description=f"✅ Removed {'{:,}'.format(int(amount_removed))} {item_name} from {recept_uname.mention}.",
+			color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["userdata"][reception_user_index] = json_recept_content
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# BUY ITEM
+	#
+
+	async def buy_item(self, user, channel, username, user_pfp, item_name, amount, user_roles, server_object,
+					   user_object):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		json_items = json_content["items"]
+		item_found = item_index = 0
+		for i in range(len(json_items)):
+			if json_items[i]["name"] == item_name:
+				item_found = 1
+				item_index = i
+		if not item_found:
+			return "error", "Item not found."
+		item = json_items[item_index]
+		# get variables
+		item_name = item_name
+		try: # compatibility
+			item_display_name = item["display_name"]
+		except:
+			item_display_name = item_name
+		item_price = item["price"]
+		req_roles = item["required_roles"]
+		give_roles = item["given_roles"]
+		rem_roles = item["removed_roles"]
+		try:
+			excluded_roles = item["excluded_roles"]
+		except:  # compatibility
+			excluded_roles = ["none"]
+		max_bal = item["maximum_balance"]
+		remaining_stock = item["amount_in_stock"]
+		expiration_date = item["expiration_date"]
+		reply_message = item["reply_message"]
+
+		# calculate expiration
+		today = datetime.today()
+		expire = datetime.strptime(expiration_date, "%Y-%m-%d %H:%M:%S.%f")
+		if today > expire:
+			return "error", f"❌ Item has already expired. Expiring date was {expiration_date}"
+		# else we're good
+
+		# 1. check req roles
+		try:
+			if req_roles[0] == "none":
+				pass
+			else:
+				for i in range(len(req_roles)):
+					if int(req_roles[i]) not in user_roles:
+						return "error", f"❌ User does not seem to have all required roles."
+		except Exception as e:
+			print("1", e)
+			return "error", f"❌ Unexpected error."
+		
+		# 2. check excluded roles - meaning roles with which you CANT buy
+		try:
+			if excluded_roles[0] == "none":
+				pass
+			else:
+				for i in range(len(excluded_roles)):
+					if int(excluded_roles[i]) in user_roles:
+						return "error", f"❌ User possesses excluded role (id: {excluded_roles[i]})."
+		except Exception as e:
+			print("2", e)
+			return "error", f"❌ Unexpected error."
+
+		### BEFORE update, "check rem roles" and "check give roles" was located here. it seems that
+		### the intended usage i had back then was to do that stuff once the item is bought.
+		### thus this is now located below, after checking balance etc.
+
+		# 4. check if enough money
+
+		sum_price = item_price * amount
+		sum_price = round(sum_price, 0)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+		user_content = json_content["userdata"][user_index]
+		user_cash = user_content["cash"]
+		if user_cash < sum_price:
+			return "error", f"❌ Not enough money in cash to purchase.\nto pay: {sum_price} ; in cash: {user_cash}"
+
+		# 5. check if not too much money
+		user_bank = user_content["bank"]
+		if max_bal != "none":
+			if (user_bank + user_cash) > max_bal:
+				return "error", f"❌ You have too much money to purchase.\nnet worth: {'{:,}'.format(int(user_bank + user_cash))} ; max bal: {max_bal}"
+
+		# 6. check if enough in stock or not
+		if max_bal != "none":
+			if remaining_stock <= 0:
+				return "error", f"❌ Item not in stock."
+			elif amount > remaining_stock:
+				return "error", f" Not enough remaining in stock ({remaining_stock} remaining)."
+
+		# 8. rem money, substract stock, print message, add to inventory
+		user_content["cash"] -= sum_price
+		try:
+			item["amount_in_stock"] -= amount
+		except:
+			# in this case theres no limit so we dont substract anything
+			pass
+
+		if user_content["items"] == "none":
+			user_content["items"] = [[item_name, amount]]
+		else:
+			needAppend = True
+			for i_i in range(len(user_content["items"])):
+				if user_content["items"][i_i][0] == item_name:
+					user_content["items"][i_i][1] += amount
+					needAppend = False
+					break
+			if needAppend:
+				user_content["items"].append([item_name, amount])
+
+		# 2. check remove roles
+		try:
+			if rem_roles[0] == "none":
+				pass
+			else:
+				for i in range(len(rem_roles)):
+					role = discord.utils.get(server_object.roles, id=int(rem_roles[i]))
+					try:
+						await user_object.remove_roles(role)
+					except:
+						continue
+		except Exception as e:
+			return "error", f"❌ Unexpected error."
+
+		# 3. check give roles
+		try:
+			if give_roles[0] == "none":
+				pass
+			else:
+				for i in range(len(give_roles)):
+					role = discord.utils.get(server_object.roles, id=int(give_roles[i]))
+					try:
+						await user_object.add_roles(role)
+					except:
+						continue
+
+		except Exception as e:
+			print("3", e)
+			return "error", f"❌ Unexpected error."
+		color = self.discord_blue_rgb_code
+		embed = discord.Embed(
+			description=f"You have bought {amount} {item_display_name} and paid {str(self.currency_symbol)} **{'{:,}'.format(int(sum_price))}**",
+			color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		embed.set_footer(text=reply_message)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["userdata"][user_index] = user_content
+		json_content["items"] = json_items
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# GIVE ITEM
+	#
+
+	async def give_item(self, user, channel, username, user_pfp, item_name, amount, reception_user, server_object,
+						user_object, recept_username, spawn_mode):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+		reception_user_index, new_data = self.find_index_in_db(json_content["userdata"], reception_user)
+		recept_uname = recept_username
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_user_content = json_content["userdata"][user_index]
+		json_recept_content = json_content["userdata"][reception_user_index]
+
+		try:
+			if not spawn_mode:  # not doing this if an admin just spawns an item
+				if json_user_content["items"] == "none":
+					return "error", f"❌ You do not have any items to give"
+				else:
+					worked = False
+					for ii_i in range(len(json_user_content["items"])):
+						if json_user_content["items"][ii_i][0] == item_name:
+							if (json_user_content["items"][ii_i][1] - amount) < 0:
+								return "error", f"❌ You do not have enough items of that item to give."
+							json_user_content["items"][ii_i][1] -= amount
+							worked = True
+							break
+					if worked == False:
+						return "error", f"❌ You do not have that item to give"
+			else:
+				item_found = False
+				for i in range(len(json_content["items"])):
+					if json_content["items"][i]["name"] == item_name:
+						item_found = True
+				if not item_found:
+					return "error", "Item not found (needs to be created before spawning)."
+
+			# so we should be good, now handling the reception side
+			if json_recept_content["items"] == "none":
+				json_recept_content["items"] = [[item_name, amount]]
+			else:
+				needAppend = True
+				for i_i in range(len(json_recept_content["items"])):
+					if json_recept_content["items"][i_i][0] == item_name:
+						json_recept_content["items"][i_i][1] += amount
+						needAppend = False
+						break
+				if needAppend:
+					json_recept_content["items"].append([item_name, amount])
+
+		except:
+			return "error", f"❌"
+
+		# inform user
+		color = self.discord_success_rgb_code
+		if not spawn_mode:
 			embed = discord.Embed(
-				description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`remove-money-role <role pinged> <amount>`",
+				description=f"✅ {recept_uname.mention} has received {'{:,}'.format(int(amount))} {item_name} from you!",
 				color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		# check role
-
-		income_role = await get_role_id_single(param[1])
-
-		try:
-			role = discord.utils.get(server.roles, id=int(income_role))
-		except Exception as e:
-			print(e)
-			await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
-			return
-
-		# handler
-		try:
-			status, remove_money_role_return = await db_handler.remove_money_role(user, channel, username, user_pfp, server, income_role, amount)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{remove_money_role_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-		return
-
-	# ---------------------------
-	#   LIST INCOME ROLES
-	# ---------------------------
-
-	elif command in ["list-roles", "list-income-roles", "list-role-income", "list-incomes"]:
-		try:
-			status, list_roles_return = await db_handler.list_income_roles(user, channel, username, user_pfp, server)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{list_roles_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-		return
-
-	# ---------------------------
-	#   UPDATE INCOMES
-	# ---------------------------
-
-	elif command in ["update-income"]:
-		if not staff_request:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
-
-		try:
-			status, update_incomes_return = await db_handler.update_incomes(user, channel, username, user_pfp, server)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{update_incomes_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
-		except Exception as e:
-			print(e)
-			await send_error(channel)
-
-		color = discord.Color.from_rgb(102, 187, 106)  # green
-		embed = discord.Embed(description=f"{emoji_worked}  Users with registered roles have received their income (into bank account).", color=color)
+		else:
+			embed = discord.Embed(
+				description=f"✅ {recept_uname.mention} has received {'{:,}'.format(int(amount))} {item_name} (spawned)!",
+				color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 
-		return
+		# overwrite, end
+		json_content["userdata"][user_index] = json_user_content
+		json_content["userdata"][reception_user_index] = json_recept_content
+		self.overwrite_json(json_content)
 
+		return "success", "success"
 
-	# ---------------------------
-	#   UPDATE INCOME FOR YOURSELF ONLY
-	# ---------------------------
+	#
+	# USE ITEM
+	#
 
-	elif command in ["collect", "get-salary", "update-income-solo"]:
+	async def use_item(self, user, channel, username, user_pfp, item_name, amount):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+		if new_data != "none":
+			json_content["userdata"] = new_data
+
+		json_user_content = json_content["userdata"][user_index]
 
 		try:
-			status, update_incomes_return = await db_handler.update_incomes_solo(user, channel, username, user_pfp, server, user_roles)
-			if status == "error":
-				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{update_incomes_return}", color=color)
-				embed.set_author(name=username, icon_url=user_pfp)
-				await channel.send(embed=embed)
-				return
+			if json_user_content["items"] == "none":
+				return "error", f"❌ You do not have any items"
+			else:
+				worked = False
+				for ii_i in range(len(json_user_content["items"])):
+					if json_user_content["items"][ii_i][0] == item_name:
+						if (json_user_content["items"][ii_i][1] - amount) < 0:
+							return "error", f"❌ You do not have enough items of that item to use."
+						json_user_content["items"][ii_i][1] -= amount
+
+						# we will also add/append to a list for used items
+						try:
+							if json_user_content["used_items"] == "none":
+								json_user_content["used_items"] = [[item_name, amount]]
+							else:
+								needAppend = True
+								for i_i in range(len(json_user_content["used_items"])):
+									if json_user_content["used_items"][i_i][0] == item_name:
+										json_user_content["used_items"][i_i][1] += amount
+										needAppend = False
+										break
+								if needAppend:
+									json_user_content["used_items"].append([item_name, amount])
+						except Exception as e:
+							# there is no used_items yet
+							# not really sure if this will work tho, might have to come back to this
+							json_user_content["used_items"] = [[item_name, amount]]
+
+
+						worked = True
+						break
+				if not worked:
+					return "error", f"❌ You do not have that item to give"
 		except Exception as e:
 			print(e)
-			await send_error(channel)
+			return "error", f"❌ Unknown error, please contact an admin."
 
-		"""
-		color = discord.Color.from_rgb(102, 187, 106)  # green
-		embed = discord.Embed(description=f"{emoji_worked}  You have received {update_incomes_return} for your roles {roles_return} (into bank account).", color=color)
+
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(
+			description=f"✅ You have used {'{:,}'.format(int(amount))} {item_name}(s) !",
+			color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["userdata"][user_index] = json_user_content
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# CHECK INVENTORY
+	#
+
+	async def check_inventory(self, user, channel, username, user_pfp, user_to_check, user_to_check_uname, user_to_check_pfp, page_number):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		if user_to_check == "self":
+			user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+			user_content = json_content["userdata"][user_index]
+		else: # we re looking for a specific member
+			user_index, new_data = self.find_index_in_db(json_content["userdata"], user_to_check)
+			user_content = json_content["userdata"][user_index]
+			username = user_to_check_uname
+			user_pfp = user_to_check_pfp
+
 		"""
+		we only care if we have any items owned, not 0
+		"""
+		items_old = user_content["items"]
+		if items_old != "none":
+			items = []
+			for i in range(len(items_old)):
+				if items_old[i][1] > 0:
+					items.append(items_old[i])
 
-		return
+			# number of pages which will be needed :
+			# we have 10 items per page
+			items_per_page = 5  # change to 10 after
+
+			# our selection !
+			index_start = (page_number - 1) * items_per_page
+			index_end = index_start + items_per_page
+			items_selection = items[index_start: index_end]
+			page_count = math.ceil(len(items) / items_per_page)
+		else:
+			items = "none"
+			page_number = 1
+			page_count = 1
+
+		if items == "none":
+			# inventory_checkup = "**Inventory empty. No items owned.**"
+			color = self.discord_blue_rgb_code
+			embed = discord.Embed(title="inventory", description="**Inventory empty. No items owned.**", color=color)
+
+		else:
+			# inventory_checkup = f""
+			color = self.discord_blue_rgb_code
+			embed = discord.Embed(title="inventory", color=color)
+			current_index = 1 if page_number == 1 else page_number * items_per_page # this is because if we call page 2 we wanna start at 20
+			for i in range(len(items_selection)):
+				# to get the display name
+				json_items = json_content["items"]
+				for ii in range(len(json_items)):
+					# print("checking item ", json_items[ii]["name"])
+					if json_items[ii]["name"] == items_selection[i][0]:
+						item_index = ii
+						break
+
+				try:
+					item_display_name = json_items[ii]["display_name"]
+				except:
+					item_display_name = items_selection[i][0]  # if there is no display name, we show the normal name
+				# btw i use "ideographic space" [　] for tab
+				# inventory_checkup += f"[{current_index}]　Item: {item_display_name}\n　　short name: {json_items[ii]['name']}\n　　amount: `{items_selection[i][1]}`\n\n"
+				embed.add_field(name=f"[{current_index}]　Item: {item_display_name}",
+								value=f"short name: `{json_items[ii]['name']}`　"
+									  f"amount: `{items_selection[i][1]}`", inline=False)
+				current_index += 1
+
+		if page_count == 1:
+			page_number = 1
+		elif page_number > page_count:
+			page_number = 1
+
+		embed.set_author(name=username, icon_url=user_pfp)
+		embed.set_footer(text=f"page {page_number} of {page_count}")
+		sent_embed = await channel.send(embed=embed)
+
+		# overwrite, end
+		# not needed
+
+		return "success", "success"
+
+	#
+	# CATALOG
+	#
+
+	async def catalog(self, user, channel, username, user_pfp, item_check, server_object):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		items = json_content["items"]
+		catalog_final, max_items, current, finished = [], 10, 0, False
+		catalog_report = "__Items catalog:__\n```\n"
+		if item_check == "default_list":
+			for i in range(len(items)):
+				current += 1
+				try:
+					# print(current, max_items)
+					catalog_report += f"Item {i}: {items[i]['display_name']}\n      price: {self.currency_symbol} {items[i]['price']};　short name <{items[i]['name']}>\n\n"
+					if current >= max_items:
+						# catalog_report += "\n```\n*For details about an item: use* `catalog <item short name>`"
+						catalog_report += "\n```"
+						catalog_final.append(catalog_report)
+						catalog_report = "```"
+						current = 0
+				except:
+					await channel.send("compatbility error, please contact an admin.")
+					return "success", "success"
+
+			#if current != 0:
+			#	catalog_report += "\n*For details about an item: use* `catalog <item short name>`"
+			#else:
+			catalog_report += "\n```\n*For details about an item: use* `catalog <item short name>`"
+			catalog_final.append(catalog_report)
+
+		else:
+			check, img_prob = 0, False
+			for i in range(len(items)):
+				if items[i]["name"] == item_check:
+					check = 1
+					item_index = i
+			if not check:
+				return "error", "❌ Item not found."
+			else:  # not needed, but for readability
+
+				if items == "none":
+					# inventory_checkup = "**Inventory empty. No items owned.**"
+					color = self.discord_blue_rgb_code
+					embed = discord.Embed(title="inventory", description="**Inventory empty. No items owned.**",
+										  color=color)
+
+				else:
+					color = self.discord_blue_rgb_code
 
 
-"""
-END OF CODE.
-	-> starting bot
-"""
+				try:
+					embed = discord.Embed(title=f"catalog: {items[item_index]['display_name']}", color=color)
+				except:
+					embed = discord.Embed(title=f"catalog: item {items[item_index]['name']}", color=color)
 
-print("Starting bot")
-client.run(token)
+				req_roles = ""
+
+				for ii in range(len(items[item_index]["required_roles"])):
+					if items[item_index]["required_roles"][ii] in ["none", ""]:
+						req_roles += "none"
+					else:
+						role = discord.utils.get(server_object.roles, id=int(items[item_index]["required_roles"][ii]))
+						req_roles += f"@{str(role)} "
+				
+				excluded_roles = ""
+				try:  # compatibility thingy
+					for ii in range(len(items[item_index]["excluded_roles"])):
+						if items[item_index]["excluded_roles"][ii] in ["none", ""]:
+							excluded_roles += "none"
+						else:
+							role = discord.utils.get(server_object.roles, id=int(items[item_index]["excluded_roles"][ii]))
+							excluded_roles += f"@{str(role)} "
+				except Exception as e:
+					print(f"Error for required roles: {e} - (prob compatibility thingy).")
+					excluded_roles += "none"
+
+				give_roles = ""
+				for iii in range(len(items[item_index]["given_roles"])):
+					if items[item_index]["given_roles"][iii] in ["none", ""]:
+						give_roles += "none"
+					else:
+						role = discord.utils.get(server_object.roles, id=int(items[item_index]["given_roles"][iii]))
+						give_roles += f"@{str(role)} "
+
+				rem_roles = ""
+				for iiii in range(len(items[item_index]["removed_roles"])):
+					if items[item_index]["removed_roles"][iiii] in ["none", ""]:
+						rem_roles += "none"
+					else:
+						role = discord.utils.get(server_object.roles, id=int(items[item_index]["removed_roles"][iiii]))
+						rem_roles += f"@{str(role)} "
+
+				if int(str(datetime.strptime(items[item_index]['expiration_date'], '%Y-%m-%d %H:%M:%S.%f'))[
+					   :4]) >= 2100:
+					left_time = "never"
+				else:
+					left_time = str(items[item_index]['expiration_date'])[:10]
+
+				try:
+					embed.add_field(name=f"Item name:", value=f"{items[item_index]['display_name']}", inline=False)
+					embed.add_field(name=f"Item short name:", value=f"`{items[item_index]['name']}`", inline=True)
+					embed.add_field(name=f"Item price:", value=f"{items[item_index]['price']}", inline=True)
+					embed.add_field(name=f"Item description:", value=f"{items[item_index]['description']}", inline=False)
+					embed.add_field(name=f"Remaining time:", value=f"item expires {left_time}", inline=True)
+					embed.add_field(name=f"Max balance to purchase:", value=f"{self.currency_symbol} {items[item_index]['maximum_balance']}", inline=False)
+					embed.add_field(name=f"Roles:",
+											value=f"Required roles: {req_roles}　"
+												  f"Excluded roles: {excluded_roles}　"
+												  f"Given roles: {give_roles}　"
+												  f"Removed roles: {rem_roles}", inline=False)
+					try:
+						if items[item_index]['item_img_url'] != "EMPTY":
+							embed.set_thumbnail(url=items[item_index]['item_img_url'])
+					except:
+						# basically we re trying to check if theres an image in the item object
+						# but we also try to set it as a thumbnail, and if that fails
+						# we wont replace it but warn the user with a specialised footer
+						#   yes this is ugly. Itll do for now.
+						try:
+							if items[item_index]['item_img_url'] != "EMPTY": img_prob = True
+						except:
+							img_prob = False
+				except Exception as error_code:
+					print(error_code)
+					await channel.send("# warning:\nfallback mode; This should not happen. Try to contact a bot admin (or see github at https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot)")
+					catalog_report +=  f"Item short name: <{items[item_index]['name']}>\n" \
+									  f"Item price: {items[item_index]['price']}\n" \
+									  f"Item description: {items[item_index]['description']}\n" \
+									  f"Remaining time: item expires {left_time}\n" \
+									  f"Amount remaining: {items[item_index]['amount_in_stock']} in stock\n" \
+									  f"Maximum balance to purchase: {self.currency_symbol} {items[item_index]['maximum_balance']}\n" \
+									  f"Required roles: {req_roles}\n" \
+									  f"Given roles: {give_roles}\n" \
+									  f"Removed roles: {rem_roles}\n"
+					await channel.send(catalog_report)
+					return "success", "success"
+
+				# embed.set_author(name=username, icon_url=user_pfp)
+				embed.set_footer(text="WARNING: URL for img was not found. Could be deprecated\nPlease look into the json file manually or contact an admin.") if img_prob else embed.set_footer(text="Info: always use the short name for commands.")
+				sent_embed = await channel.send(embed=embed)
+				return "success", "success"
+		for i in range(len(catalog_final)):
+			await channel.send(catalog_final[i])
+
+		# overwrite, end
+		# not needed
+
+		return "success", "success"
+
+	#
+	# ROLE INCOMES - NEW ONE
+	#
+
+	async def new_income_role(self, user, channel, username, user_pfp, income_role_id, income):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		json_income_roles = json_content["income_roles"]
+
+		for i in range(len(json_income_roles)):
+			if json_income_roles[i]["role_id"] == income_role_id:
+				return "error", "❌ Role already exists as income role."
+
+		now = str(datetime.now())
+		json_income_roles.append({
+			"role_id": income_role_id,
+			"role_income": income,
+			"last_single_called": {},
+			"last_updated": now
+		})
+
+		color = self.discord_blue_rgb_code
+		embed = discord.Embed(
+			description=f"New income role added.\nrole_id : {income_role_id}, income : {str(self.currency_symbol)} **{'{:,}'.format(int(income))}**",
+			color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		embed.set_footer(text="smooth")
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["income_roles"] = json_income_roles
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# ROLE INCOMES - REMOVE ONE
+	#
+
+	async def remove_income_role(self, user, channel, username, user_pfp, income_role_id):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		json_income_roles = json_content["income_roles"]
+		role_found = role_index = 0
+		for i in range(len(json_income_roles)):
+			if json_income_roles[i]["role_id"] == income_role_id:
+				role_found = 1
+				role_index = i
+		if not role_found:
+			return "error", "❌ Role not found."
+
+		# delete from the "items" section
+		json_income_roles.pop(role_index)
+
+		# overwrite, end
+		json_content["income_roles"] = json_income_roles
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+	#
+	# ROLE INCOMES - LIST
+	#
+
+	async def list_income_roles(self, user, channel, username, user_pfp, server_object):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		json_income_roles = json_content["income_roles"]
+
+		role_list_report = f"__Income Roles List:__\n\n"
+
+		for i in range(len(json_income_roles)):
+			role = discord.utils.get(server_object.roles, id=int(json_income_roles[i]["role_id"]))
+			ping_role = f"<@&{json_income_roles[i]['role_id']}>"
+
+			role_list_report += f"Role name: {ping_role}\n" \
+								f"Role income: {self.currency_symbol} {'{:,}'.format(json_income_roles[i]['role_income'])}\n\n"
+
+		role_list_report += "---------------------------------"
+
+		await channel.send(role_list_report, silent=True)
+
+		# overwrite, end
+		# not needed
+
+		return "success", "success"
+
+	#
+	# ROLE INCOMES - UPDATE INCOMES
+	#
+	# okay were gonna change it to an hourly income (10.06.2023)
+
+	async def update_incomes(self, user, channel, username, user_pfp, server_object):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		json_income_roles = json_content["income_roles"]
+		user_content = json_content["userdata"]
+
+		# pretty straight forward i think.
+		# first, we go into each role object
+		# then we check in everyones roles if they have the role
+
+		role_error = 0  # if a role is deleted or so
+
+		for role_index in range(len(json_income_roles)):
+			role_id = json_income_roles[role_index]["role_id"]
+
+			# new edit for hourly income:
+			# edit new new edit for daily again..
+			now = datetime.now()
+			# below could be changed because we need single one for every user now...
+			last_income_update_string = json_income_roles[role_index]["last_updated"]
+			#
+
+			# get a timeobject from the string
+			last_income_update = datetime.strptime(last_income_update_string, '%Y-%m-%d %H:%M:%S.%f')
+			# calculate difference, see if it works
+			passed_time = now - last_income_update
+			# passed_time_final = passed_time.total_seconds() // 3600.0
+			passed_time_final = passed_time.days
+
+			try:
+				role = discord.utils.get(server_object.roles, id=int(role_id))
+			except:
+				role_error += 1
+				continue
+
+			for member in role.members:
+				try:
+					# also to create user in case he isnt registered yet
+					user_index, new_data = self.find_index_in_db(json_content["userdata"], member.id)
+
+					json_user_content = json_content["userdata"][user_index]
+					json_income_roles[role_index]["last_updated"] = str(now)
+					income_total = (json_income_roles[role_index]["role_income"] * int(passed_time_final))
+					json_user_content["bank"] += income_total
+					# overwrite
+					json_content["userdata"][user_index] = json_user_content
+
+				except:
+					pass
+			await channel.send(f"{role.mention}, you have received your income ({self.currency_symbol} {'{:,}'.format(int(income_total))}) !", silent=True)
+
+
+		# overwrite, end
+		json_content["income_roles"] = json_income_roles
+		self.overwrite_json(json_content)
+
+		if role_error == 0:
+			return "success", "success"
+		else:
+			return "error", f"error for `{role_error} role(s)`, maybe some got deleted?. Else the command successed."
+
+	#
+	# SOLO ROLE INCOME - UPDATE INCOMES SOLO
+	#   aka GET SALARY
+
+	async def update_incomes_solo(self, user, channel, username, user_pfp, server_object, user_roles):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
+
+		json_income_roles = json_content["income_roles"]
+		user_content = json_content["userdata"]
+
+		# this is the other way around than the global update income
+
+		role_ping_complete = []
+		hours_remaining = "24"
+		no_money = True
+		income_total = 0
+		received_instances = 0
+		for role in user_roles:
+			for role_index in range(len(json_income_roles)):
+				role_id = json_income_roles[role_index]["role_id"]
+				if int(role) == int(role_id):
+					no_money = False
+
+
+					# new edit for daily income:
+					now = datetime.now()
+					# now = datetime.strptime("2024-02-11 00:01:33.884845", '%Y-%m-%d %H:%M:%S.%f')
+
+					# first check if he already got one at all
+					try:
+						json_user_content = json_content["userdata"][user_index]
+
+						# role_ping_complete.append(discord.utils.get(server_object.roles, id=int(role_id)))
+
+						"""
+						30.12.23: new edit. By default now, users will get a daily salary
+						and will have to retrieve it daily. You can also change that tho
+						by changing "income_reset" to true in the json.
+						Because this is an update and we want compatibility with older versions,
+						we will need to try and if not write a income_reset.
+						"""
+						"""
+						08.02.24: new new edit. Now, payday resets GLOBALLY (not one day since you specifically did)
+						"""
+						# true by default
+						income_reset, new_day = True, False
+						try:
+							if json_content["symbols"][0]["income_reset"] == "false": income_reset = False
+						except:
+							# if not yet updated, we add this to json
+							json_content["symbols"][0]["income_reset"] = "true"
+						# get the current day
+						try:
+							last_global_update_string = json_content["symbols"][0]["global_collect"]
+							last_global_update = datetime.strptime(last_global_update_string, '%Y-%m-%d %H:%M:%S.%f')
+
+							last_single_called = json_income_roles[role_index]["last_single_called"][str(user)]
+							last_single = int(datetime.strptime(last_single_called, '%Y-%m-%d %H:%M:%S.%f').strftime("%d"))
+
+							today_day, last_day = int(now.strftime("%d")), int(last_global_update.strftime("%d"))
+							max_days = calendar.monthrange(int(now.strftime("%Y")), int(now.strftime("%m")))[1]
+							# print(today_day, last_day, max_days)
+							# print(last_single, today_day, last_day)
+							if today_day > max_days: last_day = 1
+							if last_single < last_day:
+								new_day = True
+
+							# for example if i last called on 08th JANUARY and today is 07th FEBRUARY
+							# the check above would say nope, so this is to fix that
+							if datetime.strptime(last_single_called, '%Y-%m-%d %H:%M:%S.%f') < last_global_update and last_single > last_day:
+								new_day = True
+
+							else:
+								hour_rem = 24 - int(now.strftime('%H')) - 1
+								min_rem_raw = 0 if 60 - int(now.strftime('%M')) == 60 else 60 - int(now.strftime('%M'))
+								min_rem = f"0{min_rem_raw}" if min_rem_raw < 10 else min_rem_raw
+								hours_remaining = f"{hour_rem}:{min_rem}"
+						except Exception as error_code:
+							print(error_code)
+							await channel.send("setting up")
+							json_content["symbols"][0]["global_collect"] = str(now)
+							new_day = True
+
+
+						if income_reset and new_day:
+							# you only get it DAILY, other than that it resets !
+							income_total += json_income_roles[role_index]["role_income"]
+							json_income_roles[role_index]["last_single_called"][str(user)] = str(now)
+							received_instances += 1
+						json_content["symbols"][0]["global_collect"] = str(now)
+
+					except Exception as error_code:  # he didn't retrieve a salary yet
+						print(error_code)
+						await channel.send("creating your first entry...")
+						json_income_roles[role_index]["last_single_called"][str(user)] = str(now) # removed on 08.02. update
+						# also to create user in case he isnt registered yet
+						income_total += json_income_roles[role_index]["role_income"]
+						received_instances += 1
+
+					# role_ping_complete.append(discord.utils.get(server_object.roles, id=int(role_id)))
+
+		json_user_content = json_content["userdata"][user_index]
+		json_user_content["bank"] += income_total
+		# overwrite
+		json_content["userdata"][user_index] = json_user_content
+		json_content["income_roles"] = json_income_roles
+
+		if no_money:
+			await channel.send("You have no income roles!")
+		else:
+			if int(income_total) != 0:
+				await channel.send(f"You have received your income ({self.currency_symbol} {'{:,}'.format(int(income_total))}) from a total of {received_instances} different roles!", silent=True)
+			else:
+				await channel.send(f"`You already collected! Reset in: {hours_remaining} hours.`", silent=True)
+
+		# overwrite, end
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+
+
+
+	#
+	# REMOVE MONEY BY ROLE
+	#
+
+	async def remove_money_role(self, user, channel, username, user_pfp, server_object, income_role, amount_removed):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		json_income_roles = json_content["income_roles"]
+
+		# pretty straight forward i think.
+		# first, we go into each role object
+		# then we check in everyones roles if they have the role
+
+		role = discord.utils.get(server_object.roles, id=int(income_role))
+		for member in role.members:
+			try:
+				# also to create user in case he isnt registered yet
+				user_index, new_data = self.find_index_in_db(json_content["userdata"], member.id)
+
+				json_user_content = json_content["userdata"][user_index]
+				if json_user_content["bank"] - int(amount_removed) < 0:
+					json_user_content["bank"] = 0
+				else:
+					json_user_content["bank"] -= int(amount_removed)
+				# overwrite
+				json_content["userdata"][user_index] = json_user_content
+
+			except:
+				pass
+
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(
+			description=f"✅ You have removed {self.currency_symbol} {'{:,}'.format(int(amount_removed))} from a total of {'{:,}'.format(int(len(role.members)))} users with that role !",
+			color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["income_roles"] = json_income_roles
+		self.overwrite_json(json_content)
+
+		return "success", "success"
