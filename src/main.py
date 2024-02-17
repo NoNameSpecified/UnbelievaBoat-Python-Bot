@@ -1420,7 +1420,7 @@ async def on_message(message):
 					print(roles_id_excluded)
 				except:
 					roles_id_excluded = ["none"]
-				first_embed.add_field(name="Excluded roles", value=f"{roles_id_excluded}")
+				first_embed.add_field(name="Excluded roles", value=f"{excluded_roles}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
 				next_info = ":eight: What role(s) do you want to be given when this item is bought?\nIf none, just reply `skip`. For multiple, ping them with a space between them."
 				await last_report.edit(content=next_info, embed=first_embed)
