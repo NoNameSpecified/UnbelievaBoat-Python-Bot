@@ -272,27 +272,36 @@ async def on_message(message):
 	if command in [ "blackjack", all_reg_commands_aliases["blackjack"] ]:
 		if "none" in param[1] or param[2] != "none": # only bj <bet> ; nothing more than that 1 parameter
 			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`blackjack <bet>`", color=color)
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`blackjack <amount or all>`", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
 
-		try:
-			bet = int(param[1])
-		except Exception as e:
-			print(e)
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<bet>` argument given.\n\nUsage:\n`blackjack <bet>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
+		bet = param[1]
+		# either all or an amount, not some random string
+		if bet != "all":
+			try:
+				# they can use the thousands separator comma
+				newAmount = []
+				for char in bet:
+					if char != ",":
+						newAmount.append(char)
+				bet = "".join(newAmount)
+				bet = int(bet)
+				if bet < 100:
+					color = discord_error_rgb_code
+					embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount or all>` argument given. Bet must be at least 100.\n", color=color)
+					embed.set_author(name=username, icon_url=user_pfp)
+					await channel.send(embed=embed)
+					return
+			except:
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount or all>` argument given.\n\nUsage:\n`roulette <amount or all> <space>`", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		bet = str(bet)
 
-		if bet < 100:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  You must choose at least `100` for your bet.", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
 
 		try:
 			# gotta check if enough money, if bet enough, etc etc then do the actual game
@@ -320,20 +329,35 @@ async def on_message(message):
 	elif command in [ "roulette", all_reg_commands_aliases["roulette"] ]: # no alias
 		if "none" in param[1] or "none" in param[2]: # we need 2 parameters
 			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`roulette <bet> <space>`", color=color)
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`roulette <amount or all> <space>`", color=color)
 			embed.set_author(name=username, icon_url=user_pfp)
 			await channel.send(embed=embed)
 			return
 
-		# bet must be in 1st place, and an int
-		try:
-			bet = int(param[1])
-		except:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  Invalid `<bet>` argument given.\n\nUsage:\n`roulette <bet> <space>`", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
+		bet = param[1]
+		# either all or an amount, not some random string
+		if bet != "all":
+			try:
+				# they can use the thousands separator comma
+				newAmount = []
+				for char in bet:
+					if char != ",":
+						newAmount.append(char)
+				bet = "".join(newAmount)
+				bet = int(bet)
+				if bet < 100:
+					color = discord_error_rgb_code
+					embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount or all>` argument given. Bet must be at least 100.\n", color=color)
+					embed.set_author(name=username, icon_url=user_pfp)
+					await channel.send(embed=embed)
+					return
+			except:
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{emoji_error}  Invalid `<amount or all>` argument given.\n\nUsage:\n`roulette <amount or all> <space>`", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		bet = str(bet)
 
 		# space must be in second, and a valid space
 		space = str(param[2])
@@ -348,20 +372,13 @@ async def on_message(message):
 				fail = 1
 			if fail == 1:
 				color = discord_error_rgb_code
-				embed = discord.Embed(description=f"{emoji_error}  Invalid `<space>` argument given.\n\nUsage:\n`roulette <bet> <space>`", color=color)
+				embed = discord.Embed(description=f"{emoji_error}  Invalid `<space>` argument given.\n\nUsage:\n`roulette <amount or all> <space>`", color=color)
 				embed.set_author(name=username, icon_url=user_pfp)
 				await channel.send(embed=embed)
 				return
 
 		# convert to str, even if number. will be checked in the game itself later
 		space = str(space)
-
-		if bet < 100:
-			color = discord_error_rgb_code
-			embed = discord.Embed(description=f"{emoji_error}  You must choose at least `100` for your bet.", color=color)
-			embed.set_author(name=username, icon_url=user_pfp)
-			await channel.send(embed=embed)
-			return
 
 		try:
 			# gotta check if enough money, if bet enough, etc etc then do the actual game
@@ -781,9 +798,9 @@ async def on_message(message):
 		embed = discord.Embed(title=f"Help System", color=color)
 
 		embed.add_field(name=all_reg_commands[0], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[0]]}  |  "
-														f"Usage: `blackjack <bet>`", inline=False)
+														f"Usage: `blackjack <amount or all>`", inline=False)
 		embed.add_field(name=all_reg_commands[1], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[1]]}  |  "
-														f"Usage: `roulette <bet> <space>`", inline=False)
+														f"Usage: `roulette <amount or all> <space>`", inline=False)
 		embed.add_field(name=all_reg_commands[2], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[2]]}  |  "
 												f"Usage: `slut`", inline=False)
 		embed.add_field(name=all_reg_commands[3], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[3]]}  |  "
