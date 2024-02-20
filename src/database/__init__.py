@@ -186,10 +186,17 @@ class pythonboat_database_handler:
 
 		# get user stuff
 		user_cash = json_user_content["cash"]
-		if user_cash < bet:
-			self.overwrite_json(json_content)
-			return "error", f"❌ You don't have enough money for this bet.\nYou currently have {str(self.currency_symbol)} **{'{:,}'.format(int(user_cash))}** in cash."
-
+		
+		if bet == "all":
+			bet = user_cash
+			if bet < 100:
+				return "error", f"❌ Not at least 100 in cash. You currently have {str(self.currency_symbol)} {'{:,}'.format(user_cash)} on hand."
+		else:
+			bet = int(bet)
+		
+		if bet > user_cash:
+			return "error", f"❌ You don't have that much money in cash. You currently have {str(self.currency_symbol)} {'{:,}'.format(user_cash)} on hand."
+		
 		# the actual game
 		# start it
 		startInstance = blackjack_discord_implementation(bot, channel, self.currency_symbol)
@@ -227,9 +234,16 @@ class pythonboat_database_handler:
 
 		# get user stuff
 		user_cash = json_user_content["cash"]
-		if user_cash < bet:
-			self.overwrite_json(json_content)
-			return "error", f"❌ You don't have enough money for this bet.\nYou currently have {str(self.currency_symbol)} **{'{:,}'.format(int(user_cash))}** in cash."
+		
+		if bet == "all":
+			bet = user_cash
+			if bet < 100:
+				return "error", f"❌ Not at least 100 in cash. You currently have {str(self.currency_symbol)} {'{:,}'.format(user_cash)} on hand."
+		else:
+			bet = int(bet)
+			
+		if bet > user_cash:
+			return "error", f"❌ You don't have that much money in cash. You currently have {str(self.currency_symbol)} {'{:,}'.format(user_cash)} on hand."
 
 		# the actual game
 		# start it
