@@ -56,11 +56,12 @@ class roulette_discord_implementation:
 		color = discord.Color.from_rgb(3, 169, 244)
 		embed = discord.Embed(description=f"You have placed a bet of {str(self.currency_symbol)} {bet} on `{space}`.", color=color)
 		embed.set_author(name=username, icon_url=user_pfp)
-		embed.set_footer(text="Spinning ! ... time remaining: 10 seconds")
+		embed.set_footer(text="Spinning ! ... time remaining: 5 seconds")
 		await channel.send(embed=embed)
 
 		# wait the 10 seconds
-		await asyncio.sleep(10)
+		# await asyncio.sleep(10) # made problems with json, couldnt change while roulette was running.
+		time.sleep(5)
 
 		win = lose = multiplicator = None
 
