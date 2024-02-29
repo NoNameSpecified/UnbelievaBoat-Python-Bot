@@ -796,6 +796,7 @@ async def on_message(message):
 	elif command in ["help", all_reg_commands_aliases["help"]]:
 		color = discord.Color.from_rgb(3, 169, 244)
 		embed = discord.Embed(title=f"Help System", color=color)
+		embed.add_field(name="stats", value=f"Usage: `stats`", inline=False)
 
 		embed.add_field(name=all_reg_commands[0], value=f"Alias: {all_reg_commands_aliases[all_reg_commands[0]]}  |  "
 														f"Usage: `blackjack <amount or all>`", inline=False)
@@ -2454,7 +2455,28 @@ async def on_message(message):
 		embed.set_author(name=username, icon_url=user_pfp)
 		await channel.send(embed=embed)
 		"""
+		return
+	
+	
+	# ---------------------------
+	#   economy stats
+	# ---------------------------
 
+	elif command in ["stats", "economy-stats", "statistics"]:
+
+		try:
+			status, economy_stats_return = await db_handler.economy_stats(user, channel, username, user_pfp, server)
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{economy_stats_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except Exception as e:
+			print(e)
+			await send_error(channel)
+			
+			
 		return
 
 
