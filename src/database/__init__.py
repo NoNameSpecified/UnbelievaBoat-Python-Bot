@@ -2304,3 +2304,31 @@ class pythonboat_database_handler:
 		self.overwrite_json(json_content)
 
 		return "success", "success"
+	
+	#
+	# ECONOMY STATS
+	#
+
+	async def economy_stats(self, user, channel, username, user_pfp, server_object):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+		
+		total_cash, total_bank, total_total = 0, 0, 0
+		
+		for i in range(len(json_content["userdata"])):
+			total_cash += json_content["userdata"][i]["cash"]
+			total_bank += json_content["userdata"][i]["bank"]
+			
+		total_total = total_cash + total_bank
+
+		# inform user
+		color = self.discord_blue_rgb_code
+		embed = discord.Embed(color=color)
+		embed.add_field(name=f"**Total Cash:**", value=f"{self.currency_symbol} {'{:,}'.format(int(total_cash))}", inline=False)
+		embed.add_field(name=f"**Total Bank:**", value=f"{self.currency_symbol} {'{:,}'.format(int(total_bank))}", inline=False)
+		embed.add_field(name=f"**Total:**", value=f"{self.currency_symbol} {'{:,}'.format(int(total_total))}", inline=False)
+		embed.set_author(name="Economy Stats", icon_url="https://upload.wikimedia.org/wikipedia/commons/5/5e/Map_symbol_museum_02.png")
+		await channel.send(embed=embed)
+
+		return "success", "success"
