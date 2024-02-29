@@ -7,6 +7,7 @@ Here I use the prefix "+" but you can change it to whatever you want.
   Roulette: +roulette <bet> <space>
 
 2. Balance & Money
+  Economy Stats: +stats
   Check Balance: +balance
   Deposit money: +deposit <amount or all>
   Withdraw money. +withdraw <amount or all>
