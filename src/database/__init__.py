@@ -204,6 +204,8 @@ class pythonboat_database_handler:
 
 		if bjPlay == "win":
 			json_user_content["cash"] += bet
+		elif bjPlay == "blackjack":
+			json_user_content["cash"] += bet * 1.5
 		elif bjPlay == "loss":
 			json_user_content["cash"] -= bet
 		elif bjPlay == "bust":
