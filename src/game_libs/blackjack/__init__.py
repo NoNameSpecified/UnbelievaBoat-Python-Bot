@@ -99,22 +99,29 @@ class blackjack_discord_implementation:
 					firstEmbed.set_author(name=username, icon_url=user_pfp)
 					firstEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
 					firstEmbed.add_field(name="**Dealer shows**", value=f"{str(hand['computer'][-1])}\nValue ?", inline=True)
-					firstEmbed.set_footer(text="Cards remaining: 666")
+					firstEmbed.set_footer(text="Cards remaining: 999")
 					sentFirstEmbed = await channel.send(embed=firstEmbed)
 				# which we will edit
 				else:
+					
 					color = discord.Color.from_rgb(3, 169, 244)
 					newEmbed = discord.Embed(description=f"Type `hit` to draw another card, or `stand` to pass.", color=color)
 					newEmbed.set_author(name=username, icon_url=user_pfp)
 					newEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
 					newEmbed.add_field(name="**Dealer shows**", value=f"{str(hand['computer'][-1])}\nValue ?", inline=True)
-					newEmbed.set_footer(text="Cards remaining: 666")
+					newEmbed.set_footer(text="Cards remaining: 999")
 					await sentFirstEmbed.edit(embed=newEmbed)
 
 
+				# print("right now at ", self.handCount(hand['human']))
+				if self.handCount(hand['human']) == 21:
+					# print("blackjack !")
+					playHuman = False
+					break
+				
 				inputCycle = True
 				userInput = ''
-
+				
 				# wait until good input
 				while inputCycle:
 					# now, what does the user want ?
@@ -134,6 +141,7 @@ class blackjack_discord_implementation:
 			bustedComputer = False
 
 			while not bustedHuman and playComputer:
+				
 				if self.handCount(hand['computer']) < 17:
 					hand['computer'].append(deck.pop(0))
 				else:
@@ -145,14 +153,30 @@ class blackjack_discord_implementation:
 
 			print("pc : ", self.handCount(hand['computer']), "player : ", self.handCount(hand['human']))
 
-			if bustedHuman:
+			if self.handCount(hand['human']) == 21:
+
+				"""
+				blackjack
+				"""
+
+				color = discord.Color.from_rgb(102, 187, 106)
+				pcBustedEmbed = discord.Embed(description=f"Result: blackjack! {str(self.currency_symbol)} +{'{:,}'.format(bet*1.5)}", color=color)
+				pcBustedEmbed.set_author(name=username, icon_url=user_pfp)
+				pcBustedEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
+				pcBustedEmbed.add_field(name="**Dealer shows**", value=f"X X\nValue {self.handCount(hand['computer'])}", inline=True)
+				pcBustedEmbed.set_footer(text="Cards remaining: 999")
+				await sentFirstEmbed.edit(embed=pcBustedEmbed)
+
+				return "blackjack"
+
+			elif bustedHuman:
 
 				"""
 				player busted
 				"""
 
 				color = discord.Color.from_rgb(239, 83, 80)
-				playerBustEmbed = discord.Embed(description=f"Result: Bust {str(self.currency_symbol)} -{bet}", color=color)
+				playerBustEmbed = discord.Embed(description=f"Result: Bust {str(self.currency_symbol)} -{'{:,}'.format(bet)}", color=color)
 				playerBustEmbed.set_author(name=username, icon_url=user_pfp)
 				playerBustEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
 				playerBustEmbed.add_field(name="**Dealer shows**", value=f"{str(hand['computer'][-1])}\nValue ?", inline=True)
@@ -168,11 +192,11 @@ class blackjack_discord_implementation:
 				"""
 
 				color = discord.Color.from_rgb(102, 187, 106)
-				pcBustedEmbed = discord.Embed(description=f"Result: Dealer Bust {str(self.currency_symbol)} +{bet}", color=color)
+				pcBustedEmbed = discord.Embed(description=f"Result: Dealer Bust {str(self.currency_symbol)} +{'{:,}'.format(bet)}", color=color)
 				pcBustedEmbed.set_author(name=username, icon_url=user_pfp)
 				pcBustedEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
 				pcBustedEmbed.add_field(name="**Dealer shows**", value=f"X X\nValue {self.handCount(hand['computer'])}", inline=True)
-				pcBustedEmbed.set_footer(text="Cards remaining: 666")
+				pcBustedEmbed.set_footer(text="Cards remaining: 999")
 				await sentFirstEmbed.edit(embed=pcBustedEmbed)
 
 				return "win"
@@ -184,11 +208,11 @@ class blackjack_discord_implementation:
 				"""
 
 				color = discord.Color.from_rgb(102, 187, 106)
-				playerWinEmbed = discord.Embed(description=f"Result: Win {str(self.currency_symbol)} +{bet}", color=color)
+				playerWinEmbed = discord.Embed(description=f"Result: Win {str(self.currency_symbol)} +{'{:,}'.format(bet)}", color=color)
 				playerWinEmbed.set_author(name=username, icon_url=user_pfp)
 				playerWinEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
 				playerWinEmbed.add_field(name="**Dealer shows**", value=f"X X\nValue {self.handCount(hand['computer'])}", inline=True)
-				playerWinEmbed.set_footer(text="Cards remaining: 666")
+				playerWinEmbed.set_footer(text="Cards remaining: 999")
 				await sentFirstEmbed.edit(embed=playerWinEmbed)
 
 				return "win"
@@ -204,7 +228,7 @@ class blackjack_discord_implementation:
 				playerWinEmbed.set_author(name=username, icon_url=user_pfp)
 				playerWinEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
 				playerWinEmbed.add_field(name="**Dealer shows**", value=f"X X\nValue {self.handCount(hand['computer'])}", inline=True)
-				playerWinEmbed.set_footer(text="Cards remaining: 666")
+				playerWinEmbed.set_footer(text="Cards remaining: 999")
 				await sentFirstEmbed.edit(embed=playerWinEmbed)
 
 				return "bust"
@@ -216,7 +240,7 @@ class blackjack_discord_implementation:
 				"""
 
 				color = discord.Color.from_rgb(239, 83, 80)
-				pcWinEmbed = discord.Embed(description=f"Result: Loss {str(self.currency_symbol)} -{bet}", color=color)
+				pcWinEmbed = discord.Embed(description=f"Result: Loss {str(self.currency_symbol)} -{'{:,}'.format(bet)}", color=color)
 				pcWinEmbed.set_author(name=username, icon_url=user_pfp)
 				pcWinEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
 				pcWinEmbed.add_field(name="**Dealer Hand**", value=f"X X\nValue {self.handCount(hand['computer'])}", inline=True)
