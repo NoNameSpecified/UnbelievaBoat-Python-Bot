@@ -251,6 +251,7 @@ class pythonboat_database_handler:
 		# start it
 		startInstance = roulette_discord_implementation(bot, channel, self.currency_symbol)
 		roulettePlay, multiplicator = await startInstance.play(bot, channel, username, user_pfp, bet, space, mention)
+		# print("done with roulette call")
 		# roulettePlay will be 1 for won, 0 for lost
 		if roulettePlay:
 			json_user_content["cash"] += (bet * multiplicator) - bet
@@ -262,7 +263,7 @@ class pythonboat_database_handler:
 		# overwrite, end
 		json_content["userdata"][user_index] = json_user_content
 		self.overwrite_json(json_content)
-
+		# print("FINISHED writing")
 		return "success", "success"
 
 	#
@@ -739,9 +740,12 @@ class pythonboat_database_handler:
 	# BALANCE
 	#
 
-	async def balance(self, user, channel, userbal_to_check, username_to_check, userpfp_to_check):
+	async def balance(self, user, channel, userbal_to_check, username_to_check, userpfp_to_check, not_done):
 		# load json
+		# print(not_done)
+		if not_done: await asyncio.sleep(1)
 		json_file = open(self.pathToJson, "r")
+		# print("opened json")
 		json_content = json.load(json_file)
 		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
 		# check if user exists
@@ -755,8 +759,8 @@ class pythonboat_database_handler:
 		check_cash = "{:,}".format(int(json_user_content["cash"]))
 		check_bank = "{:,}".format(int(json_user_content["bank"]))
 		check_bal = "{:,}".format(int(json_user_content["cash"] + json_user_content["bank"]))
-
-		formatted_time = str(f"{datetime.now().hour}:{datetime.now().minute}")
+		minute_formatted = f"0{datetime.now().minute}" if datetime.now().minute < 10 else datetime.now().minute
+		formatted_time = str(f"{datetime.now().hour}:{minute_formatted}")
 
 		color = self.discord_blue_rgb_code
 		embed = discord.Embed(color=color)
