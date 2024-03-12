@@ -34,7 +34,7 @@ from discord.ext.commands import Bot
 import database
 from time import sleep
 # check img url
-import requests
+import requests, asyncio
 
 
 # init discord stuff and json handling
@@ -153,14 +153,13 @@ async def on_ready():
 USER-BOT INTERACTION
 
 """
-
+not_done = False
 @client.event
 async def on_message(message):
-
 	"""
 	start general variable definition
 	"""
-
+	global not_done
 	# check if message is for our bot
 	if not ( message.content.startswith(BOT_PREFIX) ) : return 0;
 
@@ -381,6 +380,7 @@ async def on_message(message):
 		space = str(space)
 
 		try:
+			not_done = True
 			# gotta check if enough money, if bet enough, etc etc then do the actual game
 			status, roulette_return = await db_handler.roulette(user, bet, space, client, channel, username, user_pfp, user_mention)
 
@@ -393,7 +393,8 @@ async def on_message(message):
 		except Exception as e:
 			print(e)
 			await send_error(channel)
-
+		# print("finished func")
+		not_done = False
 		return
 
 	# --------------
@@ -517,7 +518,7 @@ async def on_message(message):
 
 		# go through the handler
 		try:
-			await db_handler.balance(user, channel, userbal_to_check, username_to_check, userpfp_to_check)
+			await db_handler.balance(user, channel, userbal_to_check, username_to_check, userpfp_to_check, not_done)
 		except Exception as e:
 			print(e)
 			await send_error(channel)
