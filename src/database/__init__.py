@@ -1297,7 +1297,7 @@ class pythonboat_database_handler:
 	# CREATE NEW ITEM / create item
 	#
 
-	async def create_new_item(self, item_display_name, item_name, cost, description, duration, stock, roles_id_required, roles_id_to_give,
+	async def create_new_item(self, item_display_name, item_name, cost, description, duration, stock, max_amount, roles_id_required, roles_id_to_give,
 							  roles_id_to_remove, max_bal, reply_message, item_img_url, roles_id_excluded):
 		# load json
 		json_file = open(self.pathToJson, "r")
@@ -1323,6 +1323,7 @@ class pythonboat_database_handler:
 			"description": description,
 			"duration": duration,
 			"amount_in_stock": stock,
+			"max_amount": max_amount,
 			"required_roles": roles_id_required,
 			"given_roles": roles_id_to_give,
 			"removed_roles": roles_id_to_remove,
@@ -1471,6 +1472,7 @@ class pythonboat_database_handler:
 			excluded_roles = ["none"]
 		max_bal = item["maximum_balance"]
 		remaining_stock = item["amount_in_stock"]
+		max_amount = item["max_amount"]
 		expiration_date = item["expiration_date"]
 		reply_message = item["reply_message"]
 
@@ -1510,7 +1512,6 @@ class pythonboat_database_handler:
 		### thus this is now located below, after checking balance etc.
 
 		# 4. check if enough money
-
 		sum_price = item_price * amount
 		sum_price = round(sum_price, 0)
 		user_index, new_data = self.find_index_in_db(json_content["userdata"], user)
@@ -1526,13 +1527,31 @@ class pythonboat_database_handler:
 				return "error", f"❌ You have too much money to purchase.\nnet worth: {'{:,}'.format(int(user_bank + user_cash))} ; max bal: {max_bal}"
 
 		# 6. check if enough in stock or not
-		if max_bal != "none":
+		if remaining_stock != "unlimited":
 			if remaining_stock <= 0:
 				return "error", f"❌ Item not in stock."
 			elif amount > remaining_stock:
 				return "error", f" Not enough remaining in stock ({remaining_stock} remaining)."
-
-		# 8. rem money, substract stock, print message, add to inventory
+				
+		# 7. check if not too many items already owned / to be owned
+		user_item_amount = 0  # default value in case we have a bug
+		if user_content["items"] == "none":
+			user_item_amount = 0
+		else:
+			worked = False
+			for ii_i in range(len(user_content["items"])):
+				if user_content["items"][ii_i][0] == item_name:
+					user_item_amount = user_content["items"][ii_i][1]
+					worked = True
+					break
+			if not worked:  # has items, just not the relevant one
+				user_item_amount = 0
+		
+		if int(amount) >= int(max_amount) or int(user_item_amount + amount) >= int(max_amount) + 1:
+			available_to_buy = int(max_amount) - int(user_item_amount)
+			return "error", f"❌ You have too many items or would own too many.\nYou can buy **{'{:,}'.format(available_to_buy)}** {item_name}(s)"
+	
+		# 8. rem money, substract stock, add to inventory
 		user_content["cash"] -= sum_price
 		try:
 			item["amount_in_stock"] -= amount
@@ -1552,7 +1571,7 @@ class pythonboat_database_handler:
 			if needAppend:
 				user_content["items"].append([item_name, amount])
 
-		# 2. check remove roles
+		# 9. check remove roles
 		try:
 			if rem_roles[0] == "none":
 				pass
@@ -1566,7 +1585,7 @@ class pythonboat_database_handler:
 		except Exception as e:
 			return "error", f"❌ Unexpected error."
 
-		# 3. check give roles
+		# 9. check give roles
 		try:
 			if give_roles[0] == "none":
 				pass
@@ -1892,7 +1911,7 @@ class pythonboat_database_handler:
 						req_roles += "none"
 					else:
 						role = discord.utils.get(server_object.roles, id=int(items[item_index]["required_roles"][ii]))
-						req_roles += f"@{str(role)} "
+						req_roles += f"{str(role.mention)} "
 				
 				excluded_roles = ""
 				try:  # compatibility thingy
@@ -1901,7 +1920,7 @@ class pythonboat_database_handler:
 							excluded_roles += "none"
 						else:
 							role = discord.utils.get(server_object.roles, id=int(items[item_index]["excluded_roles"][ii]))
-							excluded_roles += f"@{str(role)} "
+							excluded_roles += f"{str(role.mention)} "
 				except Exception as e:
 					print(f"Error for required roles: {e} - (prob compatibility thingy).")
 					excluded_roles += "none"
@@ -1912,7 +1931,7 @@ class pythonboat_database_handler:
 						give_roles += "none"
 					else:
 						role = discord.utils.get(server_object.roles, id=int(items[item_index]["given_roles"][iii]))
-						give_roles += f"@{str(role)} "
+						give_roles += f"{str(role.mention)} "
 
 				rem_roles = ""
 				for iiii in range(len(items[item_index]["removed_roles"])):
@@ -1920,18 +1939,26 @@ class pythonboat_database_handler:
 						rem_roles += "none"
 					else:
 						role = discord.utils.get(server_object.roles, id=int(items[item_index]["removed_roles"][iiii]))
-						rem_roles += f"@{str(role)} "
+						rem_roles += f"{str(role.mention)} "
 
 				if int(str(datetime.strptime(items[item_index]['expiration_date'], '%Y-%m-%d %H:%M:%S.%f'))[
 					   :4]) >= 2100:
 					left_time = "never"
 				else:
 					left_time = str(items[item_index]['expiration_date'])[:10]
+				
+				# check for old version that dont have a max amount yet
+				try:
+					max_amount = items[item_index]['max_amount']
+				except:
+					max_amount = 0
 
 				try:
 					embed.add_field(name=f"Item name:", value=f"{items[item_index]['display_name']}", inline=False)
 					embed.add_field(name=f"Item short name:", value=f"`{items[item_index]['name']}`", inline=True)
 					embed.add_field(name=f"Item price:", value=f"{items[item_index]['price']}", inline=True)
+					embed.add_field(name=f"In stock:", value=f"{items[item_index]['amount_in_stock']}", inline=True)
+					embed.add_field(name=f"Max amount you can own:", value=f"{max_amount}", inline=False)
 					embed.add_field(name=f"Item description:", value=f"{items[item_index]['description']}", inline=False)
 					embed.add_field(name=f"Remaining time:", value=f"item expires {left_time}", inline=True)
 					embed.add_field(name=f"Max balance to purchase:", value=f"{self.currency_symbol} {items[item_index]['maximum_balance']}", inline=False)
@@ -1960,6 +1987,7 @@ class pythonboat_database_handler:
 									  f"Item description: {items[item_index]['description']}\n" \
 									  f"Remaining time: item expires {left_time}\n" \
 									  f"Amount remaining: {items[item_index]['amount_in_stock']} in stock\n" \
+									  f"Max amount you can own: {items[item_index]['max_amount']}\n" \
 									  f"Maximum balance to purchase: {self.currency_symbol} {items[item_index]['maximum_balance']}\n" \
 									  f"Required roles: {req_roles}\n" \
 									  f"Given roles: {give_roles}\n" \
