@@ -1472,7 +1472,10 @@ class pythonboat_database_handler:
 			excluded_roles = ["none"]
 		max_bal = item["maximum_balance"]
 		remaining_stock = item["amount_in_stock"]
-		max_amount = item["max_amount"]
+		try:
+			max_amount = item["max_amount"]
+		except:
+			max_amount = "unlimited"
 		expiration_date = item["expiration_date"]
 		reply_message = item["reply_message"]
 
@@ -1532,7 +1535,7 @@ class pythonboat_database_handler:
 				return "error", f"❌ Item not in stock."
 			elif amount > remaining_stock:
 				return "error", f" Not enough remaining in stock ({remaining_stock} remaining)."
-				
+		
 		# 7. check if not too many items already owned / to be owned
 		user_item_amount = 0  # default value in case we have a bug
 		if user_content["items"] == "none":
@@ -1547,10 +1550,11 @@ class pythonboat_database_handler:
 			if not worked:  # has items, just not the relevant one
 				user_item_amount = 0
 		
-		if int(amount) >= int(max_amount) or int(user_item_amount + amount) >= int(max_amount) + 1:
-			available_to_buy = int(max_amount) - int(user_item_amount)
-			return "error", f"❌ You have too many items or would own too many.\nYou can buy **{'{:,}'.format(available_to_buy)}** {item_name}(s)"
-	
+		if max_amount != "unlimited":
+			if int(amount) >= int(max_amount) or int(user_item_amount + amount) >= int(max_amount) + 1:
+				available_to_buy = int(max_amount) - int(user_item_amount)
+				return "error", f"❌ You have too many items or would own too many.\nYou can buy **{'{:,}'.format(available_to_buy)}** {item_name}(s)"
+		
 		# 8. rem money, substract stock, add to inventory
 		user_content["cash"] -= sum_price
 		try:
@@ -1558,7 +1562,7 @@ class pythonboat_database_handler:
 		except:
 			# in this case theres no limit so we dont substract anything
 			pass
-
+		
 		if user_content["items"] == "none":
 			user_content["items"] = [[item_name, amount]]
 		else:
