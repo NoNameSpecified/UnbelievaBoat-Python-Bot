@@ -1311,7 +1311,7 @@ async def on_message(message):
 				if len(user_input) > 200:
 					await channel.send(f"{emoji_error} The maximum length for an items description is 200 characters. Please try again.")
 					continue
-				if user_input == "skip":
+				if user_input.lower() == "skip":
 					description = "none"
 				else:
 					description = user_input
@@ -1329,7 +1329,7 @@ async def on_message(message):
 						await channel.send(f"{emoji_error}  Invalid time duration given. Please try again or type cancel to exit.")
 						continue
 				except:
-					if user_input == "skip":
+					if user_input.lower() == "skip":
 						#duration = "none"
 						duration = 99999 # the problem is that database.py always wants an int to calculate an expiration date.
 									   # so ill just put it to 993 days for now, maybe ill add a real fix later
@@ -1355,7 +1355,7 @@ async def on_message(message):
 						await channel.send(f"{emoji_error}  Invalid stock amount given. Please try again or type cancel to exit.")
 						continue
 				except:
-					if user_input == "skip" or user_input == "infinity":
+					if user_input.lower() == "skip" or user_input.lower() == "infinity":
 						stock = "unlimited"
 					else:
 						await channel.send(f"{emoji_error}  Invalid stock amount given. Please try again or type cancel to exit.")
@@ -1375,7 +1375,7 @@ async def on_message(message):
 						await channel.send(f"{emoji_error}  Invalid max amount given. Please try again or type cancel to exit.")
 						continue
 				except:
-					if user_input == "skip" or user_input == "infinity":
+					if user_input.lower() == "skip" or user_input.lower() == "infinity":
 						max_amount = "unlimited"
 					else:
 						await channel.send(f"{emoji_error}  Invalid max amount given. Please try again or type cancel to exit.")
@@ -1552,7 +1552,7 @@ async def on_message(message):
 						await channel.send(f"{emoji_error}  Invalid max balance given. Please try again or type cancel to exit.")
 						continue
 				except:
-					if user_input == "skip":
+					if user_input.lower() == "skip":
 						max_bal = "none"
 					else:
 						await channel.send(f"{emoji_error}  Invalid max balance given. Please try again or type cancel to exit.")
@@ -1568,7 +1568,7 @@ async def on_message(message):
 				if len(user_input) > 150:
 					await channel.send(f"{emoji_error} The maximum length for a reply message is 150 characters. Please try again.")
 					continue
-				if user_input == "skip":
+				if user_input.lower() == "skip":
 					user_input = f"Congrats on buying the item."
 				reply_message = user_input
 				first_embed.add_field(name="Reply message", value=f"{reply_message}", inline=False)
@@ -1579,7 +1579,7 @@ async def on_message(message):
 
 			elif checkpoints == 13:
 				# check 13: item img
-				if user_input == "skip":
+				if user_input.lower() == "skip":
 					user_input = f"EMPTY"
 					item_img_url = user_input
 				else:
