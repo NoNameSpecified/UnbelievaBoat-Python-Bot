@@ -1059,7 +1059,16 @@ class pythonboat_database_handler:
 		bal_selection = all_bal[index_start: index_end]
 
 		# making the formatted !
-		i = 0 if page_number == 1 else page_number * ranks_per_page # this is because if we call page 2 we wanna start at 20
+		if page_number == 1:
+			i = 0
+		else:
+			"""
+			this is because if we call page 2 we wanna start at 20
+			edit (26.04.24): page 2 should be starting at 10 obviously lol, 3 starts at 2.
+			without this we would have 1-10 on page 1 and then 21-30 on page 2.
+			"""
+			i = (page_number - 1) * ranks_per_page
+
 		leaderboard_formatted = f""
 		for i_i in range(len(user_selection)):
 			leaderboard_formatted += f"\n**{str(i + 1)}.** {user_selection[i_i]} • {str(self.currency_symbol)} {bal_selection[i_i]}"
