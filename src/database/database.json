@@ -10,6 +10,38 @@
             "last_work": "2021-01-01 00:00:00.0",
             "last_crime": "2021-01-01 00:00:00.0",
             "last_rob": "2021-01-01 00:00:00.0"
+        },
+        {
+            "user_id": 611784823123607573,
+            "cash": 115,
+            "bank": 10,
+            "items": [
+                [
+                    "test1",
+                    3
+                ]
+            ],
+            "used_items": [
+                [
+                    "test1",
+                    1
+                ]
+            ],
+            "last_slut": "none",
+            "last_work": "2024-10-28 01:14:43.492772",
+            "last_crime": "none",
+            "last_rob": "none"
+        },
+        {
+            "user_id": 187385442549628928,
+            "cash": 1000,
+            "bank": 0,
+            "items": "none",
+            "used_items": "none",
+            "last_slut": "none",
+            "last_work": "none",
+            "last_crime": "none",
+            "last_rob": "none"
         }
     ],
     "variables": [
@@ -78,9 +110,44 @@
             "name": "currency_symbol",
             "symbol_emoji": "my_currency_emoji_clear_name_only",
             "income_reset": "true",
-            "global_collect": "2024-02-08 19:34:36.648900"
+            "global_collect": "2024-10-28 01:38:15.146266"
         }
     ],
-    "items": [],
-    "income_roles": []
+    "items": [
+        {
+            "name": "test1",
+            "display_name": "test Item 1",
+            "price": 10,
+            "description": "Use this to test purchasing an item!",
+            "duration": 99999,
+            "amount_in_stock": "unlimited",
+            "max_amount": "unlimited",
+            "required_roles": [
+                "none"
+            ],
+            "given_roles": [
+                "none"
+            ],
+            "removed_roles": [
+                "none"
+            ],
+            "excluded_roles": [
+                "none"
+            ],
+            "maximum_balance": "none",
+            "reply_message": "You bought << TEST ITEM 1 >>",
+            "expiration_date": "2298-08-12 01:18:54.464483",
+            "item_img_url": "EMPTY"
+        }
+    ],
+    "income_roles": [
+        {
+            "role_id": "1300327217527521322",
+            "role_income": 10,
+            "last_single_called": {
+                "611784823123607573": "2024-10-28 01:38:15.146266"
+            },
+            "last_updated": "2024-10-28 01:38:01.527127"
+        }
+    ]
 }

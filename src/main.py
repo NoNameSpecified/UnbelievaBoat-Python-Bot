@@ -27,6 +27,7 @@ INFO
 """
 
 # imports
+import json
 import discord
 import random
 from discord.ext.commands import Bot
@@ -37,9 +38,13 @@ from time import sleep
 import requests, asyncio
 
 
+with open('config.json', 'r') as cfg:
+  # Deserialize the JSON data (essentially turning it into a Python dictionary object so we can use it in our code) 
+  config = json.load(cfg) 
+  
 # init discord stuff and json handling
 BOT_PREFIX = ("+")  # tupple in case we'd need multiple
-token = "MTI5ODgyODUxNzI2NTYzNzM3Ng.GPJRDC.ZxL0871mF5sJahe3tmppvthEUNc-OtkEIavxaA"  # add your own token
+token = config["token"]
 # emojis
 emoji_worked = "✅"
 emoji_error = "❌"
