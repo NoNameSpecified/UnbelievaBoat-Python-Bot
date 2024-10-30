@@ -2186,7 +2186,7 @@ async def on_message(message):
 	#   ITEMS CATALOG
 	# ---------------------------
 
-	elif command in ["catalog", "items", "item-list", "list-items"]:
+	elif command in ["shop", "store", "catalog", "items", "item-list", "list-items"]:
 
 		if "none" in param[1]:  # we need item name
 			item_check = "default_list"

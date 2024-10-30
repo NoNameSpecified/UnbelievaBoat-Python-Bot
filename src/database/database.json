@@ -1,24 +1,17 @@
 {
     "userdata": [
         {
-            "user_id": 100000000000000000,
-            "cash": 100.0,
-            "bank": 100.0,
-            "items": "none",
-            "used_items": "none",
-            "last_slut": "2021-01-01 00:00:00.0",
-            "last_work": "2021-01-01 00:00:00.0",
-            "last_crime": "2021-01-01 00:00:00.0",
-            "last_rob": "2021-01-01 00:00:00.0"
-        },
-        {
             "user_id": 611784823123607573,
-            "cash": 115,
-            "bank": 10,
+            "cash": 0.0,
+            "bank": 100112611.0,
             "items": [
                 [
                     "test1",
-                    3
+                    95
+                ],
+                [
+                    "soul",
+                    0
                 ]
             ],
             "used_items": [
@@ -27,20 +20,100 @@
                     1
                 ]
             ],
-            "last_slut": "none",
-            "last_work": "2024-10-28 01:14:43.492772",
-            "last_crime": "none",
-            "last_rob": "none"
+            "last_slut": "2024-10-30 11:23:26.742931",
+            "last_work": "2024-10-30 11:23:29.220374",
+            "last_crime": "2024-10-30 11:23:19.769624",
+            "last_rob": "2024-10-30 11:23:36.326743"
         },
         {
             "user_id": 187385442549628928,
             "cash": 1000,
+            "bank": 0,
+            "items": [
+                [
+                    "test1",
+                    1
+                ]
+            ],
+            "used_items": "none",
+            "last_slut": "none",
+            "last_work": "none",
+            "last_crime": "none",
+            "last_rob": "none"
+        },
+        {
+            "user_id": 1098066390889533530,
+            "cash": 11209800,
+            "bank": 0,
+            "items": [
+                [
+                    "soul",
+                    0
+                ]
+            ],
+            "used_items": "none",
+            "last_slut": "none",
+            "last_work": "none",
+            "last_crime": "none",
+            "last_rob": "none"
+        },
+        {
+            "user_id": 109376417535418368,
+            "cash": 0,
             "bank": 0,
             "items": "none",
             "used_items": "none",
             "last_slut": "none",
             "last_work": "none",
             "last_crime": "none",
+            "last_rob": "none"
+        },
+        {
+            "user_id": 246076988274638849,
+            "cash": 76,
+            "bank": 0,
+            "items": [
+                [
+                    "test1",
+                    11
+                ]
+            ],
+            "used_items": "none",
+            "last_slut": "none",
+            "last_work": "2024-10-30 13:42:58.803861",
+            "last_crime": "none",
+            "last_rob": "none"
+        },
+        {
+            "user_id": 295616503812849664,
+            "cash": 190.0,
+            "bank": 604.0,
+            "items": [
+                [
+                    "test1",
+                    0
+                ]
+            ],
+            "used_items": [
+                [
+                    "test1",
+                    1
+                ]
+            ],
+            "last_slut": "2024-10-30 13:16:52.238887",
+            "last_work": "2024-10-30 13:16:50.096117",
+            "last_crime": "2024-10-30 13:16:55.391958",
+            "last_rob": "2024-10-30 13:17:31.897719"
+        },
+        {
+            "user_id": 431990271052611606,
+            "cash": 39.0,
+            "bank": 0,
+            "items": "none",
+            "used_items": "none",
+            "last_slut": "2024-10-30 13:27:50.031140",
+            "last_work": "2024-10-30 13:26:46.855549",
+            "last_crime": "2024-10-30 13:27:45.609584",
             "last_rob": "none"
         }
     ],
@@ -110,7 +183,7 @@
             "name": "currency_symbol",
             "symbol_emoji": "my_currency_emoji_clear_name_only",
             "income_reset": "true",
-            "global_collect": "2024-10-28 01:38:15.146266"
+            "global_collect": "2024-10-30 13:36:36.097255"
         }
     ],
     "items": [
@@ -138,16 +211,41 @@
             "reply_message": "You bought << TEST ITEM 1 >>",
             "expiration_date": "2298-08-12 01:18:54.464483",
             "item_img_url": "EMPTY"
+        },
+        {
+            "name": "soul",
+            "display_name": "bear's soul v2",
+            "price": 1,
+            "description": "yes",
+            "duration": 5,
+            "amount_in_stock": 0,
+            "max_amount": "unlimited",
+            "required_roles": [
+                "none"
+            ],
+            "given_roles": [
+                "none"
+            ],
+            "removed_roles": [
+                "none"
+            ],
+            "excluded_roles": [
+                "none"
+            ],
+            "maximum_balance": "none",
+            "reply_message": "Congrats on buying the item.",
+            "expiration_date": "2024-11-04 13:13:34.474556",
+            "item_img_url": "EMPTY"
         }
     ],
     "income_roles": [
         {
-            "role_id": "1300327217527521322",
-            "role_income": 10,
+            "role_id": "1301228650573856818",
+            "role_income": 100,
             "last_single_called": {
-                "611784823123607573": "2024-10-28 01:38:15.146266"
+                "611784823123607573": "2024-10-30 12:58:53.397194"
             },
-            "last_updated": "2024-10-28 01:38:01.527127"
+            "last_updated": "2024-10-30 12:58:33.088196"
         }
     ]
 }

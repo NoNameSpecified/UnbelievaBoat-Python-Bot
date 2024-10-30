@@ -1869,7 +1869,7 @@ class pythonboat_database_handler:
 
 		items = json_content["items"]
 		catalog_final, max_items, current, finished = [], 10, 0, False
-		catalog_report = "__Items catalog:__\n```\n"
+		catalog_report = "__Shop Items:__\n```\n"
 		if item_check == "default_list":
 			for i in range(len(items)):
 				current += 1
@@ -1877,7 +1877,6 @@ class pythonboat_database_handler:
 					# print(current, max_items)
 					catalog_report += f"Item {i}: {items[i]['display_name']}\n      price: {self.currency_symbol} {items[i]['price']};　short name <{items[i]['name']}>\n\n"
 					if current >= max_items:
-						# catalog_report += "\n```\n*For details about an item: use* `catalog <item short name>`"
 						catalog_report += "\n```"
 						catalog_final.append(catalog_report)
 						catalog_report = "```"
@@ -1886,10 +1885,7 @@ class pythonboat_database_handler:
 					await channel.send("compatbility error, please contact an admin.")
 					return "success", "success"
 
-			#if current != 0:
-			#	catalog_report += "\n*For details about an item: use* `catalog <item short name>`"
-			#else:
-			catalog_report += "\n```\n*For details about an item: use* `catalog <item short name>`"
+			catalog_report += "\n```\n*For details about an item: use* `shop <item short name>`"
 			catalog_final.append(catalog_report)
 
 		else:
