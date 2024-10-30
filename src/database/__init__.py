@@ -1397,6 +1397,33 @@ class pythonboat_database_handler:
 		self.overwrite_json(json_content)
 
 		return "success", "success"
+	
+	#
+	# REMOVE ITEM FROM STORE (STAYS IN USER INVENTORY)
+	#
+
+	async def remove_item_from_store(self, item_name):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		json_items = json_content["items"]
+		item_found = item_index = 0
+		for i in range(len(json_items)):
+			if json_items[i]["name"] == item_name:
+				item_found = 1
+				item_index = i
+		if not item_found:
+			return "error", "❌ Item not found."
+
+		# delete from the "items" section
+		json_items.pop(item_index)
+
+		# overwrite, end
+		json_content["items"] = json_items
+		self.overwrite_json(json_content)
+
+		return "success", "success"
 
 	#
 	# REMOVE ITEM FROM SPECIFIC USER's INVENTORY
@@ -1802,7 +1829,7 @@ class pythonboat_database_handler:
 
 			# number of pages which will be needed :
 			# we have 10 items per page
-			items_per_page = 5  # change to 10 after
+			items_per_page = 10 
 
 			# our selection !
 			index_start = (page_number - 1) * items_per_page
@@ -1840,7 +1867,7 @@ class pythonboat_database_handler:
 				# btw i use "ideographic space" [　] for tab
 				# inventory_checkup += f"[{current_index}]　Item: {item_display_name}\n　　short name: {json_items[ii]['name']}\n　　amount: `{items_selection[i][1]}`\n\n"
 				embed.add_field(name=f"[{current_index}]　Item: {item_display_name}",
-								value=f"short name: `{json_items[ii]['name']}`　"
+								value=f"short name: `{items_selection[i][0]}`　"
 									  f"amount: `{items_selection[i][1]}`", inline=False)
 				current_index += 1
 

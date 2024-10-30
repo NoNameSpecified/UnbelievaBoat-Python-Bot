@@ -2,22 +2,26 @@
     "userdata": [
         {
             "user_id": 611784823123607573,
-            "cash": 0.0,
-            "bank": 100112811.0,
+            "cash": 100112613.0,
+            "bank": 0.0,
             "items": [
                 [
                     "test1",
-                    95
+                    93
                 ],
                 [
                     "soul",
                     0
+                ],
+                [
+                    "test",
+                    200
                 ]
             ],
             "used_items": [
                 [
                     "test1",
-                    1
+                    2
                 ]
             ],
             "last_slut": "2024-10-30 11:23:26.742931",
@@ -49,6 +53,10 @@
                 [
                     "soul",
                     0
+                ],
+                [
+                    "test1",
+                    1
                 ]
             ],
             "used_items": "none",
@@ -188,31 +196,6 @@
     ],
     "items": [
         {
-            "name": "test1",
-            "display_name": "test Item 1",
-            "price": 10,
-            "description": "Use this to test purchasing an item!",
-            "duration": 99999,
-            "amount_in_stock": "unlimited",
-            "max_amount": "unlimited",
-            "required_roles": [
-                "none"
-            ],
-            "given_roles": [
-                "none"
-            ],
-            "removed_roles": [
-                "none"
-            ],
-            "excluded_roles": [
-                "none"
-            ],
-            "maximum_balance": "none",
-            "reply_message": "You bought << TEST ITEM 1 >>",
-            "expiration_date": "2298-08-12 01:18:54.464483",
-            "item_img_url": "EMPTY"
-        },
-        {
             "name": "soul",
             "display_name": "bear's soul v2",
             "price": 1,
@@ -235,6 +218,31 @@
             "maximum_balance": "none",
             "reply_message": "Congrats on buying the item.",
             "expiration_date": "2024-11-04 13:13:34.474556",
+            "item_img_url": "EMPTY"
+        },
+        {
+            "name": "test",
+            "display_name": "test",
+            "price": 1,
+            "description": "test",
+            "duration": 99999,
+            "amount_in_stock": "unlimited",
+            "max_amount": "unlimited",
+            "required_roles": [
+                "none"
+            ],
+            "given_roles": [
+                "none"
+            ],
+            "removed_roles": [
+                "none"
+            ],
+            "excluded_roles": [
+                "none"
+            ],
+            "maximum_balance": "none",
+            "reply_message": "Congrats on buying the item.",
+            "expiration_date": "2298-08-14 14:48:13.790512",
             "item_img_url": "EMPTY"
         }
     ],

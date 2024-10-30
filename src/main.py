@@ -906,7 +906,7 @@ async def on_message(message):
 	#   ADD-MONEY
 	# --------------
 
-	elif command == "add-money":
+	elif command in ["addmoney", "add-money"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -986,7 +986,7 @@ async def on_message(message):
 	#  REMOVE-MONEY
 	# --------------
 
-	elif command == "remove-money":
+	elif command in ["removemoney", "remove-money"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -1139,7 +1139,7 @@ async def on_message(message):
 	#   CHANGE CURRENCY SYMBOL
 	# ---------------------------
 
-	elif command in ["change-currency", "edit_currency"]:
+	elif command in ["changecurrency", "change-currency", "edit_currency"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -1174,7 +1174,7 @@ async def on_message(message):
 	#   SET INCOME RESET
 	# ---------------------------
 
-	elif command in ["set-income-reset", "change-income-reset"]:
+	elif command in ["setincomereset", "set-income-reset", "change-income-reset"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -1226,7 +1226,7 @@ async def on_message(message):
 	#   ITEM CREATION / Create item
 	# ---------------------------
 
-	elif command in ["create-item", "new-item", "item-create"]:
+	elif command in ["createitem", "create-item", "new-item", "item-create"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -1623,7 +1623,7 @@ async def on_message(message):
 	#   DELETE ITEM - REMOVE ITEM
 	# ---------------------------
 
-	elif command in ["delete-item", "remove-item"]:
+	elif command in ["deleteitem", "removeitem", "delete-item", "remove-item"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -1674,10 +1674,65 @@ async def on_message(message):
 		return
 
 	# ---------------------------
+	#   REMOVE ITEM FROM STORE
+	# ---------------------------
+
+	elif command in ["removefromstore", "remove-from-store", "remove-item-from-store", "removeitemfromstore"]:
+		if not staff_request:
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		if "none" in param[1]:  # we need 1 parameters
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`delete-item <item short name>`", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		item_name = param[1]
+
+		# since this will completely remove the item
+		# we should make sure you rly want to do this (and not remove-user-item).
+		security_check = False
+		sec_embed = discord.Embed(title="Attention", description="🚨 This will permanently delete the item from the store. It will stay in user inventory. do you wish to continue? [y/N]", color=discord.Color.from_rgb(3, 169, 244))
+		sec_embed.set_footer(text="Info: use remove-item to remove an item from the store and all users.")
+		await channel.send(embed=sec_embed)
+
+		security_check_input = await get_user_input(message)
+		if security_check_input.strip().lower() not in ["yes", "y"]:
+			await channel.send(f"{emoji_error}  Cancelled command.")
+			return
+
+		# handler
+
+		try:
+			status, remove_item_return = await db_handler.remove_item_from_store(item_name)
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{remove_item_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except Exception as e:
+			print(e)
+			await send_error(channel)
+
+		color = discord.Color.from_rgb(102, 187, 106) # green
+		embed = discord.Embed(description=f"{emoji_worked}  Item has been removed from the store", color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		return
+
+
+	# ---------------------------
 	#   REMOVE USER ITEM
 	# ---------------------------
 
-	elif command in ["remove-user-item"]:
+	elif command in ["takeitem", "take-item", "remove-user-item"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -1755,7 +1810,7 @@ async def on_message(message):
 	#   REMOVE GONE USERS
 	# ---------------------------
 
-	elif command in ["clean-leaderboard", "clean-lb"]:
+	elif command in ["cleanleaderboard", "cleanlb", "clean-leaderboard", "clean-lb"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -1861,7 +1916,7 @@ async def on_message(message):
 	#				but theyll need to not fuck each other and actually pay up
 	# ---------------------------
 
-	elif command in ["give-item"]:
+	elif command in ["giveitem", "give-item"]:
 		"""
 		if not staff_request:
 			color = discord_error_rgb_code
@@ -1952,7 +2007,7 @@ async def on_message(message):
 	#      if admins want to "give" someone an item without having to buy and then give it
 	# ---------------------------
 
-	elif command in ["spawn-item"]:
+	elif command in ["spawnitem", "spawn-item"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -2076,7 +2131,7 @@ async def on_message(message):
 	#   CHECK INVENTORY (check own inventory)
 	# ---------------------------------------
 
-	elif command in ["inventory"]:
+	elif command in ["inv", "inventory"]:
 		# by default, you look at your own inventory.
 		# this is prob useless and its easier to just put user_to_check_uname=none in the func init.py
 		# but for now this will do
@@ -2115,7 +2170,7 @@ async def on_message(message):
 	#   CHECK USER INVENTORY (check inventory of another user)
 	# --------------------------------------------------------
 
-	elif command in ["user-inventory"]:
+	elif command in ["userinv", "userinventory", "user-inventory"]:
 		# by default, you look at your own inventory.
 		# this is prob useless and its easier to just put user_to_check_uname=none in the func init.py
 		# but for now this will do
@@ -2212,7 +2267,7 @@ async def on_message(message):
 	#   ADD ROLE INCOME ROLE
 	# ---------------------------
 
-	elif command in ["add-income-role", "add-role-income"]:
+	elif command in ["addincomerole", "add-income-role", "add-role-income"]:
 		await channel.send("Info: the income amount specified is an DAILY one.\nRemember: you need to manually update income.")
 		if not staff_request:
 			color = discord_error_rgb_code
@@ -2283,7 +2338,7 @@ async def on_message(message):
 	#   REMOVE ROLE
 	# ---------------------------
 
-	elif command in ["remove-income-role", "delete-income-role", "remove-role-income", "delete-role-income"]:
+	elif command in ["removeincomerole" "remove-income-role", "delete-income-role", "remove-role-income", "delete-role-income"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -2339,7 +2394,7 @@ async def on_message(message):
 	#   REMOVE MONEY BY ROLE
 	# ---------------------------
 
-	elif command in ["remove-money-role", "remove-role-money"]:
+	elif command in ["removemoneyrole", "removerolemoney", "remove-money-role", "remove-role-money"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -2411,7 +2466,7 @@ async def on_message(message):
 	#   ADD MONEY BY ROLE
 	# ---------------------------
 	
-	elif command in ["add-money-role", "add-role-money"]:
+	elif command in ["addmoneyrole", "addrolemoney", "add-money-role", "add-role-money"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
@@ -2483,7 +2538,7 @@ async def on_message(message):
 	#   LIST INCOME ROLES
 	# ---------------------------
 
-	elif command in ["list-roles", "list-income-roles", "list-role-income", "list-incomes"]:
+	elif command in ["listincomeroles", "listroles", "list-roles", "list-income-roles", "list-role-income", "list-incomes"]:
 		try:
 			status, list_roles_return = await db_handler.list_income_roles(user, channel, username, user_pfp, server)
 			if status == "error":
@@ -2501,7 +2556,7 @@ async def on_message(message):
 	#   UPDATE INCOMES
 	# ---------------------------
 
-	elif command in ["update-income"]:
+	elif command in ["updateincome", "update-income"]:
 		if not staff_request:
 			color = discord_error_rgb_code
 			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
