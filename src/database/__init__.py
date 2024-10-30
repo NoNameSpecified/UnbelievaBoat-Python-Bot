@@ -266,6 +266,8 @@ class pythonboat_database_handler:
 		# print("FINISHED writing")
 		return "success", "success"
 
+
+	
 	#
 	# SLUT
 	#
@@ -2417,6 +2419,17 @@ class pythonboat_database_handler:
 
 		return "success", "success"
 	
+	# 
+	# DICE ROLLER
+	#
+
+	async def roll(self, user, channel):
+		color = self.discord_blue_rgb_code
+		embed = discord.Embed(color=color)
+		embed.add_field(name=f"**You Rolled:**", value = f"**{random.randint(1, 20)}**", inline=False)
+		await channel.send(embed=embed)
+		return "success", "success"
+
 	#
 	# ECONOMY STATS
 	#

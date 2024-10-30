@@ -2632,6 +2632,27 @@ async def on_message(message):
 			
 		return
 
+	# ---------------------------
+	#   dice roller
+	# ---------------------------
+
+	elif command in ["roll"]:
+
+		try:
+			status, roll_return = await db_handler.roll(user, channel)
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{roll_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except Exception as e:
+			print(e)
+			await send_error(channel)
+			
+			
+		return
+
 
 """
 END OF CODE.
