@@ -2406,6 +2406,78 @@ async def on_message(message):
 			print(e)
 			await send_error(channel)
 		return
+	
+	# ---------------------------
+	#   ADD MONEY BY ROLE
+	# ---------------------------
+	
+	elif command in ["add-money-role", "add-role-money"]:
+		if not staff_request:
+			color = discord_error_rgb_code
+			embed = discord.Embed(description=f"🔒 Requires botmaster role", color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		if "none" in param[1] or "none" in param[2]:  # we need 2 parameters
+			color = discord_error_rgb_code
+			embed = discord.Embed(
+				description=f"{emoji_error}  Too few arguments given.\n\nUsage:\n`add-money-role <role pinged> <amount>`",
+				color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		amount = param[2]
+		try:
+			# they can use the thousands separator comma
+			newAmount = []
+			for char in amount:
+				if char != ",":
+					newAmount.append(char)
+			amount = "".join(newAmount)
+			amount = int(amount)
+			if amount < 1:
+				color = discord_error_rgb_code
+				embed = discord.Embed(
+					description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`add-money-role <role pinged> <amount>`",
+					color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except:
+			color = discord_error_rgb_code
+			embed = discord.Embed(
+				description=f"{emoji_error}  Invalid `<amount>` argument given.\n\nUsage:\n`add-money-role <role pinged> <amount>`",
+				color=color)
+			embed.set_author(name=username, icon_url=user_pfp)
+			await channel.send(embed=embed)
+			return
+
+		# check role
+
+		income_role = await get_role_id_single(param[1])
+
+		try:
+			role = discord.utils.get(server.roles, id=int(income_role))
+		except Exception as e:
+			print(e)
+			await channel.send(f"{emoji_error}  Invalid role given. Please try again.")
+			return
+
+		# handler
+		try:
+			status, add_money_role_return = await db_handler.add_money_role(user, channel, username, user_pfp, server, income_role, amount)
+			if status == "error":
+				color = discord_error_rgb_code
+				embed = discord.Embed(description=f"{add_money_role_return}", color=color)
+				embed.set_author(name=username, icon_url=user_pfp)
+				await channel.send(embed=embed)
+				return
+		except Exception as e:
+			print(e)
+			await send_error(channel)
+		return
 
 	# ---------------------------
 	#   LIST INCOME ROLES

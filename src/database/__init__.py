@@ -2301,7 +2301,49 @@ class pythonboat_database_handler:
 		return "success", "success"
 
 
+	#
+	# ADD MONEY BY ROLE
+	#
 
+	async def add_money_role(self, user, channel, username, user_pfp, server_object, income_role, amount_added):
+		# load json
+		json_file = open(self.pathToJson, "r")
+		json_content = json.load(json_file)
+
+		json_income_roles = json_content["income_roles"]
+
+		# pretty straight forward i think.
+		# first, we go into each role object
+		# then we check in everyones roles if they have the role
+
+		role = discord.utils.get(server_object.roles, id=int(income_role))
+		for member in role.members:
+			try:
+				# also to create user in case he isnt registered yet
+				user_index, new_data = self.find_index_in_db(json_content["userdata"], member.id)
+
+				json_user_content = json_content["userdata"][user_index]
+				json_user_content["bank"] += int(amount_added)
+				# overwrite
+				json_content["userdata"][user_index] = json_user_content
+
+			except:
+				pass
+
+		# inform user
+		color = self.discord_success_rgb_code
+		embed = discord.Embed(
+			description=f"✅ You have added {self.currency_symbol} {'{:,}'.format(int(amount_added))} to a total of {'{:,}'.format(int(len(role.members)))} users with that role !",
+			color=color)
+		embed.set_author(name=username, icon_url=user_pfp)
+		await channel.send(embed=embed)
+
+		# overwrite, end
+		json_content["income_roles"] = json_income_roles
+		self.overwrite_json(json_content)
+
+		return "success", "success"
+	
 	#
 	# REMOVE MONEY BY ROLE
 	#
