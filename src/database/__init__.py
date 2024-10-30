@@ -2316,14 +2316,17 @@ class pythonboat_database_handler:
 		json_content["userdata"][user_index] = json_user_content
 		json_content["income_roles"] = json_income_roles
 
+		color = self.discord_blue_rgb_code
+		embed = discord.Embed(color=color)
+	
 		if no_money:
-			await channel.send("You have no income roles!")
+			embed.add_field(name=f"**You have no income roles!**", value=f"", inline=False)
 		else:
 			if int(income_total) != 0:
-				await channel.send(f"You have received your income ({self.currency_symbol} {'{:,}'.format(int(income_total))}) from a total of {received_instances} different roles!", silent=True)
+				embed.add_field(name=f"**You have received your income**", value=f"{self.currency_symbol} {'{:,}'.format(int(income_total))} from a total of {received_instances} different roles!", inline=False)
 			else:
-				await channel.send(f"`You already collected! Reset in: {hours_remaining} hours.`", silent=True)
-
+				embed.add_field(name=f"**You already collected!**", value=f"Collect again in {hours_remaining} hours.", inline=False)
+		await channel.send(embed=embed)
 		# overwrite, end
 		self.overwrite_json(json_content)
 
