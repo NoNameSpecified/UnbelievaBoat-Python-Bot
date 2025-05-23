@@ -1,8 +1,9 @@
 # **UnbelievaBoat-like Discord Bot in python**
 ### For questions about the bot and how to set it up: ask me on Discord at *<kendrik2.0>*
 
-Code is finished, so there won't be any big updates anymore.  
-But please report any problems to me via Discord or by opening an issue !
+edit on 24.05.25: I am currently working on an upgrade which will now use SQLite for the database instead of json and make it more robust. Stay tuned.  
+I will also make a script which will allow current users to switch their json database to the new SQLite version.  
+Please report any problems to me via Discord or by opening an issue !
 
 ## Official repo:   
 https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot  
@@ -43,9 +44,5 @@ These images are loaded by URL - so they can be anything. I don't encourage howe
 But I definitely don't take any warranty as to what happens if you do use licensed images. Stay safe !
 
 ### - json usage
-TLDR: json is problematic but I think this should still work, contact me if you got any problems / questions tho.  
-
-longer version: So i made this bot a long time ago and I decided to use json, which is honestly not the best idea for a database, as pointed out in https://stackoverflow.com/a/73869286.
-However, it would take way too long to change the whole system now, especially since I'm only fixing and adding minor stuff now and don't have the time to do big changes.
-But from what I can tell, this works fine aswell, not that slow either and even with larger user amounts.  
-If you do face problems concerning speed, please contact me (discord or issue on github) and I'll see if I can do anything.
+(for the assessment of json problems see previous versions of this file).  
+Bot will soon be upgraded to use SQLite instead of json. More infos to come.
