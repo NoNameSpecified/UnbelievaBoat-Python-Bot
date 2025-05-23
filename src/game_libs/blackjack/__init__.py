@@ -160,7 +160,7 @@ class blackjack_discord_implementation:
 				"""
 
 				color = discord.Color.from_rgb(102, 187, 106)
-				pcBustedEmbed = discord.Embed(description=f"Result: blackjack! {str(self.currency_symbol)} +{'{:,}'.format(bet*1.5)}", color=color)
+				pcBustedEmbed = discord.Embed(description=f"Result: blackjack! {str(self.currency_symbol)} +{'{:,}'.format(int(bet*1.5))}", color=color)
 				pcBustedEmbed.set_author(name=username, icon_url=user_pfp)
 				pcBustedEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
 				pcBustedEmbed.add_field(name="**Dealer shows**", value=f"X X\nValue {self.handCount(hand['computer'])}", inline=True)
@@ -176,7 +176,7 @@ class blackjack_discord_implementation:
 				"""
 
 				color = discord.Color.from_rgb(239, 83, 80)
-				playerBustEmbed = discord.Embed(description=f"Result: Bust {str(self.currency_symbol)} -{'{:,}'.format(bet)}", color=color)
+				playerBustEmbed = discord.Embed(description=f"Result: Bust {str(self.currency_symbol)} -{'{:,}'.format(int(bet))}", color=color)
 				playerBustEmbed.set_author(name=username, icon_url=user_pfp)
 				playerBustEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
 				playerBustEmbed.add_field(name="**Dealer shows**", value=f"{str(hand['computer'][-1])}\nValue ?", inline=True)
@@ -192,7 +192,7 @@ class blackjack_discord_implementation:
 				"""
 
 				color = discord.Color.from_rgb(102, 187, 106)
-				pcBustedEmbed = discord.Embed(description=f"Result: Dealer Bust {str(self.currency_symbol)} +{'{:,}'.format(bet)}", color=color)
+				pcBustedEmbed = discord.Embed(description=f"Result: Dealer Bust {str(self.currency_symbol)} +{'{:,}'.format(int(bet))}", color=color)
 				pcBustedEmbed.set_author(name=username, icon_url=user_pfp)
 				pcBustedEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
 				pcBustedEmbed.add_field(name="**Dealer shows**", value=f"X X\nValue {self.handCount(hand['computer'])}", inline=True)
@@ -208,7 +208,7 @@ class blackjack_discord_implementation:
 				"""
 
 				color = discord.Color.from_rgb(102, 187, 106)
-				playerWinEmbed = discord.Embed(description=f"Result: Win {str(self.currency_symbol)} +{'{:,}'.format(bet)}", color=color)
+				playerWinEmbed = discord.Embed(description=f"Result: Win {str(self.currency_symbol)} +{'{:,}'.format(int(bet))}", color=color)
 				playerWinEmbed.set_author(name=username, icon_url=user_pfp)
 				playerWinEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
 				playerWinEmbed.add_field(name="**Dealer shows**", value=f"X X\nValue {self.handCount(hand['computer'])}", inline=True)
@@ -240,7 +240,7 @@ class blackjack_discord_implementation:
 				"""
 
 				color = discord.Color.from_rgb(239, 83, 80)
-				pcWinEmbed = discord.Embed(description=f"Result: Loss {str(self.currency_symbol)} -{'{:,}'.format(bet)}", color=color)
+				pcWinEmbed = discord.Embed(description=f"Result: Loss {str(self.currency_symbol)} -{'{:,}'.format(int(bet))}", color=color)
 				pcWinEmbed.set_author(name=username, icon_url=user_pfp)
 				pcWinEmbed.add_field(name="**Your hand**", value=f"X X\nValue {self.handCount(hand['human'])}", inline=True)
 				pcWinEmbed.add_field(name="**Dealer Hand**", value=f"X X\nValue {self.handCount(hand['computer'])}", inline=True)
