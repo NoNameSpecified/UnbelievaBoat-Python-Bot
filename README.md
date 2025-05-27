@@ -1,9 +1,10 @@
 # **UnbelievaBoat-like Discord Bot in python**
 ### For questions about the bot and how to set it up: ask me on Discord at *<kendrik2.0>*
 
-edit on 24.05.25: I am currently working on an upgrade which will now use SQLite for the database instead of json and make it more robust. Stay tuned.  
-I will also make a script which will allow current users to switch their json database to the new SQLite version.  
-Please report any problems to me via Discord or by opening an issue !
+  
+## info: SQLite version currently being developped and will be released soon.  
+The the message for the released tag "Legacy JSON version" for more info.
+
 
 ## Official repo:   
 https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot  
@@ -42,7 +43,3 @@ Another goal is to have the bot written in python so that it's easy to edit for 
 On 09.02.24 update I added the option add images for items, that would be shown when calling the single item catalog info ("catalog item_name").
 These images are loaded by URL - so they can be anything. I don't encourage however nor do I care if you use licensed images, since i have no way of checking that.
 But I definitely don't take any warranty as to what happens if you do use licensed images. Stay safe !
-
-### - json usage
-(for the assessment of json problems see previous versions of this file).  
-Bot will soon be upgraded to use SQLite instead of json. More infos to come.
