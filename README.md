@@ -17,7 +17,7 @@ You're free to do anything with the code, I'd appreciate it if you would keep a 
 The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho).  
 With time, I have added quite some modifications, couldn't really say which tho, since I dont even use UB anymore lol.
 
-### Please read `src/command_list.txt`.
+### Please read `command_list.txt`.
 It not only helps users with how/what commands to use, it also gives tips for admins (using get-salary vs update-income for example).
 
 ### - Install & Use
