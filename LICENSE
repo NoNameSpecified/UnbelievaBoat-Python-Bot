@@ -1,4 +1,4 @@
-MIT License
+Modified MIT License (see Section 2)
 
 Copyright (c) 2021 Kendrik
 
@@ -9,8 +9,15 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+2. If you publish this software or a modified version of it, you must:
+    a) Provide a visible link to the original repository link.
+        GitHub's "forked from" label is sufficient.
+        Original Repository: https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot
+    b) Include a general statement that the software has been modified, if applicable.
+        Github's "x commits ahead/behind" indicator is sufficient.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
