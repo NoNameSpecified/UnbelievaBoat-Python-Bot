@@ -2,8 +2,10 @@
 ### For questions about the bot and how to set it up: ask me on Discord at *<kendrik2.0>*
 
   
-## info: SQLite version currently being developped and will be released soon.  
-The the message for the released tag "Legacy JSON version" for more info.
+## update on release date:  
+I decided to combine the SQLite switch with a complete frontend rework.
+Thus, it may take a little more time before the new code is released. I would like to release during next week (2nd june - 8th june)  
+See the message for the released tag "Legacy JSON version" for more info.  
 
 
 ## Official repo:   
