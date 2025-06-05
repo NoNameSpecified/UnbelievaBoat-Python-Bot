@@ -1,3 +1,4 @@
+last updated: 05.06.2025 (european format).
 
 ---- Command list and tips for Skender Bot v2.0 ----
 
@@ -37,12 +38,13 @@ Info: <this> means that the parameter is obligatory, [this] means that it is opt
   +work
   +rob
 
-4. Implemented Customization
+4. Customization
   +module-info [module]
     Get module (income commands) info. You can use this info to later edit the values.
     If you don't know the module names, just use +module without any parameter.
   +change-variable <variable> <new value>
-    Change variable settings (see +module which shows variables and actions separately).
+    Change variable settings
+    Tip: see +module first and then use change-variable.
   +change-action <action_name> <variable> <new value>
     Change action variable, for example the delay to play blackjack.
   +change-currency <new emoji name>
@@ -57,9 +59,9 @@ Info: <this> means that the parameter is obligatory, [this] means that it is opt
   +create-item (admin role required)
   +delete-item <item name> (admin role required)
     info: remove the item completely, for everyone.
-  +remove-user-item <member> <item short name> <amount> (admin role required)
+  +remove-user-item <@member> <item short name> <amount> (admin role required)
     info: this will remove one or more items from a user's inventory.
-  +spawn-item <player pinged> <item short name> [amount] (admin role required)
+  +spawn-item <@member> <item short name> [amount] (admin role required)
     info: this will spawn an (already created) item in a user inventory.
   +buy-item <item name> <amount>
   +give-item <@member> <item name> <amount>
@@ -73,9 +75,9 @@ Info: <this> means that the parameter is obligatory, [this] means that it is opt
     if you use +catalog name, you will get detailed information on the specific item.
 
 6. Income Roles. Whoever has the role will get income - the income is daily (i.e. 100 means 100 a day).
-  +add-income-role <role pinged> <income> (admin role required)
-  +remove-income-role <role pinged> (admin role required)
-  +update-income-role <role pinged> <new income> (admin role required)
+  +add-income-role <@role> <income> (admin role required)
+  +remove-income-role <@role> (admin role required)
+  +update-income-role <@role> <new income> (admin role required)
   +list-roles
   +collect
     User will get their salary. Can/should be disabled depending on if you want to use update-income.
@@ -88,3 +90,7 @@ Info: <this> means that the parameter is obligatory, [this] means that it is opt
     Personal tip: just leave it at collect, with income_reset set to true (as it is by default) and don't use update-income.
     If you do use update-income, you should consider changing income_reset to false and disabling collect.
         To disable collect, go to bot.py, look for >> elif command in ["collect" ... << and comment that block out.
+
+7. XP (Skender v2.0 and upwards includes xp aka levels and passive chat income).
+  +add-xp <@member> <amount>
+  +remove-xp <@member> <amount>
