@@ -1,4 +1,4 @@
-last updated: 05.06.2025 (european format).
+last updated: 09.06.2025 (european time format).
 
 ---- Command list and tips for Skender Bot v2.0 ----
 
@@ -10,9 +10,11 @@ Info: <this> means that the parameter is obligatory, [this] means that it is opt
 0. Information
   Help page: +help
 
+
 1. Mini-Games
   Blackjack: +blackjack <bet>
   Roulette: +roulette <bet> <space>
+
 
 2. Balance & Money
   Economy Stats: +stats
@@ -22,7 +24,7 @@ Info: <this> means that the parameter is obligatory, [this] means that it is opt
   Give money: +give <@member> <amount or all>
   Server Leaderboard: +leaderboard [page] [-cash | -bank | -total]
 
-2.1 Staff Commands for economy:
+2.1 Balance & Money -- Admin Commands.
   +add-money <@member> <amount>
   +remove-money <@member> <amount> [cash/bank]
     info: default is bank
@@ -32,13 +34,15 @@ Info: <this> means that the parameter is obligatory, [this] means that it is opt
   +clear-db
     info: removes users that left the server from database (forever).
 
+
 3. Income Commands
   +slut
   +crime
   +work
   +rob
 
-4. Customization
+
+4. Customization -- only for admins.
   +module-info [module]
     Get module (income commands) info. You can use this info to later edit the values.
     If you don't know the module names, just use +module without any parameter.
@@ -54,43 +58,64 @@ Info: <this> means that the parameter is obligatory, [this] means that it is opt
     This means that (if you use collect and not update-income, see below!) the daily salary will NOT accumulate.
     i.e. if you call it, you get X€, if you wait 3 days, you get X€ again.
     If you set-income-reset to "false", the user would get (days passed * X€).
+  +set-passive-chat-income <amount>
+    Passive chat income means that the user receives a certain sum for being active and sending messages.
+    The cooldown for this is the same as for gaining xp per message.
+
 
 5. Items
-  +create-item (admin role required)
-  +delete-item <item name> (admin role required)
-    info: remove the item completely, for everyone.
-  +remove-user-item <@member> <item short name> <amount> (admin role required)
-    info: this will remove one or more items from a user's inventory.
-  +spawn-item <@member> <item short name> [amount] (admin role required)
-    info: this will spawn an (already created) item in a user inventory.
   +buy-item <item name> <amount>
   +give-item <@member> <item name> <amount>
   +inventory [page]
-    info: see your own inventory
+    Info: see your own inventory
   +user-inventory <@member> [page]
-    info: see inventory of another user
+    Info: see inventory of another user
   +use <item name> <amount>
   +catalog [item-short-name]
-    if you just use +catalog, you will get a list of all items available.
-    if you use +catalog name, you will get detailed information on the specific item.
+    If you just use +catalog, you will get a list of all items available.
+    If you use +catalog name, you will get detailed information on the specific item.
+
+5.1 Items -- Admin Commands
+  +create-item
+  +delete-item <item name>
+    Info: removes the item completely, for everyone.
+  +remove-user-item <@member> <item short name> <amount>
+  +spawn-item <@member> <item short name> [amount]
+    Info: this will spawn an (already created) item in a user inventory.
+
 
 6. Income Roles. Whoever has the role will get income - the income is daily (i.e. 100 means 100 a day).
-  +add-income-role <@role> <income> (admin role required)
-  +remove-income-role <@role> (admin role required)
-  +update-income-role <@role> <new income> (admin role required)
   +list-roles
   +collect
     User will get their salary. Can/should be disabled depending on if you want to use update-income.
     If income-reset is set to true, the user can only get 1 times his income. If set to false, he gets missed_days * income.
 
-  +update-income (admin role required). This is to pay all users who have the role.
-                  It can be used once a week for example, or whenever you want. Beware of income_reset, it also
-                   impacts this command.
+6.1 Income Roles -- Admin Commands.
+  +add-income-role <@role> <income>
+  +remove-income-role <@role>
+  +update-income-role <@role> <new income>
+  +update-income.
+    This is to pay ALL users who have the role.
+    It can be used once a week for example, or whenever you want. Beware of income_reset, it also
+    impacts this command.
 
     Personal tip: just leave it at collect, with income_reset set to true (as it is by default) and don't use update-income.
     If you do use update-income, you should consider changing income_reset to false and disabling collect.
-        To disable collect, go to bot.py, look for >> elif command in ["collect" ... << and comment that block out.
+    To disable collect, go to bot.py, look for >> elif command in ["collect" ... << and comment that block out.
 
-7. XP (Skender v2.0 and upwards includes xp aka levels and passive chat income).
+
+7. Levels.
+  +level [@member]
+    See your own current level or the level of a pinged member
+  +all-levels
+    See a list of all levels you can obtain, including rewards
+  +level-lb [page]
+    Shows a leaderboard, ranked by level.
+
+7.1 Levels -- Admin Commands
+  +change-levels
+    Change levels, level rewards and xp channels.
   +add-xp <@member> <amount>
   +remove-xp <@member> <amount>
+
+  info: to change passive chat income, please use +set-passive-chat-income
