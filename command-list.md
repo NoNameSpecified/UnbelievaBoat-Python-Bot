@@ -62,16 +62,17 @@
   If you don't know the module names, just use +module without any parameter.
 - `+change-variable <variable> <new value>`  
   Change variable settings
-  Tip: Use `+module` first and then use change-variable.
+  Tip: Use `+module` first and then use change-variable / change-action.
 - `+change-action <action_name> <variable> <new value>`  
-  Example: change delay (cooldown) for blackjack.
+  Example: to change delay (cooldown) for blackjack.
 - `+change-currency <new emoji name>`  
   Only emojis uploaded to your server are valid, not a discord wide one.
 - `+set-income-reset <false/true>`  
   Controls whether income accumulates or if you always only get one-day-income. 
   By default, it is set to true.
 - `+set-passive-chat-income <amount>`  
-  Passive chat income means that the user receives a certain sum for being active and sending messages.
+  Passive chat income means that the user receives a certain sum for being active and sending messages.  
+  The income gets added to bank automatically without informing the user.  
   The cooldown for this is the same as for gaining xp per message.
 
 ---
@@ -104,7 +105,7 @@ Users with a specific role will receive daily income (e.g., 100 = 100/day)
 
 - `+list-roles`
 - `+collect`  
-  Uses `income_reset` setting to determine payout behavior.
+  Uses `income_reset` setting to determine payout behavior.  
   Can/should be disabled depending on if you want to use update-income
 
 ### 6.1 Admin Commands – Income Roles
