@@ -1,14 +1,13 @@
 # 📜 Command List for Skender Bot v2.0
 
-**Last updated:** 09.06.2025 (European date format)  
+**Last updated:** 10.06.2025 (European date format)  
 **Official Repository:** [github.com/NoNameSpecified/UnbelievaBoat-Python-Bot](https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot)  
-👉 For setup instructions, see `README.md`.
+👉 For setup instructions, see `README.md`, for version info, see `version-info.md`
 
 > Prefix used here: `+`  
 > You can change it in `main.py`.
 >
 > `<this>` means required parameter, `[this]` means optional parameter
->
 
 ---
 
@@ -131,7 +130,7 @@ To disable `+collect`, edit `bot.py` and comment out the relevant block (elif co
 
 ### 7.1 Admin Commands – Levels
 
-- `+change-levels` – Modify levels and their thresholds, rewards, and XP channels
+- `+change-levels` – Modify levels and their thresholds, rewards (money, roles to give or remove, items), and XP channels
 - `+add-xp <@member> <amount>`
 - `+remove-xp <@member> <amount>`
 
