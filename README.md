@@ -3,10 +3,10 @@
 
   
 ## update on release date:  
-I decided to combine the SQLite switch with a complete frontend rework.
-Thus, it may take a little more time before the new code is released. I would like to release during next week (2nd june - 8th june)  
-See the message for the released tag "Legacy JSON version" for more info.  
-
+- Almost everything for the upgrade to SQLite is now finished.  
+- The only part missing is the migration script for JSON databases to the new SQLite system. I can't tell how long exactly that will take, since it is a key part of this upgrade and needs to be bullet proof, but I plan on releasing the v2.0 today.  
+- It will probably still include bugs I have missed, please report those to me so that I can fix them.  
+- After the switch to v2.0, updates will be incrementally again and not with a long pause and then one big update like this time.
 
 ## Official repo:   
 https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot  
