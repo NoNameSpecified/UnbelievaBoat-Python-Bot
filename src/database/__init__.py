@@ -1709,7 +1709,7 @@ class SkenderDatabaseHandler:
 		# write changes
 		# subtract from bank if mode is bank (withdraw) or from cash if we're at deposit or give.
 		await self.change_balance(ctx.user, amount, balance_obj=mode, mode="subtract")
-		return None, None
+		return "success", amount
 
 	#
 	# DEPOSIT
@@ -1723,6 +1723,8 @@ class SkenderDatabaseHandler:
 		status, msg = await self.check_and_change_funds(ctx, user_object, amount)
 		if status == "error":
 			return status, msg
+		# so we know the amount if we said "all"
+		if status == "success": amount = int(msg)
 
 		await self.change_balance(ctx.user, amount, balance_obj="bank", mode="add")
 
@@ -1745,6 +1747,8 @@ class SkenderDatabaseHandler:
 		status, msg = await self.check_and_change_funds(ctx, user_object, amount, mode="bank")
 		if status == "error":
 			return status, msg
+		# so we know the amount if we said "all"
+		if status == "success": amount = int(msg)
 
 		await self.change_balance(ctx.user, amount, balance_obj="bank", mode="subtract")
 
@@ -1759,7 +1763,7 @@ class SkenderDatabaseHandler:
 	# GIVE
 	#
 
-	async def give(self, ctx, reception_user, amount, recept_uname):
+	async def give(self, ctx, reception_user, amount, recept_user_obj):
 
 		if str(ctx.user).strip() == str(reception_user).strip():
 			msg = (f"{self.error_emoji} You're trying to give yourself money ?"
@@ -1773,11 +1777,13 @@ class SkenderDatabaseHandler:
 		status, msg = await self.check_and_change_funds(ctx, user_object, amount)
 		if status == "error":
 			return status, msg
+		# so we know the amount if we said "all"
+		if status == "success": amount = int(msg)
 
 		await self.change_balance(reception_user, amount, balance_obj="cash", mode="add")
 
 		# inform user
-		msg = (f"{self.worked_emoji} {recept_uname.mention} has received your "
+		msg = (f"{self.worked_emoji} {recept_user_obj.mention} has received your "
 			   f"{str(self.currency_symbol)} {self.format_number_separator(amount)}")
 		await self.send_confirmation(ctx, msg)
 
@@ -1787,7 +1793,7 @@ class SkenderDatabaseHandler:
 	# ADD-MONEY
 	#
 
-	async def add_money(self, ctx, reception_user, amount, recept_uname):
+	async def add_money(self, ctx, reception_user, amount, recept_user_obj):
 		# get data
 		reception_user_object = await self.get_user_object(reception_user)
 
@@ -1795,7 +1801,7 @@ class SkenderDatabaseHandler:
 
 		# inform user
 		msg = (f"{self.worked_emoji}  Added {str(self.currency_symbol)} {self.format_number_separator(amount)} "
-			   f"to {recept_uname.mention}'s cash balance")
+			   f"to {recept_user_obj.mention}'s cash balance")
 		await self.send_confirmation(ctx, msg)
 
 		return "success", "success"
@@ -1804,7 +1810,7 @@ class SkenderDatabaseHandler:
 	# REMOVE-MONEY
 	#
 
-	async def remove_money(self, ctx, reception_user, amount, recept_uname, mode):
+	async def remove_money(self, ctx, reception_user, amount, recept_user_obj, mode):
 		# get data
 		reception_user_object = await self.get_user_object(reception_user)
 
@@ -1812,7 +1818,7 @@ class SkenderDatabaseHandler:
 
 		# inform user
 		msg = (f"{self.worked_emoji}  Removed {str(self.currency_symbol)} {self.format_number_separator(amount)} "
-			   f"from {recept_uname.mention}'s {mode} balance")
+			   f"from {recept_user_obj.mention}'s {mode} balance")
 		await self.send_confirmation(ctx, msg)
 
 		return "success", "success"
@@ -2202,7 +2208,7 @@ class SkenderDatabaseHandler:
 	# REMOVE ITEM FROM SPECIFIC USER's INVENTORY
 	#
 
-	async def remove_user_item(self, ctx, item_name, amount_removed, reception_user, recept_uname):
+	async def remove_user_item(self, ctx, item_name, amount_removed, reception_user, recept_user_obj):
 
 		result = self.execute("SELECT * FROM user_items WHERE user_id = ?", (ctx.user,)).fetchone()
 		if not result:
@@ -2223,7 +2229,7 @@ class SkenderDatabaseHandler:
 
 		# inform user
 		msg = (f"{self.worked_emoji} Removed {self.format_number_separator(amount_removed)} "
-			   f"{item_name} from {recept_uname.mention}.")
+			   f"{item_name} from {recept_user_obj.mention}.")
 		await self.send_confirmation(ctx, msg)
 
 		return "success", "success"
@@ -2236,9 +2242,12 @@ class SkenderDatabaseHandler:
 	def check_user_item_amount(self, user, item_name, mode="specific"):
 		# if called with mode="any", we check if the user has any items at all.
 		if mode == "any":
+			# print(user, type(user))
 			# with limit to have a fast check if someone has a lot of items
 			any_items_owned = self.execute("SELECT 1 FROM user_items WHERE user_id = ? LIMIT 1",
 										   (user,)).fetchall()
+
+			# print(any_items_owned)
 
 			return True if any_items_owned else False
 
@@ -2293,6 +2302,11 @@ class SkenderDatabaseHandler:
 
 	async def buy_item(self, ctx, item_name, amount):
 
+		try:
+			amount = int(amount)
+		except:
+			return "error", "amount not integer"
+
 		# get variables
 		item = self.execute(
 			"SELECT * FROM items_catalog WHERE item_name = ?",
@@ -2303,7 +2317,7 @@ class SkenderDatabaseHandler:
 		# get the display name
 		# this automatically checks, if such a key exists (else: none), else it takes the item_name.
 		# before it was checked through another SQLite query.
-		item_display_name = item.get("item_display_name") or item_name
+		item_display_name = item["display_name"] or item_name
 
 		item_price = item["price"]
 		# since roles are saved as json lists, we need to load it too.
@@ -2332,10 +2346,11 @@ class SkenderDatabaseHandler:
 			return "error", f"{self.error_emoji} User does not seem to have all required roles."
 
 		# 2. check excluded roles. Using any() because even ONE excluded role is enough to block.
-		has_excluded = [int(role) in ctx.user_roles for role in excluded_roles] # example: [False, False, False, True]
-		# has_excluded is automatically True if there is one True in the list.
-		if excluded_roles != ["none"] and has_excluded:
-			return "error", f"{self.error_emoji} User possesses excluded role (id: {has_excluded[0]})."
+		if excluded_roles != ["none"]:
+			has_excluded = [int(role) in ctx.user_roles for role in excluded_roles] # example: [False, False, False, True]
+			# has_excluded is automatically True if there is one True in the list.
+			if any(has_excluded):
+				return "error", f"{self.error_emoji} User possesses excluded role (id: {has_excluded[0]})."
 
 		# 3. check if enough money
 		sum_price = round(item_price * amount, 0)
@@ -2407,7 +2422,7 @@ class SkenderDatabaseHandler:
 	# GIVE ITEM
 	#
 
-	async def give_item(self, ctx, item_name, amount, reception_user, recept_username, spawn_mode):
+	async def give_item(self, ctx, item_name, amount, reception_user, recept_user_object, spawn_mode):
 
 		item_exists = self.execute("SELECT * FROM items_catalog WHERE item_name = ?",
 								   (item_name,)).fetchone()
@@ -2441,10 +2456,10 @@ class SkenderDatabaseHandler:
 
 		# inform user
 		if not spawn_mode:
-			msg = (f"{self.worked_emoji} {recept_username.mention} has received "
+			msg = (f"{self.worked_emoji} {recept_user_object.mention} has received "
 				   f"{self.format_number_separator(amount)} {item_name} from you!")
 		else:
-			msg =(f"{self.worked_emoji} {recept_username.mention} has received "
+			msg =(f"{self.worked_emoji} {recept_user_object.mention} has received "
 				  f"{self.format_number_separator(amount)} {item_name} (spawned)!")
 		await self.send_confirmation(ctx, msg)
 
@@ -2460,10 +2475,10 @@ class SkenderDatabaseHandler:
 								  (ctx.user, item_name)).fetchone()
 		if not user_items:
 			return "error", f"{self.error_emoji} You do not have the specified item."
-		else: user_items = user_items[0]
+		else: user_item_amount = user_items["amount"]
 
 		# use items
-		if user_items["amount"] < amount:
+		if user_item_amount < amount:
 			return "error", f"{self.error_emoji} You do not have enough items of that item to use."
 
 		# else proceed
@@ -2473,7 +2488,7 @@ class SkenderDatabaseHandler:
 		await self.safe_items_update("user_used_items", ctx.user, item_name, amount, mode="add")
 
 		# remove items the user has
-		new_owned_amount = user_items["amount"] - amount
+		new_owned_amount = user_item_amount - amount
 		await self.safe_items_update("user_items", ctx.user, item_name, new_owned_amount, mode="replace")
 
 		# inform user
@@ -2505,7 +2520,7 @@ class SkenderDatabaseHandler:
 			local_user_pfp = ctx.user_pfp
 
 		# first check: any items ?
-		any_items = self.check_user_item_amount(user_to_check, None, mode="any")
+		any_items = self.check_user_item_amount(user, None, mode="any")
 		if not any_items:
 			title = "inventory"
 			msg = "**Inventory empty. No items owned.**"
@@ -2528,7 +2543,7 @@ class SkenderDatabaseHandler:
 
 		# how many pages will be needed
 		items_per_page = 10
-		page_count = total_items / items_per_page
+		page_count = math.ceil(total_items / items_per_page)
 		# set actual page count:
 		# min() returns smallest number, i.e. makes sure we only go as far as there are pages
 		# max() gives the bigger number, i.e. makes sure we don't drop below one.
@@ -2560,7 +2575,6 @@ class SkenderDatabaseHandler:
 			# create all_amounts dictionary, since we need to be able to easily access it below.
 			all_amounts = {obj["item_name"]: obj["amount"] for obj in user_items}
 
-
 		# fill with content
 
 		# previously without embeds: inventory_checkup = f""
@@ -2568,20 +2582,19 @@ class SkenderDatabaseHandler:
 		for item_info in all_item_infos:
 			display_name = item_info["display_name"]
 			item_name = item_info["item_name"]
-			amount = all_amounts[item_name]["amount"]
+			amount = all_amounts[item_name]
 
-			# previously (info: in this line, "ideographic spaces" [　] are used for tabs, they're not normal spaces !):
 			# += f"[{current_index}]　Item: {display_name}\n　　short name: {item_name}\n　　amount: `{amount}`\n\n"
 			embed.add_field(
-				name=f"[{current_index}] 📦　Item: {display_name}",
-				value=f"🏷️ Short name: `{item_name}`　"
-					  f"🔢 Amount: `{amount}`",
+				name=f"[{current_index}] 📦 Item: {display_name}",
+				value=f"Short name: `{item_name}`　" # [　] this is ideographic space and not normal space
+					  f"Amount: `{amount}`",
 				inline=False
 			)
 			current_index += 1
 
 		# finish up embed and send
-		footer = f"page {page_number} of {page_count}. Total: {total_items} different items!"
+		footer = f"page {page_number} of {page_count}. Total: {total_items} different item{'s' if total_items > 1 else ''}!"
 		embed.set_author(name=local_username, icon_url=local_user_pfp)
 		embed.set_footer(text=footer)
 		await ctx.channel.send(embed=embed)
@@ -3479,12 +3492,18 @@ class SkenderDatabaseHandler:
 			return True
 
 	#
-	# LEVELER - HANDLE XP AND PASSIVE CHAT INCOME PER MESSAGE
+	# LEVELER - HANDLE XP / GAIN XP AND PASSIVE CHAT INCOME PER MESSAGE
 	#
 
 	async def handle_message_xp_and_passive_income(self, ctx, user):
 		# don't do troubles during database setup.
 		if not self.db_set_up: return None, None
+
+		# don't gain xp if there are no levels set up.
+		# but still gain passive chat income.
+		any_levels = self.execute(
+			"SELECT * FROM levels"
+		).fetchone()
 
 		# check if right channel first
 		if self.channels_level_mode == "include" and ctx.channel.id not in self.channels_level_handling:
@@ -3518,8 +3537,10 @@ class SkenderDatabaseHandler:
 
 		# else: delay passed.
 
-		# add the xp (also automatically calculates if new level)
-		await self.change_user_xp(ctx, user, self.xp_per_msg, "add")
+		# only gain xp if there are any levels
+		if any_levels:
+			# add the xp (also automatically calculates if new level)
+			await self.change_user_xp(ctx, user, self.xp_per_msg, "add")
 
 		# also PASSIVE INCOME !
 		if self.passive_income_per_msg > 0:
@@ -3570,18 +3591,22 @@ class SkenderDatabaseHandler:
 		if not auto_update:
 			return None, None
 
-		await self.execute_commit(
-			"UPDATE users SET current_xp_level = ? WHERE user_id = ?",
-			(current_level, user)
-		)
-
-		if current_level > user_level:
+		# if the user was removed XP through the remove-xp command,
+		# then we also want to decrease his level again.
+		if current_level > user_level or current_level < user_level:
+			await self.execute_commit(
+				"UPDATE users SET current_xp_level = ? WHERE user_id = ?",
+				(current_level, user)
+			)
 			await self.level_up(ctx, current_level)
 
 		next_level_xp = self.execute(
 			"SELECT level_xp FROM levels WHERE level_number = ?",
 			(current_level+1,)
 		).fetchone()
+
+		if not next_level_xp:
+			return current_level, "highest level reached."
 
 		next_level_xp = next_level_xp["level_xp"] if next_level_xp else 0
 		# if we're already at the top, it may return a negative value. So put to 0 at least.
@@ -3645,7 +3670,13 @@ class SkenderDatabaseHandler:
 		await self.change_balance(ctx.user, money, "bank", "add")
 
 		# add the items
-		item_msg = "\n".join(f"• {item_name}: {amount}" for item_name, amount in items.items())
+
+		if items:
+			item_msg = "\n".join(f"• {item_name}: {amount}" for item_name, amount in items.items())
+			for item_name, amount in items.items():
+				await self.safe_items_update("user_items", ctx.user, item_name, amount, mode="add")
+		else:
+			item_msg = None
 
 		# add the roles
 		added_roles_mention = await self.utils.add_or_remove_roles_user(
@@ -3691,7 +3722,7 @@ class SkenderDatabaseHandler:
 	"""
 
 	#
-	# CHECK CURRENT LEVEL
+	# CHECK CURRENT LEVEL - CHECK LEVEL
 	#
 
 	# show own current level.
@@ -3707,7 +3738,7 @@ class SkenderDatabaseHandler:
 
 		description = (f"🎯 **Current Level:** `Level {current_level}`.\n"
 					   f"✨ **Total XP:** `{total_xp}`\n"
-					   f"📈 **XP left to level {current_level + 1}:** `{remaining_xp}` XP")
+					   f"📈 **XP left to level {current_level + 1}:** `{remaining_xp}`")
 
 		await self.utils.send_embed(ctx, description, None, "blue", name=True)
 
@@ -3733,11 +3764,13 @@ class SkenderDatabaseHandler:
 
 		await self.calculate_current_level_simple(ctx, user, auto_update=True)
 
+		await self.send_confirmation(ctx, f"{'Added' if mode == 'add' else 'Removed'} {amount} xp {'to' if mode == 'add' else 'from'} user.")
+
 		return "success", "success"
 
-	# ---------------------
+	#
 	#    LIST ALL LEVELS
-	# ---------------------
+	#
 
 	async def list_all_levels(self, ctx, mode="levels"):
 
@@ -3808,27 +3841,29 @@ class SkenderDatabaseHandler:
 				else:
 					removed_roles_mention_str = "—"
 
-				reward_info = f"✨ XP: {xp}.\n"
+				reward_info = f"✨ xp for level: {xp}.\n"
 				# also say if the money to receive is 0
 				reward_info += f"Money: {self.currency_symbol} {money}.\n"
-				reward_info += f"📦 Items: {item_msg}.\n"
-				reward_info += f"🎁 Given roles: {added_roles_mention_str}\n"
-				reward_info += f"❌ Removed roles: {removed_roles_mention_str}\n"
+				reward_info += f"Items: {item_msg}.\n"
+				reward_info += f"Given roles: {added_roles_mention_str}\n"
+				reward_info += f"Removed roles: {removed_roles_mention_str}\n"
 
 				embed.add_field(
 					name=f"⏫ Level {level_number}",
 					value=reward_info,
 					inline=False
 				)
+				# buffer
+				embed.add_field(name="", value="", inline=False)
 
 			# flush
 			await ctx.channel.send(embed=embed)
 
 		return "success", "success"
 
-	# -----------------------
+	#
 	#    LEVEL LEADERBOARD
-	# -----------------------
+	#
 
 	async def level_leaderboard(self, ctx, page_number):
 
