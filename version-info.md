@@ -5,11 +5,25 @@
 For **future updates**, keep track of the Skender version you're using.  
 For more, see the intro comment in database/database_migration.py.
 
-**Last Update Notice:**  
+**Update to v2.0 Notice:**  
 I'm very happy to finally announce a big upgrade for this "Unbelievaboat-Python-Bot", which has now been baptized _Skender_.   
 There will still be bugs left that I didn't discover yet. Please report these to me to fix.  
 After the switch to v2.0, updates will be incrementally again and not with a long pause and then one big update like this time.  
 For any questions, suggestions or bug reports, feel free to contact me on discord at <kendrik2.0>.
+
+---
+
+### 🆕 Skender v2.1 (Released: 11.06.2025)
+
+Please update the files mentioned below, main.py doesn't have to be updated.
+
+#### 🔧 Fixed multiple bugs.
+- Updated `bot.py`, `database/__init__.py`, `utilities.py`.
+- Updated `main.py`, but only to change the bot_version variable to v2.1
+
+#### 💡 Clarification
+- Users only gain xp if levels have been created (use `change-levels`) but they will still earn passive chat income.
+- Clarification: the excluding / including of specific channels for gaining xp also applies to passive chat income.
 
 ---
 
@@ -29,8 +43,9 @@ For any questions, suggestions or bug reports, feel free to contact me on discor
 - Centralized **customizable edits** (such as token, admin role name...) in main.py lines 40-50.
 - **Automatic database setup wizard** on first launch (can be skipped).  
   Includes cooldown configuration, etc.
-- **Updated commands:**
+- **Updated and new commands:**
     - `add-money-by-role`
+    - `update-income-role`
     - `module-info`
     - `change-action` and `change-variable` now as two separate commands.
     - Reworked help system: staff commands only visible to staff members
