@@ -1,47 +1,61 @@
-# **UnbelievaBoat-like Discord Bot in python**
-### For questions about the bot and how to set it up: ask me on Discord at *<kendrik2.0>*
+# UnbelievaBoat-like Discord Bot in Python (aka _Skender Bot_)
 
-  
-## update on release date:  
-- Almost everything for the upgrade to SQLite is now finished.  
-- The only part missing is the migration script for JSON databases to the new SQLite system. I can't tell how long exactly that will take, since it is a key part of this upgrade and needs to be bullet proof, but I plan on releasing the v2.0 today.  
-- It will probably still include bugs I have missed, please report those to me so that I can fix them.  
-- After the switch to v2.0, updates will be incrementally again and not with a long pause and then one big update like this time.
+### Questions, bug reports or need help with setup ?
+Feel free to reach out to me on Discord at **<kendrik2.0>**
 
-## Official repo:   
+## Current version Notice:
+- 🆕 Skender v2.0 was released on 11.06.2025 (european time format). Please take a look at `version-info.md`, especially if you used the JSON version before !
+- 🛠️ Please read `command-list.md`. It includes a list of all available commands with explanations and tips.
+
+---
+
+## Official repo:
 https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot  
-You're free to do anything with the code, I'd appreciate it if you would keep a link to the official repo tho :)
+You're free to do anything with the code, but please keep a link to the original (see License Section 2).
 
+---
 
-### - Info
+## 📣 Info:
 The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho).  
-With time, I have added quite some modifications, couldn't really say which tho, since I dont even use UB anymore lol.
+With time, a lot of functionalities were added.  
+I don't know what exactly the normal Unbelievaboat includes nowadays, but you can check out `command-list.md`
 
-### Please read `command_list.txt`.
-It not only helps users with how/what commands to use, it also gives tips for admins (using get-salary vs update-income for example).
+---
 
-### - Install & Use
-1. Create a Discord Application for your bot (see https://youtu.be/b61kcgfOm_4, https://discord.com/developers/applications)
-2. In the Discord Dev Portal, in the "Bot" tab of your application, **enable presence intent, server members intent, message content intent**.
-3. Download the code, structured as in this repo.
-4. Open the `main.py` file, line 40 and change the **token** to the one of your created bot.
+## 🌱 Install & Use
+1. Create a Discord Application for your bot (see https://youtu.be/b61kcgfOm_4, [Discord Developer Portal](https://discord.com/developers/applications))
+2. In the "Bot" section of the Discord Developer Portal, **enable Presence Intent**, **Server Members Intent**, and **Message Content Intent**.
+3. Download the code and ensure the directory structure is preserved.
+4. Open `main.py`, edit lines 40-50 as needed (comments are included).
 5. Invite the bot to your server as shown in https://youtu.be/b61kcgfOm_4
-6. Install python3 if you dont have it
-7. Install the Discord Api for python3 using pip (`pip install discord.py`)
-8. In your server, create a role named "botmaster" and give it to people who should be bot admins.
-9. Launch main.py with **python3**. Beware !! On Windows, please use powershell, else path might not be recognized.
-10. [optional]: by default, the currency emoji is set to 💰.  
-    You can change it as follows: changing line 75-77 in database/__init__.py. Note: if you uncomment 75, you gotta comment out line 77 ! (by putting a <#> before it, like in line 76. Then use change-currency-symbol (see src/commands.txt) or change "symbol_emoji" `in database/database.json`(needs to be a custom emoji). Contact me if you got issues.
+6. Create a role for your bot with permission to manage roles (the bot's role must be above the roles it should manage).
+7. Install Python 3, if not already installed.
+8. Install `discord.py` using `pip install discord.py`.
+9. Create a role in your server called "botmaster" (or whatever you named it in `main.py`) and assign it to the bot admins.
+10. Launch `main.py` with **python3**.
 
-You should be good to go!
+You will be guided through the rest of the setup.  
+Please take the customizable lines in `main.py` seriously, including the setup channel ID.
 
+---
 
-### - Goal
-It emerged from the problem of UB having a balance ceiling and no automated role-income increasing to user's balances. Obviously it's way bigger now.  
-The goal was to make an easily customizable Template of a discord bot, also fixing the issues stated above.  
-Another goal is to have the bot written in python so that it's easy to edit for every user. You can adjust the code so it fits exactly what you need.   
+## 🎯 Goal
+It emerged from the problem of UB having a balance ceiling and no automated role-income increasing to user's balances.  
+Obviously it's way bigger now.  
+The goal was to create an **easily customizable template** for a Discord bot, also addressing the issues mentioned above.  
+Another goal is to have the bot written in Python, so that users can easily modify the code to fit their needs.
 
-### images
-On 09.02.24 update I added the option add images for items, that would be shown when calling the single item catalog info ("catalog item_name").
-These images are loaded by URL - so they can be anything. I don't encourage however nor do I care if you use licensed images, since i have no way of checking that.
-But I definitely don't take any warranty as to what happens if you do use licensed images. Stay safe !
+---
+
+## ⚠️ Version 2.0 Notes
+
+A migration script is provided for the switch from the legacy version (json database) to v2.0.  
+The migration is **automatic** on first launch, but make sure to follow the console instructions during the process.  
+For more, see version-info.md, you can also look at the big comment block at the end of main.py  
+If you have any questions, reach out to me via discord (see above).
+
+---
+
+## 🎉 Enjoy customizing and using the bot !
+Feel free to share feedback, bug reports, and suggestions !
+
