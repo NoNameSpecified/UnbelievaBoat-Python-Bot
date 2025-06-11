@@ -243,12 +243,12 @@ class SkenderUtilities:
 			await ctx.channel.send(embed=embed)
 			return None
 
-		return str(amount)
+		return amount
 
 	@staticmethod
 	def check_if_user_exists(ctx, user_id):
 		user_object = ctx.server.get_member(user_id)
-		return (False, None) if not user_object else (True, user_object.name)
+		return (False, None) if not user_object else (True, user_object)
 
 	async def send_invalid(self, ctx, invalid_parameter, usage, mode="strict", footer=None):
 		invalid_parameter = f"<{invalid_parameter}>" if mode == "strict" else "[invalid_parameter]"
