@@ -3047,7 +3047,7 @@ class SkenderDatabaseHandler:
 			"SELECT var_value FROM variables WHERE var_name = ?",
 			("common_reset_time", )
 		).fetchone()
-		if lgc_str is None:
+		if lgc_str is None or lgc_str["var_value"] is None:
 			# emergency ! we never collected. Set date to yesterday, so that everyone can collect.
 			last_global_collect = datetime.combine(now.date() - timedelta(days=1), reset_time)
 		else:
