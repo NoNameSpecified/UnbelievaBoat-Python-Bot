@@ -1,6 +1,6 @@
-# 📜 Command List for Skender Bot v2.0
+# 📜 Command List for Skender Bot v2.1
 
-**Last updated:** 10.06.2025 (European date format)  
+**Last updated:** 11.06.2025 (European date format)  
 **Official Repository:** [github.com/NoNameSpecified/UnbelievaBoat-Python-Bot](https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot)  
 👉 For setup instructions, see `README.md`, for version info, see `version-info.md`
 
@@ -80,7 +80,7 @@
 ## 5. 🎁 Items
 
 - `+buy-item <item_name> <amount>`
-- `+give-item <@member> <item_name> <amount>`
+- `+give-item <@member> <item_name> [amount]`
 - `+inventory [page]` – See your own inventory
 - `+user-inventory <@member> [page]` – See another user's inventory
 - `+use <item_name> <amount>`
