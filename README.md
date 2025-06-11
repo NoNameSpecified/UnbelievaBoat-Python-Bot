@@ -4,6 +4,7 @@
 Feel free to reach out to me on Discord at **<kendrik2.0>**
 
 ## Current version Notice:
+- 🔧 Skender v2.1 (bug fixes) released on 11.06.2025 (for changed files, see `version-info.md`)
 - 🆕 Skender v2.0 was released on 11.06.2025 (european time format). Please take a look at `version-info.md`, especially if you used the JSON version before !
 - 🛠️ Please read `command-list.md`. It includes a list of all available commands with explanations and tips.
 
