@@ -1,4 +1,4 @@
-# UnbelievaBoat-like Discord Bot in Python (aka _Skender Bot_)
+# UnbelievaBoat-like Discord Bot in Python (aka _Skender_)
 
 ### Questions, bug reports or need help with setup ?
 Feel free to reach out to me on Discord at **<kendrik2.0>**
