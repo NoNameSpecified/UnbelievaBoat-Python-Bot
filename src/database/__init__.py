@@ -1963,19 +1963,19 @@ class SkenderDatabaseHandler:
 
 		# here we can use the dict from sqlite3.Row again. PRAGMA always returns tuples.
 		for row in actions_columns:
-			value = (f"⏳ Delay: {row["delay"]} minutes,\n"
-					 f"🎲 Probability: {row["proba"] if row["proba"] else 100} %,\n")
+			value = (f"⏳ Delay: {row['delay']} minutes,\n"
+					 f"🎲 Probability: {row['proba'] if row['proba'] else 100} %,\n")
 			if row["min_revenue"]:
-				value += f"💰 Revenue: min {row["min_revenue"]}, max {row["max_revenue"]} {self.currency_symbol}\n"
-			if row["min_lose_amount_percentage"]:
-				value += (f"📉 min. loss (%): {row["min_lose_amount_percentage"]},\n"
-						  f" max. loss (%): {row["max_lose_amount_percentage"]}\n")
+				value += f"💰 Revenue: min {row['min_revenue']}, max {row['max_revenue']} {self.currency_symbol}\n"
+			if row['min_lose_amount_percentage']:
+				value += (f"📉 min. loss (%): {row['min_lose_amount_percentage']},\n"
+						  f" max. loss (%): {row['max_lose_amount_percentage']}\n")
 			if row["min_gain_amount_percentage"]:
-				value += (f"📈 min. gain (%): {row["min_gain_amount_percentage"]},\n"
-						  f" max. gain (%): {row["max_gain_amount_percentage"]}")
+				value += (f"📈 min. gain (%): {row['min_gain_amount_percentage']},\n"
+						  f" max. gain (%): {row['max_gain_amount_percentage']}")
 
 			embed.add_field(
-				name=f"Action: {row["action_name"]}",
+				name=f"Action: {row['action_name']}",
 				value=value,
 				inline=False
 			)
