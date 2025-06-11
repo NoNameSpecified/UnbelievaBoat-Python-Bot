@@ -12,9 +12,10 @@ furnished to do so, subject to the following conditions:
 1. The above copyright notice and this permission notice shall be included in all
    copies or substantial portions of the Software.
 
-2. If you publish this software or a modified version of it, you must:
+2. If you publish or share this software or a modified version of it (publicly or privately), you must:
     a) Provide a visible link to the original repository link.
         GitHub's "forked from" label is sufficient.
+        If you share the code, the comments at the beginning each file are enough if they include the link.
         Original Repository: https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot
     b) Include a general statement that the software has been modified, if applicable.
         Github's "x commits ahead/behind" indicator is sufficient.
