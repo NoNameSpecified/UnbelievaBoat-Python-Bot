@@ -70,8 +70,8 @@ class SkenderBot:
 			"create_item_usage": "create-item",
 			"delete_item_usage": "delete-item <item short name>",
 			"buy_item_usage": "buy-item <item short name> <amount>",
-			"give_item_usage": "give-item <@member> <item short name> <amount>",
-			"use_usage": "use <item short name> <amount>",
+			"give_item_usage": "give-item <@member> <item short name> [amount]",
+			"use_item_usage": "use <item short name> <amount>",
 			"inventory_usage": "inventory [page]",
 			"user_inventory_usage": "user-inventory <@member> [page]",
 			"catalog_usage": "catalog [item short name]",
@@ -272,11 +272,11 @@ class SkenderBot:
 			await self.handle_use_item(ctx)
 			return
 
-		elif command in ["inventory"]:
+		elif command in ["inventory", "inv"]:
 			await self.handle_inventory(ctx)
 			return
 
-		elif command in ["user-inventory"]:
+		elif command in ["user-inventory", "user-inv"]:
 			await self.handle_user_inventory(ctx)
 			return
 
@@ -496,9 +496,9 @@ class SkenderBot:
 
 		embed.add_field(name="buy-item", value=f"Usage: `{self.all_usages['buy_item_usage']}`", inline=False)
 		embed.add_field(name="give-item", value=f"Usage: `{self.all_usages['give_item_usage']}`", inline=False)
-		embed.add_field(name="use", value=f"Usage: `{self.all_usages['use_usage']}`", inline=False)
-		embed.add_field(name="inventory", value=f"Usage: `{self.all_usages['inventory_usage']}`", inline=False)
-		embed.add_field(name="user-inventory", value=f"Usage: `{self.all_usages['user_inventory_usage']}`", inline=False)
+		embed.add_field(name="use", value=f"Usage: `{self.all_usages['use_item_usage']}`", inline=False)
+		embed.add_field(name="inventory", value=f"Alias: inv | Usage: `{self.all_usages['inventory_usage']}`", inline=False)
+		embed.add_field(name="user-inventory", value=f"Alias: user-inv | Usage: `{self.all_usages['user_inventory_usage']}`", inline=False)
 		embed.add_field(name="catalog", value="Usage: `catalog`", inline=False)
 		embed.add_field(name="catalog (details about an item)", value="Usage: `catalog <item short name>`", inline=False)
 		embed.add_field(name="----------------------\n\nINCOME ROLES",
@@ -630,9 +630,9 @@ class SkenderBot:
 		if not reception_user_obj:
 			await self.utils.send_invalid(ctx, "user", usage)
 			return
-		reception_user_name = reception_user_obj.name
+		# reception_user_name = reception_user_obj.name
 
-		amount = self.utils.check_amount_parameter(ctx, ctx.param[2], usage, mode="strict")
+		amount = await self.utils.check_amount_parameter(ctx, ctx.param[2], usage, mode="strict")
 		if amount is None: return
 
 		money_type = ctx.param[3] if ctx.param[3] in ["cash", "bank"] else "bank"
@@ -640,11 +640,11 @@ class SkenderBot:
 		try:
 			if mode == "add":
 				status, err_msg = await self.db_handler.add_money(
-					ctx, reception_user, amount, reception_user_name
+					ctx, reception_user, amount, reception_user_obj
 				)
 			else:
 				status, err_msg = await self.db_handler.remove_money(
-					ctx, reception_user, amount, reception_user_name, money_type
+					ctx, reception_user, amount, reception_user_obj, money_type
 				)
 			if status == "error":
 				await self.utils.send_error_report(ctx, err_msg)
@@ -1009,14 +1009,14 @@ class SkenderBot:
 		if not reception_user_obj:
 			await self.utils.send_invalid(ctx, "user", usage)
 			return
-		reception_user_name = reception_user_obj.name
+		# reception_user_name = reception_user_obj.name
 
 		amount = await self.utils.check_amount_parameter(ctx, ctx.param[2], usage)
 		if amount is None: return
 
 		try:
 			status, err_msg = await self.db_handler.give(
-				ctx, reception_user, amount, reception_user_name
+				ctx, reception_user, amount, reception_user_obj
 			)
 			if status == "error":
 				await self.utils.send_error_report(ctx, err_msg)
@@ -1454,7 +1454,7 @@ class SkenderBot:
 
 		confirmation_msg = "This will permanently delete the item, also for every user!\nDo you wish to continue? [y/N]"
 		footer = "Info: use remove-user-item to remove an item from a specific user."
-		confirmation = self.utils.confirm_command(ctx, description=confirmation_msg, footer=footer)
+		confirmation = await self.utils.confirm_command(ctx, description=confirmation_msg, footer=footer)
 
 		if not confirmation: return
 
@@ -1492,7 +1492,7 @@ class SkenderBot:
 
 		player_ping = await self.utils.get_user_id(ctx.param[1])
 
-		exists, reception_user_name = self.utils.check_if_user_exists(ctx, player_ping)
+		exists, reception_user_object = self.utils.check_if_user_exists(ctx, player_ping)
 		if not exists:
 			await self.utils.send_invalid(ctx, "member", usage)
 			return
@@ -1508,7 +1508,7 @@ class SkenderBot:
 
 		try:
 			status, err_msg = await self.db_handler.remove_user_item(
-				ctx, item_name, amount, player_ping, reception_user_name
+				ctx, item_name, amount, player_ping, reception_user_object
 			)
 			if status == "error":
 				await self.utils.send_error_report(ctx, err_msg)
@@ -1534,7 +1534,7 @@ class SkenderBot:
 		amount_param = "1" if ctx.param[2] == "none" else ctx.param[2]
 
 		# Strict-Check des Amounts (ganze Zahl, > 0)
-		amount = self.utils.check_amount_parameter(ctx, amount_param, usage, mode="strict")
+		amount = await self.utils.check_amount_parameter(ctx, amount_param, usage, mode="strict")
 		if amount is None:
 			return
 
@@ -1566,7 +1566,7 @@ class SkenderBot:
 			user_fetch = self.client.get_user(int(player_ping))
 			if not user_fetch:
 				raise ValueError("User not found")
-			reception_user_name = user_fetch
+			reception_user_object = user_fetch
 			if int(player_ping) == ctx.user:
 				embed = discord.Embed(description=f"{self.utils.emoji_error}  You cannot trade items with yourself."
 												  f" That would be pointless...", color=self.discord_error_rgb_code)
@@ -1588,7 +1588,7 @@ class SkenderBot:
 		try:
 			# false at the end is for "spawn mode".
 			status, err_msg = await self.db_handler.give_item(
-				ctx, item_name, amount, player_ping, reception_user_name, False
+				ctx, item_name, amount, player_ping, reception_user_object, False
 			)
 			if status == "error":
 				await self.utils.send_error_report(ctx, err_msg)
@@ -1620,7 +1620,7 @@ class SkenderBot:
 			user_fetch = self.client.get_user(int(player_ping))
 			if not user_fetch:
 				raise ValueError("User not found")
-			reception_user_name = user_fetch
+			reception_user_object = user_fetch
 		except Exception:
 			await self.utils.send_invalid(ctx, "member", usage)
 			return
@@ -1638,7 +1638,7 @@ class SkenderBot:
 		try:
 			# this time, spawn mode set to true.
 			status, err_msg = await self.db_handler.give_item(
-				ctx, item_name, amount, player_ping, reception_user_name, True
+				ctx, item_name, amount, player_ping, reception_user_object, True
 			)
 			if status == "error":
 				await self.utils.send_error_report(ctx, err_msg)
@@ -1795,7 +1795,7 @@ class SkenderBot:
 
 		# we need at least one role parameter for all of them
 		min_parameters = 2 if mode in ["add", "update"] else 1
-		if not self.utils.check_parameter_count(ctx, usage, parameter_min_amount=min_parameters):
+		if not await self.utils.check_parameter_count(ctx, usage, parameter_min_amount=min_parameters):
 			return
 
 		role_parameter = ctx.param[1]
@@ -1805,11 +1805,11 @@ class SkenderBot:
 			# already was deleted on the server and thus this command was called with only the ID.
 			income_role = self.utils.get_role_id_single(role_parameter)
 		else:
-			income_role = self.utils.check_if_role_exists(ctx, ctx.param[1])
+			income_role = await self.utils.check_if_role_exists(ctx, ctx.param[1])
 			if income_role is None:
 				return
 
-			amount = self.utils.check_amount_parameter(ctx, ctx.param[2], usage, mode="strict")
+			amount = await self.utils.check_amount_parameter(ctx, ctx.param[2], usage, mode="strict")
 			if amount is None: return
 
 		try:
@@ -1875,16 +1875,16 @@ class SkenderBot:
 		usage = self.all_usages[f"{mode}_money_role_usage"]
 
 		# we need two parameters: role and amount.
-		if not self.utils.check_parameter_count(ctx, usage, parameter_min_amount=2):
+		if not await self.utils.check_parameter_count(ctx, usage, parameter_min_amount=2):
 			return
 
 		# get amount and check
-		amount = self.utils.check_amount_parameter(ctx, ctx.param[2], usage, mode="strict")
+		amount = await self.utils.check_amount_parameter(ctx, ctx.param[2], usage, mode="strict")
 		if amount is None:
 			return
 
 		# check role
-		role_id = self.utils.check_if_role_exists(ctx, ctx.param[1])
+		role_id = await self.utils.check_if_role_exists(ctx, ctx.param[1])
 		if role_id is None:
 			return
 
@@ -2067,7 +2067,7 @@ class SkenderBot:
 	#    XP HANDLING (ADD/REMOVE)
 	# -------------------------------
 
-	# info: auto xp adding and passive chat income gets handled through main.py on_message -->db_handler directly.
+	# info: auto xp adding and passive chat income gets handled through main.py on_message --> db_handler directly.
 	async def handle_xp_change(self, ctx, mode="add"):
 		if not ctx.staff:
 			await self.utils.missing_admin(ctx)
@@ -2079,16 +2079,16 @@ class SkenderBot:
 		usage = self.all_usages["add_xp_usage"] if mode == "add" else self.all_usages["remove_xp_usage"]
 
 		# we need a user and an amount
-		if not self.utils.check_parameter_count(ctx, usage, parameter_min_amount=2):
+		if not await self.utils.check_parameter_count(ctx, usage, parameter_min_amount=2):
 			return
 
 		user_ping = await self.utils.get_user_id(ctx.param[1])
-		exists, reception_user_name = self.utils.check_if_user_exists(ctx, user_ping)
+		exists, _ = self.utils.check_if_user_exists(ctx, user_ping)
 		if not exists:
 			await self.utils.send_invalid(ctx, "member", usage)
 			return
 
-		amount = self.utils.check_amount_parameter(ctx, ctx.param[2], usage, "strict")
+		amount = await self.utils.check_amount_parameter(ctx, ctx.param[2], usage, "strict")
 		if amount is None: return
 
 		# handle it.
@@ -2110,7 +2110,7 @@ class SkenderBot:
 		if ctx.param[1] == "none":
 			user = ctx.user
 		else:
-			user = self.utils.get_user_id(ctx.param[1])
+			user = await self.utils.get_user_id(ctx.param[1])
 			if not user:
 				await self.utils.send_invalid(ctx, "member", usage, mode="optional")
 				return
