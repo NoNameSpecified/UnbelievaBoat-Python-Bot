@@ -449,8 +449,13 @@ class SkenderBot:
 				inline=False
 			)
 			embed.add_field(
-				name="change",
-				value=f"Usage: `{self.all_usages['change_usage']}`",
+				name="change-variable",
+				value=f"Usage: `{self.all_usages['change_variable_usage']}`",
+				inline=False
+			)
+			embed.add_field(
+				name="change-action",
+				value=f"Usage: `{self.all_usages['change_action_usage']}`",
 				inline=False
 			)
 			embed.add_field(
@@ -568,7 +573,7 @@ class SkenderBot:
 		if ctx.staff:
 			embed.add_field(
 				name="set passive chat income",
-				value=f"Usage: `{self.all_usages["set_passive_chat_income_usage"]}`",
+				value=f"Usage: `{self.all_usages['set_passive_chat_income_usage']}`",
 				inline=False
 			)
 			embed.add_field(
