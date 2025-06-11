@@ -31,12 +31,14 @@ I don't know what exactly the normal Unbelievaboat includes nowadays, but you ca
 5. Invite the bot to your server as shown in https://youtu.be/b61kcgfOm_4
 6. Create a role for your bot with permission to manage roles (the bot's role must be above the roles it should manage).
 7. Install Python 3, if not already installed.
-8. Install `discord.py` using `pip install discord.py`.
+8. Install `pip install discord.py` and `pip install requests`.
 9. Create a role in your server called "botmaster" (or whatever you named it in `main.py`) and assign it to the bot admins.
 10. Launch `main.py` with **python3**.
 
 You will be guided through the rest of the setup.  
-Please take the customizable lines in `main.py` seriously, including the setup channel ID.
+Please take the customizable lines in `main.py` seriously, including the setup channel ID.  
+You can browse the database by using a tool like [SQLite Browser](https://sqlitebrowser.org), but be careful when editing 
+variables directly through a SQLite browser, since it may interfere with the bot usage (especially for JSON strings in the database).
 
 ---
 
