@@ -483,12 +483,12 @@ class SkenderDatabaseHandler:
 			],
 			"common_reset_time": [
 				None,
-				"skip",
+				"Don't edit this manually. This is used for the collect command.",
 				"str"
 			],
 			"last_global_income_update": [
 				None,
-				"skip",
+				"Don't edit this manually. This is used for the update-income command.",
 				"str"
 			],
 			"min_amount_to_blackjack": [
@@ -635,10 +635,21 @@ class SkenderDatabaseHandler:
 				# first: insert variables into var_values
 
 				for key, value in self.default_variable_info.items():
-					await setup_channel.send(f"Variable **{key}**.\nInfo: {value[1]}.\n"
-											 f"Default value: {value[0]}, type: {value[2]}.\n")
+
+					if key not in ["common_reset_time", "last_global_income_update"]:
+						await setup_channel.send(f"Variable **{key}**.\nInfo: {value[1]}.\n"
+												 f"Default value: {value[0]}, type: {value[2]}.\n")
 					while 1:
 						entered_value = None
+
+						# these two don't get edited
+						if key == "common_reset_time":
+							entered_value = None
+							break
+						if key == "last_global_income_update":
+							entered_value = None
+							break
+
 						await setup_channel.send("Enter **value** or **default** to set default value")
 
 						# set_get_admin_input already strips and lowers the string.
@@ -650,13 +661,6 @@ class SkenderDatabaseHandler:
 								entered_value = str(value[0])
 							else:
 								entered_value = None
-							break
-
-						if key == "common_reset_time":
-							entered_value = None
-							break
-						if key == "last_global_income_update":
-							entered_value = None
 							break
 
 						if key == "currency_emoji_name":
@@ -721,7 +725,7 @@ class SkenderDatabaseHandler:
 
 						elif key == "channels":
 
-							level_channels = await self.get_valid_channels(level_channels, setup_channel)
+							level_channels = await self.get_valid_channels(user_input, setup_channel)
 
 						break
 
