@@ -66,7 +66,7 @@ class SkenderBot:
 			"set_income_reset_usage": "set-income-reset <true/false>",
 			"remove_user_item_usage": "remove-user-item <@member> <item short name> <amount>",
 			"spawn_item_usage": "spawn-item <@member> <item short name> [amount]",
-			"clear_leaderboard_usage": "clear-lb",
+			"clear_leaderboard_usage": "clear-db",
 			"create_item_usage": "create-item",
 			"delete_item_usage": "delete-item <item short name>",
 			"buy_item_usage": "buy-item <item short name> <amount>",
@@ -351,9 +351,9 @@ class SkenderBot:
 	# ==> now comes the actual part where we define all the functions.
 
 	"""
-	
+
 	BOT SECTION (help, module-info, edit, change-currency...).
-	
+
 	"""
 
 	# --------------
@@ -480,7 +480,7 @@ class SkenderBot:
 			)
 			embed.add_field(
 				name="clear-db",
-				value=f"Usage: `{self.all_usages['clear_leaderboard_usage']}'` - remove users from database that left the server",
+				value=f"Usage: `{self.all_usages['clear_leaderboard_usage']}` - remove users from database that left the server",
 				inline=False
 			)
 			embed.set_footer(text=help_footer_text)
@@ -792,9 +792,9 @@ class SkenderBot:
 			await self.utils.send_error(ctx)
 
 	"""
-	
+
 	MONEY AND ECONOMY SECTION
-	
+
 	"""
 
 	# -------------------
@@ -1030,9 +1030,9 @@ class SkenderBot:
 			await self.utils.send_error(ctx)
 
 	"""
-	
+
 	ITEMS SECTIONS
-	
+
 	"""
 
 	# ---------------------------
@@ -1266,7 +1266,7 @@ class SkenderBot:
 
 					required_roles = ""
 					for role_id in roles_input:
-						role = discord.utils.get(ctx.server.roles, id=int(role_id))
+						role = await self.utils.get_role_object(ctx, role_id)
 						if role is None:
 							await ctx.channel.send(f"{self.utils.emoji_error}  Invalid role given. Please try again.")
 							continue
@@ -1296,7 +1296,7 @@ class SkenderBot:
 
 					excluded_roles = ""
 					for role_id in roles_input:
-						role = discord.utils.get(ctx.server.roles, id=int(role_id))
+						role = await self.utils.get_role_object(ctx, role_id)
 						if role is None:
 							await ctx.channel.send(f"{self.utils.emoji_error}  Invalid role given. Please try again.")
 							continue
@@ -1326,7 +1326,7 @@ class SkenderBot:
 					roles_give = ""
 					for role_id in roles_input:
 
-						role = discord.utils.get(ctx.server.roles, id=int(role_id))
+						role = await self.utils.get_role_object(ctx, role_id)
 						if role is None:
 							await ctx.channel.send(f"{self.utils.emoji_error}  Invalid role given. Please try again.")
 							continue
@@ -1355,7 +1355,7 @@ class SkenderBot:
 
 					roles_remove = ""
 					for role_id in roles_input:
-						role = discord.utils.get(ctx.server.roles, id=int(role_id))
+						role = await self.utils.get_role_object(ctx, role_id)
 						if role is None:
 							await ctx.channel.send(f"{self.utils.emoji_error}  Invalid role given. Please try again.")
 							continue
@@ -1774,9 +1774,9 @@ class SkenderBot:
 			await self.utils.send_error(ctx)
 
 	"""
-	
+
 	INCOME ROLES SECTION
-	
+
 	"""
 
 	# ---------------------------
@@ -1950,9 +1950,9 @@ class SkenderBot:
 			return
 
 	"""
-	
+
 	SERVER THINGS
-	
+
 	"""
 
 	# ---------------
@@ -2219,4 +2219,3 @@ class SkenderBot:
 			print(e)
 			await self.utils.send_error(ctx)
 		return
-
