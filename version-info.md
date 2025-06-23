@@ -1,7 +1,7 @@
 # Version Information for the Skender Bot on Discord
 
 **Official Repository:** [github.com/NoNameSpecified/UnbelievaBoat-Python-Bot](https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot)  
-**Last Updated:** 11.06.2025 (European date format)  
+**Last Updated:** 23.06.2025 (European date format)  
 For **future updates**, keep track of the Skender version you're using.  
 For more, see the intro comment in database/database_migration.py.
 
@@ -13,9 +13,21 @@ For any questions, suggestions or bug reports, feel free to contact me on discor
 
 ---
 
-### 🆕 Skender v2.1 (Released: 11.06.2025)
+### 🆕 Skender v2.2 (Released: 23.06.2025)
 
-Please update the files mentioned below, main.py doesn't have to be updated.
+- Updated `bot.py`, `utilities.py`, `database/__init__.py`, `database/database_migration.py`.
+- Updated `main.py`, but only to change the bot_version variable to v2.2
+
+#### 🔧 Fixed migration script bug.
+Added a path trick at the top of the migration script. Before, "python main.py" caused the script to crash if it wasn't executed through an IDE like PyCharm.
+
+#### 🔧 Fixed catalog bug.
+- Updated the way role checks are done (primarily through bot cache and API call as fallback).
+- Changed the visual of catalog display for single items.
+
+---
+
+### Skender v2.1 (Released: 11.06.2025)
 
 #### 🔧 Fixed multiple bugs.
 - Updated `bot.py`, `database/__init__.py`, `utilities.py`.
@@ -27,7 +39,7 @@ Please update the files mentioned below, main.py doesn't have to be updated.
 
 ---
 
-## 🆕 Skender v2.0 (Released: 11.06.2025)
+## Skender v2.0 (Released: 11.06.2025)
 
 **To switch from the legacy version to v2.0, a migration script is provided with v2.0.**  
 **You will _automatically be guided through the migration_ when launching the new version for the first time and do not need to use it manually. But please read the instructions in the console during the process.**
