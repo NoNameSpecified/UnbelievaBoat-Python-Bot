@@ -28,7 +28,7 @@ from discord.ext.commands import Bot
 from bot import SkenderBot
 
 # maybe don't change the bot version (see version-info.md)
-BOT_VERSION = "2.1"			# important for later updates to the bot, in case you need to use a migration script.
+BOT_VERSION = "2.2"			# important for later updates to the bot, in case you need to use a migration script.
 
 """
 	ADD WANTED EDITS HERE (lines 40-50).
