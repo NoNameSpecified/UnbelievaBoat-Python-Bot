@@ -2666,30 +2666,30 @@ class SkenderDatabaseHandler:
 		# required roles
 		req_roles = ""
 		req_roles_raw = json.loads(all_items[item_check]["required_roles"])
-		for role in req_roles_raw:
-			role = discord.utils.get(ctx.server.roles, id=int(role))
-			req_roles += f"{str(role.mention)} "
+		for role_id in req_roles_raw:
+			role = await self.utils.get_role_object(ctx, role_id)
+			req_roles += f"{str(role.mention) if role else ''} "
 
 		# excluded roles
 		excluded_roles = ""
 		excluded_roles_raw = json.loads(all_items[item_check]["excluded_roles"] or [])
-		for role in excluded_roles_raw:
-			role = discord.utils.get(ctx.server.roles, id=int(role))
-			excluded_roles += f"{str(role.mention)} "
+		for role_id in excluded_roles_raw:
+			role = await self.utils.get_role_object(ctx, role_id)
+			excluded_roles += f"{str(role.mention) if role else ''} "
 
 		# given roles when buying item
 		give_roles = ""
 		give_roles_raw = json.loads(all_items[item_check]["given_roles"] or [])
-		for role in give_roles_raw:
-			role = discord.utils.get(ctx.server.roles, id=int(role))
-			give_roles += f"{str(role.mention)} "
+		for role_id in give_roles_raw:
+			role = await self.utils.get_role_object(ctx, role_id)
+			give_roles += f"{str(role.mention) if role else ''} "
 
 		# roles removed when buying item
 		rem_roles = ""
 		rem_roles_raw = json.loads(all_items[item_check]["removed_roles"] or [])
-		for role in rem_roles_raw:
-			role = discord.utils.get(ctx.server.roles, id=int(role))
-			rem_roles += f"{str(role.mention)} "
+		for role_id in rem_roles_raw:
+			role = await self.utils.get_role_object(ctx, role_id)
+			rem_roles += f"{str(role.mention) if role else ''} "
 
 		# expiration date
 		exp_date = datetime.strptime(all_items[item_check]['expiration_date'], '%Y-%m-%d %H:%M:%S.%f')
@@ -2730,8 +2730,8 @@ class SkenderDatabaseHandler:
 			inline=False
 		)
 		embed.add_field(
-			name="⏳ Remaining time:",
-			value=f"🕒 Expires {left_time}",
+			name="🕒 Remaining time:",
+			value=f"Expires {left_time}",
 			inline=True
 		)
 		embed.add_field(
@@ -2741,11 +2741,12 @@ class SkenderDatabaseHandler:
 		)
 		embed.add_field(
 			name="🧩 Roles:",
+			# .strip() because we would have empty strings if all roles are not found.
 			value=(
-				f"✅ Required: {req_roles}　"
-				f"🚫 Excluded: {excluded_roles}　"
-				f"🎁 Given: {give_roles}　"
-				f"❌ Removed: {rem_roles}"
+				f"✅ Required: {req_roles if req_roles.strip() else 'none'}　\n"
+				f"🚫 Excluded: {excluded_roles if excluded_roles.strip() else 'none'}　\n"
+				f"🎁 Given: {give_roles if give_roles.strip() else 'none'}　\n"
+				f"❌ Removed: {rem_roles if rem_roles.strip() else 'none'}\n"
 			),
 			inline=False
 		)
@@ -2879,7 +2880,7 @@ class SkenderDatabaseHandler:
 			current += 1
 			# discord.utils.get is slower than this, but safer to work with and ping is controllable.
 			# ping_role = f"<@&{role['role_id']}>"
-			ping_role = discord.utils.get(ctx.server.roles, id=int(role["role_id"]))
+			ping_role = await self.utils.get_role_object(ctx, role["role_id"])
 
 			# skip if there is an error with the role
 			if not ping_role:
@@ -2956,7 +2957,7 @@ class SkenderDatabaseHandler:
 			income_total = role_income * days_passed if reset_status.lower() == "false" else role_income
 
 			# now get the role object and then update each member who has the role
-			role_obj = discord.utils.get(ctx.server.roles, id=int(role_id))
+			role_obj = await self.utils.get_role_object(ctx, role_id)
 			if not role_obj:
 				role_error += 1
 				continue
@@ -3127,7 +3128,7 @@ class SkenderDatabaseHandler:
 		# get the role objects for the matching roles (for a role.mention in the embed)
 		role_objects = {}
 		for role in matching_roles:
-			obj = discord.utils.get(ctx.server.roles, id=role["role_id"])
+			obj = await self.utils.get_role_object(ctx, role["role_id"])
 			role_objects[ role["role_id"] ] = obj
 
 		# now get the new income and format an embed.
@@ -3183,7 +3184,7 @@ class SkenderDatabaseHandler:
 
 		# we get the role object, then we check each member who has the role and remove them the amount.
 
-		role_obj = discord.utils.get(ctx.server.roles, id=income_role)
+		role_obj = await self.utils.get_role_object(ctx, income_role)
 
 		if not role_obj:
 			return "error", f"{self.error_emoji} Role not found."
