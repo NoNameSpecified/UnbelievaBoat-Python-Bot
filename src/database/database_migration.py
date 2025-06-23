@@ -52,11 +52,17 @@ INFO:
 ### userdata will be moved to table users.
 
 
-import os, argparse, json, sqlite3, shutil, math, sys
+import os, sys
+# no problems with "import database". Else it throws an error if you call it with a wrong PYTHONPATH (happens with "python main.py").
+# I didn't notice the bug at first, because I ran the code through PyCharm directly, which seems to handle it automatically.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import argparse, json, sqlite3, shutil, math
 from datetime import datetime
 
 # to create database structure
 import database
+
 
 class SkenderMigration:
 	def __init__(self):
