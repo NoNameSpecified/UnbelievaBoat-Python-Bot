@@ -116,6 +116,18 @@ class SkenderUtilities:
 				pass
 		return int(role_clean)
 
+	@staticmethod
+	async def get_role_object(ctx, role_id):
+		try:
+			role_id = int(role_id)
+			role_obj = discord.utils.get(ctx.server.roles, id=role_id) or await ctx.server.fetch_role(role_id)
+		except:
+			# if we try to fetch_role and the role doesn't exist, we return None, and we don't crash.
+			role_obj = None
+
+		return role_obj
+
+
 	async def check_if_role_exists(self, ctx, role):
 		role_id = self.get_role_id_single(role)
 		role = discord.utils.get(ctx.server.roles, id=int(role_id))
