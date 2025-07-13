@@ -112,9 +112,10 @@ class SkenderBot:
 		print("[BOT STARTED UP -- RUNNING]")
 
 	async def handle_message_xp_and_passive_income(self, message):
-		ctx = CommandContext(message, None, None)
-		# don't add xp for any bot !
-		if message.author.bot:
+		# created problems with webhooks when trying to get context for its object
+		try:
+			ctx = CommandContext(message, None, None)
+		except ValueError:
 			return
 		await self.db_handler.handle_message_xp_and_passive_income(ctx, ctx.user)
 
@@ -155,7 +156,12 @@ class SkenderBot:
 
 		# very important ! we get the message channel etc. from this object without needing to always
 		# pass the variables through every function (for more see context.py).
-		ctx = CommandContext(message, self.admin_role, param)
+
+		# created problems with webhooks when trying to get context for its object
+		try:
+			ctx = CommandContext(message, self.admin_role, param)
+		except ValueError:
+			return
 
 		# start processing the commands !
 
