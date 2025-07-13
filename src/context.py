@@ -15,6 +15,11 @@ INFO:
 
 class CommandContext:
 	def __init__(self, message, admin_role, param):
+
+		# skip if just a webhook (no actual user object)
+		if message.webhook_id:
+			raise ValueError("Webhook message – no context to build")
+
 		# all these "self.variable" will be able to be called as "ctx.variable" in bot.py.
 		self.message = message
 		self.channel = message.channel
