@@ -1710,9 +1710,12 @@ class SkenderDatabaseHandler:
 								 f"You currently have {str(self.currency_symbol)} "
 								 f"{self.format_number_separator(user_bank)} in the bank.")
 
+		if amount <= 0:
+			return "error", (f"{self.error_emoji} You currently only have"
+							 f" {str(self.currency_symbol)} {self.format_number_separator(user_cash)}"
+							 f" in {mode} !\n")
+
 		# write changes
-		# subtract from bank if mode is bank (withdraw) or from cash if we're at deposit or give.
-		await self.change_balance(ctx.user, amount, balance_obj=mode, mode="subtract")
 		return "success", amount
 
 	#
@@ -1730,6 +1733,7 @@ class SkenderDatabaseHandler:
 		# so we know the amount if we said "all"
 		if status == "success": amount = int(msg)
 
+		await self.change_balance(ctx.user, amount, balance_obj="cash", mode="subtract")
 		await self.change_balance(ctx.user, amount, balance_obj="bank", mode="add")
 
 		# inform user
@@ -1755,6 +1759,7 @@ class SkenderDatabaseHandler:
 		if status == "success": amount = int(msg)
 
 		await self.change_balance(ctx.user, amount, balance_obj="bank", mode="subtract")
+		await self.change_balance(ctx.user, amount, balance_obj="cash", mode="add")
 
 		# inform user
 		msg = (f"{self.worked_emoji} Withdrew {str(self.currency_symbol)} "
@@ -1773,7 +1778,7 @@ class SkenderDatabaseHandler:
 			msg = (f"{self.error_emoji} You're trying to give yourself money ?"
 				   f"\ninfo: You may be looking for the `add-money` command")
 			await self.send_confirmation(ctx, msg, color="red")
-			return None
+			return None, None
 
 		# get user
 		user_object = await self.get_user_object(ctx.user)
@@ -1784,6 +1789,7 @@ class SkenderDatabaseHandler:
 		# so we know the amount if we said "all"
 		if status == "success": amount = int(msg)
 
+		await self.change_balance(ctx.user, amount, balance_obj="cash", mode="subtract")
 		await self.change_balance(reception_user, amount, balance_obj="cash", mode="add")
 
 		# inform user
