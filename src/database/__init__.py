@@ -2204,7 +2204,7 @@ class SkenderDatabaseHandler:
 			(item_name,)
 		)
 
-		if result.rowcount == 0: return "error", f"{self.error_emoji} Item not found."
+		if not result: return "error", f"{self.error_emoji} Item not found."
 
 		# also delete from inventories
 		await self.execute_commit(
@@ -2218,22 +2218,23 @@ class SkenderDatabaseHandler:
 	# REMOVE ITEM FROM SPECIFIC USER's INVENTORY
 	#
 
-	async def remove_user_item(self, ctx, item_name, amount_removed, reception_user, recept_user_obj):
+	async def remove_user_item(self, ctx, item_name, amount_removed, reception_user, recept_user_obj, usage=""):
+		amount_removed = int(amount_removed)
 
 		result = self.execute("SELECT * FROM user_items WHERE user_id = ?", (ctx.user,)).fetchone()
 		if not result:
 			return "error", f"{self.error_emoji} User does not have any items."
 
-		possessed_items = self.check_user_item_amount(ctx.user, amount_removed)
+		possessed_items = self.check_user_item_amount(ctx.user, item_name)
 
-		if result.rowcount == 0:
+		if not result:
 			return "error", f"{self.error_emoji} User does not possess the specified item."
 		if possessed_items - amount_removed < 0:
-			return "error", (f"{self.error_emoji} User does not have the necessary amount of items.\n"
-							 f"Info: has {possessed_items} items of that item.")
+			return "error", (f"{self.error_emoji} User does not have the necessary amount of `{item_name}` (info: has {possessed_items}).\n"
+							 f"Usage: `{usage}`")
 
 		await self.execute_commit(
-			"UPDATE user_items SET amount = ? WHERE user_id = ? AND item_name = ?",
+			"UPDATE user_items SET amount = amount - ? WHERE user_id = ? AND item_name = ?",
 			(amount_removed, reception_user, item_name)
 		)
 
@@ -2795,7 +2796,7 @@ class SkenderDatabaseHandler:
 				"DELETE FROM income_roles WHERE role_id = ?",
 				(role_id, )
 			)
-			if result.rowcount == 0: return "error", f"{self.error_emoji} Role not found."
+			if not result: return "error", f"{self.error_emoji} Role not found."
 			return None, None
 
 		# checks to see if it is able to be updated / inserted.
