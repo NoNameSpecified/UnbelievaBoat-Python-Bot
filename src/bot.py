@@ -270,7 +270,7 @@ class SkenderBot:
 			await self.handle_give_item(ctx)
 			return
 
-		elif command in ["spawn-item"]:
+		elif command in ["spawn-item", "spawn"]:
 			await self.handle_spawn_item(ctx)
 			return
 
@@ -1514,12 +1514,12 @@ class SkenderBot:
 			amount = 1
 		else:
 			amount = ctx.param[3]
-			is_int, amount = await self.utils.check_amount_parameter(ctx, amount, usage, mode="strict")
-			if not is_int: return
+			amount_check = await self.utils.check_amount_parameter(ctx, amount, usage, mode="strict")
+			if not amount_check: return
 
 		try:
 			status, err_msg = await self.db_handler.remove_user_item(
-				ctx, item_name, amount, player_ping, reception_user_object
+				ctx, item_name, amount, player_ping, reception_user_object, usage=usage
 			)
 			if status == "error":
 				await self.utils.send_error_report(ctx, err_msg)
