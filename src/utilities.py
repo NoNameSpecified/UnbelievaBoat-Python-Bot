@@ -11,7 +11,7 @@ INFO:
 
 """
 
-import discord, asyncio
+import discord, asyncio, re
 
 class SkenderUtilities:
 	def __init__(self, client, admin_role):
@@ -82,14 +82,17 @@ class SkenderUtilities:
 
 	@staticmethod
 	async def get_user_id(user_id):
-		reception_user_beta = str(user_id)  # the mention in channel gives us <@!USERID> OR <@USERID>
-		reception_user = ""
-		for i in range(len(reception_user_beta)):
-			try:
-				reception_user += str(int(reception_user_beta[i]))
-			except:
-				pass
-		return int(reception_user)
+		# if it's just an id anyway, return it
+		if isinstance(user_id, int):
+			return user_id
+
+		# else get all digits (not always integers, but should do the trick)
+		user_id_digits = "".join(re.findall(r'\d+', str(user_id)))
+
+		# if there was no digit at all (so it was just a string)
+		if not user_id_digits: return None
+		# else return our id integer
+		return int(user_id_digits)
 
 	# get role ids
 	@staticmethod
