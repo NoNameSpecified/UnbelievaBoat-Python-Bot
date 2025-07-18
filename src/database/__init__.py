@@ -513,13 +513,13 @@ class SkenderDatabaseHandler:
 			],
 			"delay_blackjack": [
 				0,
-				"This sets the cooldown (in minutes !) between 2 blackjack games a user can play. "
+				"This sets the cooldown (in **seconds** !) between 2 blackjack games a user can play. "
 					"\nFor no cooldown / usage limit, leave at 0.",
 				"int"
 			],
 			"delay_roulette": [
 				0,
-				"This sets the cooldown (in minutes !) between 2 roulette games a user can play. "
+				"This sets the cooldown (in **seconds** !) between 2 roulette games a user can play. "
 					"\nFor no cooldown / usage limit, leave at 0.",
 				"int"
 			],
@@ -548,7 +548,7 @@ class SkenderDatabaseHandler:
 			],
 			"xp_and_passive_income_delay": [
 				5,
-				"This is the cooldown aka delay (in minutes !) for a message to count for "
+				"This is the cooldown aka delay (in **minutes** !) for a message to count for "
 					"passive chat income and/or gaining xp for a message. Goal: avoid spam.",
 				"int"
 			]
@@ -1293,7 +1293,7 @@ class SkenderDatabaseHandler:
 	# check delay (cooldown) for an action or gambling.
 	def check_action_delay(self, action_name, user_object, mode="action"):
 		# returns "run" --> cooldown passed or "delay" --> not enough time passed.
-		# delay will ALWAYS be in MINUTES
+		# delay will be in SECONDS for Gambling and in MINUTES for Actions like slut/work...
 
 		# technically, "action_name" is unprecise, because it can also be gamble_name.
 		if mode == "action":
@@ -1323,33 +1323,39 @@ class SkenderDatabaseHandler:
 		last_run = datetime.strptime(last_run_string, '%Y-%m-%d %H:%M:%S.%f')
 		# calculate difference, see if it works
 		passed_time = now - last_run
-		passed_time_minutes = passed_time.total_seconds() // 60.0 # floor division to get a clean integer, not float.
-		if passed_time_minutes == 0:
-			# because of floor division it might display 0
-			passed_time_minutes = 1
-		if passed_time_minutes > delay:
+		# calculate, different for gambling (delay is in seconds) and for actions (delay is in minutes).
+		elapsed = int(passed_time.total_seconds()) if mode == "gamble" else int(passed_time.total_seconds() // 60) # get int and not float.
+		# <= 0 to be sure, but == 0 should be enough since we turn to int above.
+		if elapsed <= 0:
+			elapsed = 1
+
+		if elapsed > delay:
 			# enough time passed !
 			return "run", None
 		# else: still need to wait.
 		# get the delay remaining, ceil (aka round up to above) to get a more readable answer (2.1  --> 2 min left).
-		delay_remaining = math.ceil(delay - passed_time_minutes)
+		delay_remaining = math.ceil(delay - elapsed)
 
 		# return our data
 		return "delay", delay_remaining
 
-	async def send_cooldown_embed(self, ctx, action, cooldown_left):
-		embed_text = f"⏱ ️You need to wait {cooldown_left} minutes before using {action} again."
+	async def send_cooldown_embed(self, ctx, action, cooldown_left, mode):
+		embed_text = f"⏱ ️You need to wait {cooldown_left} {'seconds' if mode == 'gamble' else 'minutes'} before using {action} again."
 		embed = discord.Embed(description=f"{embed_text}", color=self.discord_blue_rgb_code)
 		embed.set_author(name=ctx.username, icon_url=ctx.user_pfp)
 		await ctx.channel.send(embed=embed)
 
 	# write changes for gamble (blackjack, roulette) and actions (work, slut, crime, rob)
-	async def actions_write_changes(self, ctx, new_cash, action, mode="replace"):
+	# was used for balance and last run before.
+	async def actions_write_balance(self, ctx, new_cash, mode="replace"):
 		# update balance
 		await self.change_balance(ctx.user, new_cash, "cash", mode)
+		# update last action time
+		# --> moved to start of function, else we could spam "roulette" infinite amount of times while the roulette
+		# is rolling (currently 10 seconds) and only after those 10 seconds we get a new cooldown.
 
-		# update last used values (last_slut, last_roulette ...)
-		# update last slut time
+	# update last used values (last_slut, last_roulette ...)
+	async def actions_write_last_run(self, ctx, action):
 		current_time = str(datetime.now())
 		await self.execute_commit(
 			f"UPDATE users SET last_{action} =  ? WHERE user_id = ?",
@@ -1379,19 +1385,24 @@ class SkenderDatabaseHandler:
 
 		# check time limit
 		status, delay_remaining = self.check_action_delay(game, user_object, mode="gamble")
+
 		if status == "delay":
-			await self.send_cooldown_embed(ctx, game, delay_remaining)
+			await self.send_cooldown_embed(ctx, game, delay_remaining, mode="gamble")
 			# return success, because we have done everything back end (that ../main.py needed us to do)
 			return "success", None, None, None, None
 		# everything is fine.
-		else: return "run", None, user_object, user_cash, int(bet)
+
+		# update last run now, after the delay check to prevent infinite cooldown
+		# but before running the action to prevent for example spamming roulette while roulette is waiting 10 seconds.
+		await self.actions_write_last_run(ctx, action=game)
+
+		return "run", None, user_object, user_cash, int(bet)
 
 	#
 	# BLACKJACK
 	#
 
 	async def blackjack(self, ctx, bet):
-
 		"""
 			INFO for ALL FURTHER FUNCTIONS AS WELL
 			in the old bot version, we used
@@ -1412,15 +1423,15 @@ class SkenderDatabaseHandler:
 		# updates are done through common function above
 
 		if blackjack_result == "win":
-			await self.actions_write_changes(ctx, bet, "blackjack", mode="add")
+			await self.actions_write_balance(ctx, bet, mode="add")
 		elif blackjack_result == "blackjack":
-			await self.actions_write_changes(ctx, bet * 1.5, "blackjack", mode="add")
+			await self.actions_write_balance(ctx, bet * 1.5, mode="add")
 		elif blackjack_result == "loss":
-			await self.actions_write_changes(ctx, bet, "blackjack", mode="subtract")
+			await self.actions_write_balance(ctx, bet, mode="subtract")
 		elif blackjack_result == "bust":
-			# could just say 0 and add / subtract, but it is cleaner with pass.
-			# we use this function so that we can still update the "last used"
-			await self.actions_write_changes(ctx, 0, "blackjack", mode="pass")
+			# no need to update balance
+			# last used was already updated before
+			pass
 		else:
 			return "error", f"{self.error_emoji} error unknown, contact admin"
 
@@ -1431,7 +1442,6 @@ class SkenderDatabaseHandler:
 	#
 
 	async def roulette(self, ctx, bet, space):
-
 		# global checks for amounts and time limits
 		status, msg, user_object, user_cash, bet = await self.gamble_check(ctx, "roulette", bet)
 
@@ -1444,9 +1454,9 @@ class SkenderDatabaseHandler:
 
 		# roulettePlay will return 1 for won, 0 for lost
 		if roulette_win:
-			await self.actions_write_changes(ctx, bet*multiplicator - bet, "roulette", mode="add")
+			await self.actions_write_balance(ctx, bet*multiplicator - bet, mode="add")
 		elif roulette_win == 0:
-			await self.actions_write_changes(ctx, bet, "roulette", mode="subtract")
+			await self.actions_write_balance(ctx, bet, mode="subtract")
 		else:
 			return "error", f"{self.error_emoji} error unknown, contact admin"
 
@@ -1467,11 +1477,17 @@ class SkenderDatabaseHandler:
 
 		# check time limit
 		status, delay_remaining = self.check_action_delay(action, user_object)
+
 		if status == "delay":
-			await self.send_cooldown_embed(ctx, action, delay_remaining)
+			await self.send_cooldown_embed(ctx, action, delay_remaining, mode="action")
 			return "success", None
-		# everything is fine.
-		else: return "run", user_object
+		# else everything is fine and the cooldown already finished.
+
+		# update last run now, after the delay check to prevent infinite cooldown
+		# but before running the action to prevent for example spamming roulette while roulette is waiting 10 seconds.
+		await self.actions_write_last_run(ctx, action=action)
+
+		return "run", user_object
 
 	def get_random_action_phrase(self, action, type_):
 		phrase = self.execute(
@@ -1493,6 +1509,7 @@ class SkenderDatabaseHandler:
 		return round(loss, 0)
 
 	async def actions_run(self, ctx, action, user_object, user_to_rob=None):
+
 		if action == "work":
 			# there is no probability for work, it always works.
 			success = True
@@ -1517,7 +1534,7 @@ class SkenderDatabaseHandler:
 			loss = self.calculate_action_loss(action, user_object)
 
 			# write changes to database and update "last_..."
-			await self.actions_write_changes(ctx, loss, action, mode="subtract")
+			await self.actions_write_balance(ctx, loss, mode="subtract")
 
 			# inform user
 			msg =f"{lose_phrase} {str(self.currency_symbol)} **{self.format_number_separator(loss)}**"
@@ -1588,7 +1605,7 @@ class SkenderDatabaseHandler:
 		# round up, no floats
 		win = round(win, 0)
 		# write changes to database and update "last_..."
-		await self.actions_write_changes(ctx, win, action, mode="add")
+		await self.actions_write_balance(ctx, win, mode="add")
 		# inform user
 		msg = f"{win_phrase} {str(self.currency_symbol)} **{self.format_number_separator(win)}**"
 		await self.send_confirmation(ctx, msg, color="green", footer="gg")
@@ -2221,11 +2238,12 @@ class SkenderDatabaseHandler:
 	async def remove_user_item(self, ctx, item_name, amount_removed, reception_user, recept_user_obj, usage=""):
 		amount_removed = int(amount_removed)
 
-		result = self.execute("SELECT * FROM user_items WHERE user_id = ?", (ctx.user,)).fetchone()
+		result = self.execute("SELECT * FROM user_items WHERE user_id = ?", (reception_user,)).fetchone()
+
 		if not result:
 			return "error", f"{self.error_emoji} User does not have any items."
 
-		possessed_items = self.check_user_item_amount(ctx.user, item_name)
+		possessed_items = self.check_user_item_amount(reception_user, item_name)
 
 		if not result:
 			return "error", f"{self.error_emoji} User does not possess the specified item."
@@ -2587,6 +2605,11 @@ class SkenderDatabaseHandler:
 			all_amounts = {obj["item_name"]: obj["amount"] for obj in user_items}
 
 		# fill with content
+
+		# cut the part (page) we want to show
+		start_index = (page_number - 1) * items_per_page
+		end_index = start_index + items_per_page
+		all_item_infos = all_item_infos[start_index:end_index]
 
 		# previously without embeds: inventory_checkup = f""
 		# for new embed version:
@@ -3149,9 +3172,17 @@ class SkenderDatabaseHandler:
 
 		for index, role in enumerate(matching_roles, start=1):
 			amount = role["role_income"]
+
+			# show the "100 x 2" only if we actually are above 1.
+			if payment_multiplier == 1:
+				# same as just {amount}, but for clarity.
+				amount_display = f"{self.currency_symbol} {amount * payment_multiplier}\n"
+			else:
+				amount_display = f"{self.currency_symbol} {amount} x {payment_multiplier} = {amount * payment_multiplier}\n"
+
 			final_report += (f"`{index}` - "
 							 f"{role_objects[role['role_id']].mention}\t"
-							 f"{self.currency_symbol} {amount} x {payment_multiplier} = {amount * payment_multiplier}\n")
+							 f"{amount_display}")
 			total_new_income += amount * payment_multiplier
 
 		# update balance in database
@@ -3177,6 +3208,10 @@ class SkenderDatabaseHandler:
 		full_report = description + final_report
 
 		await self.send_confirmation(ctx, full_report, color="blue", footer="CURR_TIME")
+
+		# we also use this to update the nickname.
+		# as of now (19.07.25 at Skender version 2.2, we update at +balance and +collect).
+		await self.update_nickname(ctx.user, ctx.nickname)
 
 		return "success", "success"
 
