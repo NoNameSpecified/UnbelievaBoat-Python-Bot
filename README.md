@@ -4,11 +4,12 @@
 Feel free to reach out to me on Discord at **<kendrik2.0>**
 
 ## Current version Notice:
+Update on 19.07.25: delay for gambling switched to seconds, please update in your database if needed.
 #### For changed files, see `version-info.md`.
 - 🔧 Skender v2.2 (bug fixes) released on 23.06.2025.
-- 🔧 Skender v2.1 (bug fixes) released on 11.06.2025.
-- 🆕 Skender v2.0 was released on 11.06.2025 (european time format). Please take a look at `version-info.md`, especially if you used the JSON version before !
-- 🛠️ Please read `command-list.md`. It includes a list of all available commands with explanations and tips.
+- Skender v2.0 was released on 11.06.2025 (european time format). Please take a look at `version-info.md`, especially if you used the JSON version before !
+
+🛠️ Please read `command-list.md`. It includes a list of all available commands with explanations and tips.
 
 ---
 
