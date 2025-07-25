@@ -3333,24 +3333,27 @@ class SkenderDatabaseHandler:
 	#
 
 	async def leaderboard(self, ctx, full_name, page_number, mode):
-		# get data from all users:
-		# get the money data
+		# get mode first
 		if mode == "-cash":
-			raw_balances = self.execute("SELECT cash FROM users").fetchall()
+			query = "cash"
 		elif mode == "-bank":
-			raw_balances = self.execute("SELECT bank FROM users").fetchall()
-		else: # elif mode == "-total":
-			raw_balances = self.execute("SELECT cash + bank FROM users").fetchall()
+			query = "bank"
+		else: # default "-total":
+			query = "cash + bank"
 
-		if not raw_balances:
+		# bot at the same time. Before, we selected first balance and then id but that led to errors.
+		combined_query = f"SELECT user_id, {query} AS total FROM users"
+
+		results = self.execute(combined_query).fetchall()
+
+		if not results:
 			return "error", "no user created to show leaderboard !"
 
 		# unpack values since fetchall() returns tuples (like this: ((a, ...), (b, ...) ...)
-		all_bal = [bal[0] for bal in raw_balances]
+		all_bal = [row["total"] for row in results]
 
 		# get the user data and unpack the id's
-		raw_users = self.execute("SELECT user_id FROM users").fetchall()
-		all_users = [row[0] for row in raw_users]
+		all_users = [row["user_id"] for row in results]
 
 		# --> data is set, now sort
 
