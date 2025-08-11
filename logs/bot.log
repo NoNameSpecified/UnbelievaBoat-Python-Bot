@@ -125,3 +125,5 @@
 2025-08-11 19:12:46,567 - __main__ - INFO - Muchirou-takitou (ID: 1152064713392394240) is ready!
 2025-08-11 19:12:46,568 - __main__ - INFO - Connected to 2 guilds
 2025-08-11 19:12:46,568 - __main__ - INFO - Serving 283 users
+2025-08-12 01:39:46,598 - __main__ - ERROR - DISCORD_BOT_TOKEN environment variable not found!
+2025-08-12 01:39:46,601 - __main__ - INFO - Please set your Discord bot token in the environment variables.
