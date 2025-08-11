@@ -484,7 +484,7 @@ class Admin(commands.Cog):
             await ctx.send(embed=embed)
     
     @commands.hybrid_command(name="bot-info")
-    async def bot_info(self, ctx):
+    async def info_bot(self, ctx):
         """Display bot information and statistics"""
         embed = discord.Embed(
             title=f"🤖 {BotConfig.BOT_NAME} Information",

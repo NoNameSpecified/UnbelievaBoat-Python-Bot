@@ -1,211 +1,79 @@
-#!/usr/bin/env python3
 """
-Enhanced UnbelievaBoat Python Bot - Refactored with Discord.py Cogs
-Original repository: https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot
-Refactored by: Enhanced Bot Team
-
-This is the main entry point for the bot. It loads all cogs and handles
-basic bot initialization and error handling.
+Configuration settings for the Enhanced UnbelievaBoat bot
 """
-
-import asyncio
-import logging
 import os
-import sys
-from pathlib import Path
+from typing import List, Optional
 
-import discord
-from discord.ext import commands
-
-# Import configuration and database
-from config import BotConfig
-from database.manager import DatabaseManager
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('logs/bot.log', encoding='utf-8'),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-
-# Create logs directory if it doesn't exist
-Path("logs").mkdir(exist_ok=True)
-
-logger = logging.getLogger(__name__)
-
-class EnhancedUnbelievaBot(commands.Bot):
-    """Enhanced UnbelievaBoat bot with cogs architecture"""
+class BotConfig:
+    """Central configuration for the bot"""
     
-    def __init__(self):
-        # Configure intents
-        intents = discord.Intents.default()
-        intents.message_content = True
-        intents.members = True
-        intents.presences = True
-        
-        super().__init__(
-            command_prefix=commands.when_mentioned_or(BotConfig.PREFIX),
-            intents=intents,
-            help_command=None,  # We'll implement custom help
-            case_insensitive=True,
-            strip_after_prefix=True
-        )
-        
-        self.config = BotConfig
-        self.db = None
-        self.initial_extensions = [
-            'cogs.economy',
-            'cogs.gambling', 
-            'cogs.admin',
-            'cogs.items',
-            'cogs.levels',
-            'cogs.moderation',
-            'cogs.utilities'
-        ]
-        
-    async def setup_hook(self):
-        """Called when the bot is starting up"""
-        logger.info("Setting up bot...")
-        
-        # Initialize database
-        self.db = DatabaseManager()
-        await self.db.initialize()
-        logger.info("Database initialized successfully")
-        
-        # Load all cogs
-        for extension in self.initial_extensions:
-            try:
-                await self.load_extension(extension)
-                logger.info(f"Loaded extension: {extension}")
-            except Exception as e:
-                logger.error(f"Failed to load extension {extension}: {e}")
-                
-        # Sync slash commands if in development
-        if BotConfig.SYNC_COMMANDS_ON_STARTUP:
-            try:
-                synced = await self.tree.sync()
-                logger.info(f"Synced {len(synced)} command(s)")
-            except Exception as e:
-                logger.error(f"Failed to sync commands: {e}")
+    # Bot Settings
+    PREFIX: str = os.getenv('BOT_PREFIX', '+')
+    BOT_VERSION: str = "3.0.0"
+    BOT_NAME: str = "Enhanced UnbelievaBoat"
     
-    async def on_ready(self):
-        """Called when bot is ready and logged in"""
-        logger.info(f"{self.user.name} (ID: {self.user.id}) is ready!")
-        logger.info(f"Connected to {len(self.guilds)} guilds")
-        logger.info(f"Serving {sum(guild.member_count for guild in self.guilds)} users")
-        
-        # Set bot status
-        activity = discord.Game(name=f"{BotConfig.PREFIX}help | Economy & Fun!")
-        await self.change_presence(status=discord.Status.online, activity=activity)
-        
-    async def on_guild_join(self, guild):
-        """Called when bot joins a new guild"""
-        logger.info(f"Joined new guild: {guild.name} (ID: {guild.id}) with {guild.member_count} members")
-        
-        # Initialize guild settings in database
-        await self.db.initialize_guild(guild.id)
-        
-        # Send welcome message to setup channel if configured
-        if BotConfig.SETUP_CHANNEL_ID:
-            channel = self.get_channel(BotConfig.SETUP_CHANNEL_ID)
-            if channel:
-                embed = discord.Embed(
-                    title="🎉 Thank you for adding me!",
-                    description=(
-                        f"I'm **{self.user.name}**, your new economy and moderation bot!\n\n"
-                        f"**Quick Start:**\n"
-                        f"• Use `{BotConfig.PREFIX}help` to see all commands\n"
-                        f"• Set up income roles with `{BotConfig.PREFIX}add-income-role`\n"
-                        f"• Configure settings with admin commands\n\n"
-                        f"**Need help?** Contact the bot admins or check the documentation!"
-                    ),
-                    color=discord.Color.green()
-                )
-                await channel.send(embed=embed)
+    # Discord Settings
+    SYNC_COMMANDS_ON_STARTUP: bool = os.getenv('SYNC_COMMANDS', 'false').lower() == 'true'
+    SETUP_CHANNEL_ID: Optional[int] = int(os.getenv('SETUP_CHANNEL_ID', '0')) or None
     
-    async def on_command_error(self, ctx, error):
-        """Global error handler for prefix commands"""
-        # Ignore command not found errors
-        if isinstance(error, commands.CommandNotFound):
-            return
-            
-        # Handle cooldown errors
-        if isinstance(error, commands.CommandOnCooldown):
-            embed = discord.Embed(
-                title="⏰ Command on Cooldown",
-                description=f"Please wait {error.retry_after:.1f} seconds before using this command again.",
-                color=discord.Color.orange()
-            )
-            await ctx.send(embed=embed, delete_after=10)
-            return
-            
-        # Handle missing permissions
-        if isinstance(error, commands.MissingPermissions):
-            embed = discord.Embed(
-                title="🚫 Missing Permissions",
-                description=f"You don't have permission to use this command.\nRequired: {', '.join(error.missing_permissions)}",
-                color=discord.Color.red()
-            )
-            await ctx.send(embed=embed, delete_after=10)
-            return
-            
-        # Handle bot missing permissions
-        if isinstance(error, commands.BotMissingPermissions):
-            embed = discord.Embed(
-                title="🤖 Bot Missing Permissions",
-                description=f"I don't have the required permissions.\nNeeded: {', '.join(error.missing_permissions)}",
-                color=discord.Color.red()
-            )
-            await ctx.send(embed=embed, delete_after=10)
-            return
-            
-        # Handle user input errors
-        if isinstance(error, (commands.BadArgument, commands.MissingRequiredArgument)):
-            embed = discord.Embed(
-                title="❌ Invalid Command Usage",
-                description=f"**Error:** {str(error)}\n\nUse `{BotConfig.PREFIX}help {ctx.command.name}` for proper usage.",
-                color=discord.Color.red()
-            )
-            await ctx.send(embed=embed, delete_after=15)
-            return
-            
-        # Log unexpected errors
-        logger.error(f"Unhandled error in command {ctx.command}: {error}", exc_info=error)
-        
-        # Send generic error message
-        embed = discord.Embed(
-            title="💥 Something went wrong!",
-            description="An unexpected error occurred. The incident has been logged.",
-            color=discord.Color.red()
-        )
-        await ctx.send(embed=embed, delete_after=10)
-
-async def main():
-    """Main entry point"""
-    # Check if token is provided
-    token = os.getenv('DISCORD_BOT_TOKEN')
-    if not token:
-        logger.error("DISCORD_BOT_TOKEN environment variable not found!")
-        logger.info("Please set your Discord bot token in the environment variables.")
-        return
+    # Database Settings
+    DATABASE_PATH: str = os.getenv('DATABASE_PATH', 'database/economy.db')
     
-    # Create and run bot
-    bot = EnhancedUnbelievaBot()
+    # Economy Settings
+    DEFAULT_BALANCE: int = int(os.getenv('DEFAULT_BALANCE', '1000'))
+    DEFAULT_CURRENCY: str = os.getenv('CURRENCY_EMOJI', '💰')
+    MAX_BET: int = int(os.getenv('MAX_BET', '1000000'))
+    MIN_BET: int = int(os.getenv('MIN_BET', '10'))
     
-    try:
-        await bot.start(token)
-    except KeyboardInterrupt:
-        logger.info("Bot shutdown requested by user")
-        await bot.close()
-    except Exception as e:
-        logger.error(f"Fatal error: {e}")
-        await bot.close()
-
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        logger.info("Bot shutdown")
+    # Income Settings
+    WORK_COOLDOWN: int = int(os.getenv('WORK_COOLDOWN', '300'))  # 5 minutes
+    CRIME_COOLDOWN: int = int(os.getenv('CRIME_COOLDOWN', '600'))  # 10 minutes
+    SLUT_COOLDOWN: int = int(os.getenv('SLUT_COOLDOWN', '900'))  # 15 minutes
+    ROB_COOLDOWN: int = int(os.getenv('ROB_COOLDOWN', '1200'))  # 20 minutes
+    
+    # Gambling Settings  
+    BLACKJACK_COOLDOWN: int = int(os.getenv('BLACKJACK_COOLDOWN', '30'))
+    ROULETTE_COOLDOWN: int = int(os.getenv('ROULETTE_COOLDOWN', '60'))
+    
+    # Leveling Settings
+    XP_PER_MESSAGE: int = int(os.getenv('XP_PER_MESSAGE', '15'))
+    XP_COOLDOWN: int = int(os.getenv('XP_COOLDOWN', '60'))  # 1 minute
+    PASSIVE_CHAT_INCOME: int = int(os.getenv('PASSIVE_CHAT_INCOME', '5'))
+    
+    # Admin Settings
+    ADMIN_ROLE_NAME: str = os.getenv('ADMIN_ROLE_NAME', 'botmaster')
+    
+    # Moderation Settings
+    MAX_WARNS_BEFORE_ACTION: int = int(os.getenv('MAX_WARNS', '3'))
+    DEFAULT_MUTE_DURATION: int = int(os.getenv('DEFAULT_MUTE_DURATION', '600'))  # 10 minutes
+    
+    # Error Messages
+    ERROR_MESSAGES = {
+        'insufficient_funds': "You don't have enough money for this action!",
+        'invalid_amount': "Please provide a valid amount!",
+        'user_not_found': "User not found in the database!",
+        'item_not_found': "Item not found!",
+        'no_permission': "You don't have permission to use this command!",
+        'cooldown_active': "This command is on cooldown. Please wait before using it again.",
+        'database_error': "A database error occurred. Please try again later.",
+        'invalid_bet': f"Bet must be between {MIN_BET:,} and {MAX_BET:,}!",
+    }
+    
+    # Success Messages  
+    SUCCESS_MESSAGES = {
+        'money_added': "Money successfully added to {user}'s account!",
+        'money_removed': "Money successfully removed from {user}'s account!",
+        'item_created': "Item '{item}' successfully created!",
+        'item_given': "Item '{item}' given to {user}!",
+        'role_updated': "Income role successfully updated!",
+    }
+    
+    @classmethod
+    def get_currency_display(cls, amount: int) -> str:
+        """Format currency for display"""
+        return f"{cls.DEFAULT_CURRENCY} {amount:,}"
+    
+    @classmethod
+    def validate_bet(cls, amount: int) -> bool:
+        """Validate if bet amount is within limits"""
+        return cls.MIN_BET <= amount <= cls.MAX_BET

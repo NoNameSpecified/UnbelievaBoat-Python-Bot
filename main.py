@@ -17,6 +17,9 @@ from pathlib import Path
 import discord
 from discord.ext import commands
 
+# Create logs directory if it doesn't exist
+Path("logs").mkdir(exist_ok=True)
+
 # Import configuration and database
 from config import BotConfig
 from database.manager import DatabaseManager
@@ -30,9 +33,6 @@ logging.basicConfig(
         logging.StreamHandler(sys.stdout)
     ]
 )
-
-# Create logs directory if it doesn't exist
-Path("logs").mkdir(exist_ok=True)
 
 logger = logging.getLogger(__name__)
 
@@ -57,13 +57,17 @@ class EnhancedUnbelievaBot(commands.Bot):
         self.config = BotConfig
         self.db = None
         self.initial_extensions = [
-            'cogs.economy',
+            'cogs.economy.balance',
+            'cogs.economy.income', 
+            'cogs.economy.transactions',
             'cogs.gambling', 
             'cogs.admin',
             'cogs.items',
             'cogs.levels',
             'cogs.moderation',
-            'cogs.utilities'
+            'cogs.utilities',
+            'cogs.help_system',
+            'cogs.settings'
         ]
         
     async def setup_hook(self):
@@ -93,9 +97,11 @@ class EnhancedUnbelievaBot(commands.Bot):
     
     async def on_ready(self):
         """Called when bot is ready and logged in"""
-        logger.info(f"{self.user.name} (ID: {self.user.id}) is ready!")
-        logger.info(f"Connected to {len(self.guilds)} guilds")
-        logger.info(f"Serving {sum(guild.member_count for guild in self.guilds)} users")
+        if self.user:
+            logger.info(f"{self.user.name} (ID: {self.user.id}) is ready!")
+            logger.info(f"Connected to {len(self.guilds)} guilds")
+            total_members = sum(guild.member_count or 0 for guild in self.guilds)
+            logger.info(f"Serving {total_members} users")
         
         # Set bot status
         activity = discord.Game(name=f"{BotConfig.PREFIX}help | Economy & Fun!")
@@ -106,12 +112,13 @@ class EnhancedUnbelievaBot(commands.Bot):
         logger.info(f"Joined new guild: {guild.name} (ID: {guild.id}) with {guild.member_count} members")
         
         # Initialize guild settings in database
-        await self.db.initialize_guild(guild.id)
+        if self.db:
+            await self.db.initialize_guild(guild.id)
         
         # Send welcome message to setup channel if configured
-        if BotConfig.SETUP_CHANNEL_ID:
+        if BotConfig.SETUP_CHANNEL_ID and self.user:
             channel = self.get_channel(BotConfig.SETUP_CHANNEL_ID)
-            if channel:
+            if channel and hasattr(channel, 'send'):
                 embed = discord.Embed(
                     title="🎉 Thank you for adding me!",
                     description=(
