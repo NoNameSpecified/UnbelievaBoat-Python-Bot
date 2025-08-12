@@ -6,16 +6,17 @@ from typing import List, Optional
 
 class BotConfig:
     """Central configuration for the bot"""
-    
+    # Bot Token
+    Token = "Put your Discord bot token here"
     # Bot Settings
     PREFIX: str = '+'
     BOT_VERSION: str = "3.0.0"
     BOT_NAME: str = "Enhanced UnbelievaBoat"
     
     # Discord Settings
-    SYNC_COMMANDS_ON_STARTUP: bool = False
-    SETUP_CHANNEL_ID: Optional[int] = None
-    
+    SYNC_COMMANDS_ON_STARTUP: bool = False  # This will sync commands with Discord on startup
+    SETUP_CHANNEL_ID: Optional[int] = None  # Channel ID for setup messages
+
     # Database Settings
     DATABASE_PATH: str = 'database/economy.db'
     

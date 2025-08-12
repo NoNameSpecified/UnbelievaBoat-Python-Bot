@@ -16,7 +16,7 @@ from pathlib import Path
 
 import discord
 from discord.ext import commands
-
+from config import BotConfig
 # Create logs directory if it doesn't exist
 Path("logs").mkdir(exist_ok=True)
 
@@ -193,7 +193,7 @@ class EnhancedUnbelievaBot(commands.Bot):
 async def main():
     """Main entry point"""
     # Check if token is provided
-    token = os.getenv('DISCORD_BOT_TOKEN')
+    token = BotConfig.Token
     if not token:
         logger.error("DISCORD_BOT_TOKEN environment variable not found!")
         logger.info("Please set your Discord bot token in the environment variables.")
