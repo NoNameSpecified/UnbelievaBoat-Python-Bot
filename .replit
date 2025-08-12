@@ -1,0 +1,29 @@
+modules = ["python-3.11"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Discord Bot Server"
+
+[[workflows.workflow]]
+name = "Discord Bot Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python -m pip install --upgrade pip && pip install discord.py aiosqlite && python main.py"
+
+[workflows.workflow.metadata]
+outputType = "console"
