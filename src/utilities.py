@@ -295,7 +295,7 @@ class SkenderUtilities:
 			sec_embed.set_footer(text=footer)
 		await ctx.channel.send(embed=sec_embed)
 
-		security_check_input = await self.get_user_input(ctx.message)
+		security_check_input = await self.get_user_input(ctx)
 		if security_check_input.strip().lower() not in ["yes", "y"]:
 			await ctx.channel.send(f"{self.emoji_error}  Cancelled command.")
 			return False
