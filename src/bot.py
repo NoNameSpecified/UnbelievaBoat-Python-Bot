@@ -2031,15 +2031,13 @@ class SkenderBot:
 		# need confirmation, especially in case they want to purge their database
 		# right after the update to SkenderBot.
 		confirmed = await self.utils.confirm_command(ctx,
-					description="This will permanently delete all user instances "
-					"that left the server! If you're using version **2.0** of the bot (first release after upgrade "
-					"to the new database system), please consider making a **backup** of the database file."
+					description="This will permanently delete all user instances that left the server!"
 				 	"\nDo you wish to continue? [y/N]")
 		if not confirmed:
 			return
 
 		try:
-			status, err_msg = await self.db_handler.clean_database(ctx)
+			status, err_msg = await self.db_handler.clean_database(ctx.server)
 			if status == "error":
 				await self.utils.send_error_report(ctx, err_msg)
 				return
