@@ -3302,28 +3302,48 @@ class SkenderDatabaseHandler:
 	#
 
 	async def clean_database(self, server):
-		# we will remove all users from the users table but also from the income roles table.
-		amount_removed = 0
+		# we will remove all users from the users table
+		# + from user items and user used items.
+		# info: we have ON DELETE CASCADE set for the tables but there can still be incoherences between
+		# the table users and the other tables, so we will run 3 times total for 3 tables.
 
 		# all members who are currently on the server
 		# using a set comprehension (only adds each ID once; could also use list comprehension tho, since ID is unique)
-		current_member_id = {str(member.id) for member in server.members}
-		# all users who are registered in the bot.
+		all_current_members_id = {member.id for member in server.members}
+
+		# all users from users table.
 		# fetchall() returns a tuple, so we will only use (id, ) later.
 		all_users_id = self.execute("SELECT user_id FROM users").fetchall()
+
+		# all users from user_items table
+		all_user_items_id = self.execute("SELECT user_id FROM user_items").fetchall()
+
+		# all users from user_used_items table
+		all_user_used_items_id = self.execute("SELECT user_id FROM user_used_items").fetchall()
+
 		# will be a list of tuples for executemany at the end.
-		users_to_remove = []
+		# set instead of list to have every ID just once (else a lot would double/triple because we have 3 runs)
+		users_to_remove = set()
 		# run through the list
-		for (user_id, ) in all_users_id:
-			if user_id not in current_member_id:
-				# pass as tuple executemany awaits a list of tuples and not just a list.
-				users_to_remove.append( (user_id, ))
-				amount_removed +=1
+
+		for target_list in [all_users_id, all_user_items_id, all_user_used_items_id]:
+			for (user_id, ) in target_list:
+				if user_id not in all_current_members_id:
+					# pass as tuple executemany awaits a list of tuples and not just a list.
+					users_to_remove.add( (user_id, ))
 
 		# update database.
-		# Thanks to ON DELETE CASCADE, this will also remove their entries in user_items and user_used_items
-		query = "DELETE FROM users WHERE user_id = ?"
-		await self.executemany_by_chunks(query, users_to_remove)
+		amount_removed = len(users_to_remove)
+
+		queries = [
+			"DELETE FROM users WHERE user_id = ?",
+			"DELETE FROM user_items WHERE user_id = ?",
+			"DELETE FROM user_used_items WHERE user_id = ?"
+		]
+		# turn set to list again
+		users_to_remove = list(users_to_remove)
+		for query in queries:
+			await self.executemany_by_chunks(query, users_to_remove)
 
 		# close, return the amount of users removed
 		return "success", amount_removed
