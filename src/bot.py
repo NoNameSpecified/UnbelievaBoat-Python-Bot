@@ -1249,7 +1249,7 @@ class SkenderBot:
 
 				first_embed.add_field(name="Max per transaction", value=f"{max_amount_per_transaction}")
 				first_embed.set_footer(text="Type cancel to quit or skip to skip this option")
-				next_info = ("`7` What role(s) must the user already have in order to buy this item?\n"
+				next_info = ("`8` What role(s) must the user already have in order to buy this item?\n"
 							 "If none, just reply `skip`. For multiple, ping the roles with a space between them.")
 				await last_report.edit(content=next_info, embed=first_embed)
 				checkpoints += 1
@@ -1819,6 +1819,9 @@ class SkenderBot:
 			income_role = await self.utils.check_if_role_exists(ctx, ctx.param[1])
 			if income_role is None:
 				return
+
+			# still need to get the ID now
+			income_role = self.utils.get_role_id_single(role_parameter)
 
 			amount = await self.utils.check_amount_parameter(ctx, ctx.param[2], usage, mode="strict")
 			if amount is None: return
