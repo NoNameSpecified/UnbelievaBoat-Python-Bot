@@ -1,32 +1,33 @@
 # UnbelievaBoat-like Discord Bot in Python (aka _Skender_)
 
 ### Questions, bug reports or need help with setup ?
-Feel free to reach out to me on Discord at **<kendrik2.0>**
+Feel free to reach out to me on Discord at **@kendrik2.0**
 
-## Current version Notice:
-Update on 19.07.25: delay for gambling switched to seconds, please update in your database if needed.
-#### For changed files, see `version-info.md`.
-- 🔧 Skender v2.2 (bug fixes) released on 23.06.2025.
-- Skender v2.0 was released on 11.06.2025 (european time format). Please take a look at `version-info.md`, especially if you used the JSON version before !
+## Current version Notice:  
+#### Currently working on Skender v3, but this will still take some time. If you have recommendations, feel free to hit me up !
 
-🛠️ Please read `command-list.md`. It includes a list of all available commands with explanations and tips.
+To keep your bot version up to date with released updates, see `version-info.md`.  
+#### Please read `command-list.md`. It includes a list of all available commands with explanations and tips.
 
 ---
 
 ## Official repo:
 https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot  
-You're free to do anything with the code, but please keep a link to the original (see License Section 2).
+You're free to do anything with the code, but please keep a link to the original repo if you publish yours (see License Section 2).
 
 ---
 
-## 📣 Info:
-The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho).  
-With time, a lot of functionalities were added.  
-I don't know what exactly the normal Unbelievaboat includes nowadays, but you can check out `command-list.md`
+## 🎯 Info and Goal:
+Skender emerged from the problem of UB having a balance ceiling and no automated role-income increasing to user's balances, so I rewrote it in python and fixed that.   
+The goal was to create an **easily customizable python template** for a Discord bot, so that users can modify the code to fit their needs and build upon it.  
+
+The Bot uses most of UnbelievaBoat's commands for minigames and economy (not moderation tho). After the first basic version,
+ I didn't look at UB anymore and added functionalities based on recommendations from users.   
+So, I don't know what exactly the "normal" Unbelievaboat includes nowadays, but you can check out `command-list.md` to see what Skender comes with.
 
 ---
 
-## 🌱 Install & Use
+## 🏁 Install and Use
 1. Create a Discord Application for your bot (see https://youtu.be/b61kcgfOm_4, [Discord Developer Portal](https://discord.com/developers/applications))
 2. In the "Bot" section of the Discord Developer Portal, **enable Presence Intent**, **Server Members Intent**, and **Message Content Intent**.
 3. Download the code and ensure the directory structure is preserved.
@@ -40,16 +41,9 @@ I don't know what exactly the normal Unbelievaboat includes nowadays, but you ca
 
 You will be guided through the rest of the setup.  
 Please take the customizable lines in `main.py` seriously, including the setup channel ID.  
-You can browse the database by using a tool like [SQLite Browser](https://sqlitebrowser.org), but be careful when editing 
+You can browse the database by using a tool like [SQLite Browser](https://sqlitebrowser.org), but be careful when editing
 variables directly through a SQLite browser, since it may interfere with the bot usage (especially for JSON strings in the database).
 
----
-
-## 🎯 Goal
-It emerged from the problem of UB having a balance ceiling and no automated role-income increasing to user's balances.  
-Obviously it's way bigger now.  
-The goal was to create an **easily customizable template** for a Discord bot, also addressing the issues mentioned above.  
-Another goal is to have the bot written in Python, so that users can easily modify the code to fit their needs.
 
 ---
 
@@ -64,4 +58,3 @@ If you have any questions, reach out to me via discord (see above).
 
 ## 🎉 Enjoy customizing and using the bot !
 Feel free to share feedback, bug reports, and suggestions !
-
