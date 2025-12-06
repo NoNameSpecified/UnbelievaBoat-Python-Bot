@@ -4,7 +4,9 @@
 Feel free to reach out to me on Discord at **@kendrik2.0**
 
 ## Current version Notice:  
-#### Currently working on Skender v3, but this will still take some time. If you have recommendations, feel free to hit me up !
+#### Currently working on Skender v3, but this will still take some time.
+See [v2 release announcement](https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot/releases/tag/v2-legacy-version) for more.  
+If you have recommendations, feel free to hit me up !
 
 To keep your bot version up to date with released updates, see `version-info.md`.  
 #### Please read `command-list.md`. It includes a list of all available commands with explanations and tips.
@@ -57,4 +59,5 @@ If you have any questions, reach out to me via discord (see above).
 ---
 
 ## 🎉 Enjoy customizing and using the bot !
-Feel free to share feedback, bug reports, and suggestions !
+Feel free to share feedback, bug reports, and suggestions !  
+Btw: if use this bot for your server, you can let me know if you want (just message me on discord), I'd be happy to see people using it !
