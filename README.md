@@ -6,6 +6,8 @@ Feel free to reach out to me on Discord at **@kendrik2.0**
 ## Current version Notice:  
 #### Currently working on Skender v3, but this will still take some time.
 See [v2 release announcement](https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot/releases/tag/v2-legacy-version) for more.  
+Development status info (2026-01-03): The v3 update will include a lot of new features and reworked functioning of the bot, sadly this
+also means that the release will take more time  until everything is implemented correctly.  
 If you have recommendations, feel free to hit me up !
 
 To keep your bot version up to date with released updates, see `version-info.md`.  
