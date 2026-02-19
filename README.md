@@ -1,11 +1,14 @@
 # UnbelievaBoat-like Discord Bot in Python (aka _Skender_)
 
 ### Questions, bug reports or need help with setup ?
-Feel free to reach out to me on Discord at **@kendrik2.0**
+Feel free to reach out to me on Discord at **@kendrik.github**
 
 ## Current version Notice:  
 #### Currently working on Skender v3, but this will still take some time.
-See [v2 release announcement](https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot/releases/tag/v2-legacy-version) for more.  
+See [v2 release announcement](https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot/releases/tag/v2-legacy-version) for more.
+- Development status info (2026-02-19): Just as information, I really enjoy working on this, but I have very important exams coming up in May.
+So I took the decision to [pause development on this until then](https://media1.tenor.com/m/rUtP4e56S2wAAAAC/lock-in-silly-cat.gif) and continue after.  
+
 Development status info (2026-01-03): The v3 update will include a lot of new features and reworked functioning of the bot, sadly this
 also means that the release will take more time  until everything is implemented correctly.  
 If you have recommendations, feel free to hit me up !
