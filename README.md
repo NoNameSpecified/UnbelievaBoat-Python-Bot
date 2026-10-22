@@ -4,7 +4,11 @@
 Feel free to reach out to me on Discord at **@kendrik.github**
 
 ## Current version Notice:  
-#### Currently working on Skender v3, but this will still take some time.
+#### 2026-10-22 notice:
+I started working on the v3 update some time ago, but had to pause it as explained below, planning on re-working on it afterwards. However, I don't know how much sense that makes in a time where everyone can probably build this using AI or use this code and just tweak it to their needs using AI, faster than I could ever update (and since this is a hobby project, I would like to build it without prompt-coding it).
+So, currently I don't have a timeline for the next update. I would like to make it some day, but it's not a priority for now. If you feel like you could use an update before that waittime, you can reach out to me as usual.
+
+#### (previous notice): Currently working on Skender v3, but this will still take some time.
 See [v2 release announcement](https://github.com/NoNameSpecified/UnbelievaBoat-Python-Bot/releases/tag/v2-legacy-version) for more.
 - Development status info (2026-02-19): Just as information, I really enjoy working on this, but I have very important exams coming up in May.
 So I took the decision to [pause development on this until then](https://media1.tenor.com/m/rUtP4e56S2wAAAAC/lock-in-silly-cat.gif) and continue after.  
